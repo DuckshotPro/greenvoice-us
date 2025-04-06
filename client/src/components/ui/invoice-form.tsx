@@ -103,34 +103,49 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
   
   // Update item fields and handle bidirectional calculations
   const updateItem = (index: number, field: keyof LineItem, value: any) => {
+    // Ensure value is a valid number
+    const numericValue = typeof value === 'number' ? value : parseFloat(value) || 0;
+    
     const newItems = [...items];
     
-    // Update the field
-    newItems[index] = {
-      ...newItems[index],
-      [field]: value,
-    };
+    // Make a copy of the current item to work with
+    const updatedItem = { ...newItems[index] };
+    
+    // Update the specified field with the new value
+    updatedItem[field] = numericValue;
     
     // Handle different update scenarios
     if (field === 'quantity' || field === 'rate') {
       // If quantity or rate changed, recalculate amount
-      const quantity = field === 'quantity' ? value : newItems[index].quantity;
-      const rate = field === 'rate' ? value : newItems[index].rate;
-      newItems[index].amount = quantity * rate;
+      // Ensure we're using the updated values, not the old ones
+      const quantity = updatedItem.quantity;
+      const rate = updatedItem.rate;
+      
+      // Calculate and round to 2 decimal places
+      updatedItem.amount = Math.round((quantity * rate) * 100) / 100;
     } else if (field === 'amount') {
       // If amount changed, update quantity based on rate (if rate is non-zero)
-      const rate = newItems[index].rate;
+      const rate = updatedItem.rate;
+      
       if (rate > 0) {
         // Calculate new quantity based on amount ÷ rate
-        const newQuantity = value / rate;
+        const newQuantity = numericValue / rate;
         // Round to 2 decimal places for better usability
-        newItems[index].quantity = Math.round(newQuantity * 100) / 100;
+        updatedItem.quantity = Math.round(newQuantity * 100) / 100;
       } else {
-        // If rate is zero, set quantity to 0 to avoid division by zero
-        newItems[index].quantity = 0;
+        // If rate is zero, set rate to 1 and quantity to amount
+        if (numericValue > 0) {
+          updatedItem.rate = 1;
+          updatedItem.quantity = numericValue;
+        } else {
+          // If amount is also zero, just set quantity to 0
+          updatedItem.quantity = 0;
+        }
       }
     }
     
+    // Update the item in the array
+    newItems[index] = updatedItem;
     setItems(newItems);
     
     // Recalculate totals
