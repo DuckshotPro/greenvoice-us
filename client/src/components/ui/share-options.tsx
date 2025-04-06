@@ -238,7 +238,8 @@ const ShareOptions = ({ invoice, invoicePreviewRef, shareUrl }: ShareOptionsProp
                 <DialogHeader>
                   <DialogTitle>Send Invoice via Email</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-4 py-4">
+                <div className="space-y-4 py-4" aria-describedby="email-form-description">
+                  <p id="email-form-description" className="sr-only">Email form for sending invoice</p>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700">Recipient Email</label>
                     <Input

@@ -31,11 +31,14 @@ const Home = () => {
             </p>
             <div className="mt-10 max-w-sm mx-auto sm:max-w-none sm:flex sm:justify-center">
               <div className="space-y-4 sm:space-y-0 sm:mx-auto sm:inline-grid sm:grid-cols-2 sm:gap-5">
-                <Link href="/create-invoice">
-                  <a className="flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-accent hover:bg-accent/90 sm:px-8">
+                <Button 
+                  asChild
+                  className="flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-accent hover:bg-accent/90 sm:px-8"
+                >
+                  <Link href="/create-invoice">
                     Create Invoice
-                  </a>
-                </Link>
+                  </Link>
+                </Button>
                 <a href="#features" className="flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md text-primary bg-white hover:bg-gray-50 sm:px-8">
                   Learn More
                 </a>
@@ -107,11 +110,14 @@ const Home = () => {
                 Join thousands of businesses who trust InvoiceFlow for their invoicing needs.
               </p>
               <div className="mt-8">
-                <Link href="/create-invoice">
-                  <a className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary/90">
+                <Button 
+                  asChild
+                  className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary/90"
+                >
+                  <Link href="/create-invoice">
                     Get Started <ArrowRight className="ml-2 h-4 w-4" />
-                  </a>
-                </Link>
+                  </Link>
+                </Button>
               </div>
             </div>
           </div>
