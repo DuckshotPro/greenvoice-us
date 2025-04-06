@@ -207,14 +207,19 @@ export class MemStorage implements IStorage {
     const id = this.invoiceCurrentId++;
     const shareableLink = `${nanoid(10)}`;
     
-    // Ensure required fields are present
+    // Ensure required fields are present with fallbacks for optional values
     const invoice: Invoice = { 
       ...insertInvoice, 
       id, 
       shareableLink,
       createdAt: new Date(),
-      // Ensure currency is always defined (fallback to USD if missing)
-      currency: insertInvoice.currency || "USD"
+      // Ensure required fields have fallbacks
+      currency: insertInvoice.currency || "USD",
+      taxRate: insertInvoice.taxRate ?? 0,
+      taxAmount: insertInvoice.taxAmount ?? 0,
+      subtotal: insertInvoice.subtotal ?? 0,
+      total: insertInvoice.total ?? 0,
+      notes: insertInvoice.notes ?? null
     };
     
     this.invoices.set(id, invoice);
@@ -248,9 +253,16 @@ export class MemStorage implements IStorage {
       return undefined;
     }
     
+    // Ensure that all required fields have fallbacks
     const updatedInvoice: Invoice = { 
       ...existingInvoice, 
-      ...invoiceUpdate 
+      ...invoiceUpdate,
+      // Make sure these are always defined even after update
+      taxRate: invoiceUpdate.taxRate ?? existingInvoice.taxRate ?? 0,
+      taxAmount: invoiceUpdate.taxAmount ?? existingInvoice.taxAmount ?? 0,
+      subtotal: invoiceUpdate.subtotal ?? existingInvoice.subtotal ?? 0,
+      total: invoiceUpdate.total ?? existingInvoice.total ?? 0,
+      notes: invoiceUpdate.notes ?? existingInvoice.notes ?? null
     };
     
     this.invoices.set(id, updatedInvoice);
