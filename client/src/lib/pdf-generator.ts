@@ -10,333 +10,141 @@ declare module 'jspdf' {
   }
 }
 
+// Create a simpler PDF generator that only shows essential information
 export const generatePDF = (invoice: Invoice): string => {
   try {
     const doc = new jsPDF();
+    const items = Array.isArray(invoice.items) ? invoice.items : [];
     
-    // Set document properties
-    doc.setProperties({
-      title: `Invoice-${invoice.invoiceNumber}`,
-      author: invoice.senderName || 'InvoiceFlow',
-      subject: `Invoice for ${invoice.clientName}`,
-      keywords: 'invoice, bill',
-      creator: 'InvoiceFlow'
-    });
+    // Set up fonts
+    doc.setFont('helvetica');
     
-    // Add fonts and styling
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    
-    // Start with sender information
-    doc.setFontSize(20);
-    doc.setTextColor(59, 130, 246); // Primary color
-    doc.text(invoice.senderName || 'Sender', 14, 22);
-    
-    // Reset text color
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(10);
-    
-    // Sender details - safely handle address with empty fallback
-    const senderAddressLines = (invoice.senderAddress || '').split('\n');
-    let y = 30;
-    
-    senderAddressLines.forEach(line => {
-      doc.text(line, 14, y);
-      y += 5;
-    });
-    
-    doc.text(invoice.senderEmail || '', 14, y);
-    y += 5;
-    doc.text(invoice.senderPhone || '', 14, y);
-    
-    // Add INVOICE text
+    // Title
     doc.setFontSize(24);
-    doc.setTextColor(59, 130, 246); // Primary color
-    doc.text('INVOICE', 140, 22, { align: 'right' });
+    doc.text('INVOICE', 105, 20, { align: 'center' });
     
-    // Reset text color
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(10);
-    
-    // Invoice details on right
-    doc.text(`Invoice #: ${invoice.invoiceNumber || 'N/A'}`, 140, 32, { align: 'right' });
-    doc.text(`Date: ${formatDate(invoice.issueDate)}`, 140, 37, { align: 'right' });
-    doc.text(`Due Date: ${formatDate(invoice.dueDate)}`, 140, 42, { align: 'right' });
-    
-    // Add line
-    doc.setDrawColor(200, 200, 200);
-    doc.line(14, 55, 196, 55);
-    
-    // Client information
+    // Invoice details
     doc.setFontSize(12);
-    doc.text('Bill To:', 14, 65);
+    doc.text(`Invoice Number: ${invoice.invoiceNumber || 'N/A'}`, 20, 40);
+    doc.text(`Date: ${formatDate(invoice.issueDate)}`, 20, 50);
+    doc.text(`Due Date: ${formatDate(invoice.dueDate)}`, 20, 60);
     
-    doc.setFontSize(11);
-    doc.text(invoice.clientName || 'Client', 14, 72);
+    // From / To
+    doc.setFontSize(14);
+    doc.text('From:', 20, 80);
+    doc.setFontSize(12);
+    doc.text(invoice.senderName || 'Sender', 20, 90);
     
-    doc.setFontSize(10);
-    const clientAddressLines = (invoice.clientAddress || '').split('\n');
-    y = 79;
+    doc.setFontSize(14);
+    doc.text('To:', 120, 80);
+    doc.setFontSize(12);
+    doc.text(invoice.clientName || 'Client', 120, 90);
     
-    clientAddressLines.forEach(line => {
-      doc.text(line, 14, y);
-      y += 5;
-    });
-    
-    doc.text(invoice.clientEmail || '', 14, y);
-    
-    // Line items table - ensure items array exists
-    const tableColumn = ['Description', 'Quantity', 'Rate', 'Amount'];
-    const tableRows: string[][] = [];
-    
-    // Safely handle items array
-    if (invoice.items && Array.isArray(invoice.items)) {
-      invoice.items.forEach((item: LineItem) => {
-        const formattedRow = [
-          item.description || 'Item',
-          (item.quantity || 0).toString(),
-          formatCurrency(item.rate || 0, invoice.currency),
-          formatCurrency(item.amount || 0, invoice.currency),
-        ];
-        tableRows.push(formattedRow);
-      });
-    }
-    
-    // Add empty row if no items
-    if (tableRows.length === 0) {
-      tableRows.push(['No items', '0', formatCurrency(0, invoice.currency), formatCurrency(0, invoice.currency)]);
-    }
+    // Table for items
+    const tableColumn = ['Description', 'Qty', 'Rate', 'Amount'];
+    const tableRows = items.map(item => [
+      item.description || '',
+      (item.quantity || 0).toString(),
+      formatCurrency(item.rate || 0, invoice.currency),
+      formatCurrency(item.amount || 0, invoice.currency)
+    ]);
     
     doc.autoTable({
       head: [tableColumn],
-      body: tableRows,
-      startY: 100,
+      body: tableRows.length ? tableRows : [['No items', '', '', '']],
+      startY: 110,
       theme: 'grid',
-      styles: { fontSize: 9, cellPadding: 4 },
-      headStyles: { 
-        fillColor: [59, 130, 246],
-        textColor: [255, 255, 255],
-        fontStyle: 'bold'
+      styles: {
+        fontSize: 10
       },
-      columnStyles: {
-        0: { cellWidth: 'auto' },
-        1: { cellWidth: 30, halign: 'center' },
-        2: { cellWidth: 30, halign: 'right' },
-        3: { cellWidth: 30, halign: 'right' },
-      },
-      didDrawPage: (data: any) => {
-        // Footer on each page
-        doc.setFontSize(8);
-        doc.text(
-          'Invoice generated by InvoiceFlow',
-          data.settings.margin.left,
-          doc.internal.pageSize.height - 10
-        );
+      headStyles: {
+        fillColor: [100, 100, 100]
       }
     });
     
-    // Calculate the Y position after the table
-    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    // Summary
+    const finalY = (doc as any).lastAutoTable.finalY + 20;
     
-    // Add summary info
-    doc.text(`Subtotal:`, 140, finalY, { align: 'right' });
-    doc.text(formatCurrency(invoice.subtotal || 0, invoice.currency), 190, finalY, { align: 'right' });
+    doc.text('Summary:', 130, finalY);
+    doc.text(`Subtotal: ${formatCurrency(invoice.subtotal || 0, invoice.currency)}`, 130, finalY + 10);
+    doc.text(`Tax (${invoice.taxRate || 0}%): ${formatCurrency(invoice.taxAmount || 0, invoice.currency)}`, 130, finalY + 20);
+    doc.text(`Total: ${formatCurrency(invoice.total || 0, invoice.currency)}`, 130, finalY + 30);
     
-    doc.text(`Tax (${invoice.taxRate || 0}%):`, 140, finalY + 5, { align: 'right' });
-    doc.text(formatCurrency(invoice.taxAmount || 0, invoice.currency), 190, finalY + 5, { align: 'right' });
-    
-    // Add total
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Total:`, 140, finalY + 12, { align: 'right' });
-    doc.setTextColor(59, 130, 246); // Primary color
-    doc.text(formatCurrency(invoice.total || 0, invoice.currency), 190, finalY + 12, { align: 'right' });
-    
-    // Reset font
-    doc.setTextColor(0, 0, 0);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    
-    // Add notes - safely handle notes with empty fallback
-    if (invoice.notes) {
-      doc.setFontSize(11);
-      doc.text('Notes:', 14, finalY + 25);
-      doc.setFontSize(10);
-      doc.text(invoice.notes, 14, finalY + 32);
-    }
-    
-    // Return the PDF as a data URL
     return doc.output('datauristring');
   } catch (error) {
-    console.error('Error generating PDF data URL:', error);
-    // Return an empty data URL in case of error
-    throw new Error('Failed to generate PDF data URL');
+    console.error('Error generating PDF:', error);
+    throw new Error('PDF generation failed');
   }
 };
 
+// Simplified PDF download function
 export const downloadPDF = (invoice: Invoice): void => {
   try {
-    // Create a new PDF document
+    // Create a basic PDF
     const doc = new jsPDF();
+    const items = Array.isArray(invoice.items) ? invoice.items : [];
     
-    // Set document properties
-    doc.setProperties({
-      title: `Invoice-${invoice.invoiceNumber}`,
-      author: invoice.senderName || 'InvoiceFlow',
-      subject: `Invoice for ${invoice.clientName}`,
-      keywords: 'invoice, bill',
-      creator: 'InvoiceFlow'
-    });
+    // Set up fonts
+    doc.setFont('helvetica');
     
-    // Add fonts and styling
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    
-    // Start with sender information
-    doc.setFontSize(20);
-    doc.setTextColor(59, 130, 246); // Primary color
-    doc.text(invoice.senderName, 14, 22);
-    
-    // Reset text color
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(10);
-    
-    // Sender details - safely handle address with empty fallback
-    const senderAddressLines = (invoice.senderAddress || '').split('\n');
-    let y = 30;
-    
-    senderAddressLines.forEach(line => {
-      doc.text(line, 14, y);
-      y += 5;
-    });
-    
-    doc.text(invoice.senderEmail || '', 14, y);
-    y += 5;
-    doc.text(invoice.senderPhone || '', 14, y);
-    
-    // Add INVOICE text
+    // Title
     doc.setFontSize(24);
-    doc.setTextColor(59, 130, 246); // Primary color
-    doc.text('INVOICE', 140, 22, { align: 'right' });
+    doc.text('INVOICE', 105, 20, { align: 'center' });
     
-    // Reset text color
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(10);
-    
-    // Invoice details on right
-    doc.text(`Invoice #: ${invoice.invoiceNumber}`, 140, 32, { align: 'right' });
-    doc.text(`Date: ${formatDate(invoice.issueDate)}`, 140, 37, { align: 'right' });
-    doc.text(`Due Date: ${formatDate(invoice.dueDate)}`, 140, 42, { align: 'right' });
-    
-    // Add line
-    doc.setDrawColor(200, 200, 200);
-    doc.line(14, 55, 196, 55);
-    
-    // Client information
+    // Invoice details
     doc.setFontSize(12);
-    doc.text('Bill To:', 14, 65);
+    doc.text(`Invoice Number: ${invoice.invoiceNumber || 'N/A'}`, 20, 40);
+    doc.text(`Date: ${formatDate(invoice.issueDate)}`, 20, 50);
+    doc.text(`Due Date: ${formatDate(invoice.dueDate)}`, 20, 60);
     
-    doc.setFontSize(11);
-    doc.text(invoice.clientName || 'Client', 14, 72);
+    // From / To
+    doc.setFontSize(14);
+    doc.text('From:', 20, 80);
+    doc.setFontSize(12);
+    doc.text(invoice.senderName || 'Sender', 20, 90);
     
-    doc.setFontSize(10);
-    const clientAddressLines = (invoice.clientAddress || '').split('\n');
-    y = 79;
+    doc.setFontSize(14);
+    doc.text('To:', 120, 80);
+    doc.setFontSize(12);
+    doc.text(invoice.clientName || 'Client', 120, 90);
     
-    clientAddressLines.forEach(line => {
-      doc.text(line, 14, y);
-      y += 5;
-    });
-    
-    doc.text(invoice.clientEmail || '', 14, y);
-    
-    // Line items table - ensure items array exists
-    const tableColumn = ['Description', 'Quantity', 'Rate', 'Amount'];
-    const tableRows: string[][] = [];
-    
-    // Safely handle items array
-    if (invoice.items && Array.isArray(invoice.items)) {
-      invoice.items.forEach((item: LineItem) => {
-        const formattedRow = [
-          item.description || 'Item',
-          (item.quantity || 0).toString(),
-          formatCurrency(item.rate || 0, invoice.currency),
-          formatCurrency(item.amount || 0, invoice.currency),
-        ];
-        tableRows.push(formattedRow);
-      });
-    }
-    
-    // Add empty row if no items
-    if (tableRows.length === 0) {
-      tableRows.push(['No items', '0', formatCurrency(0, invoice.currency), formatCurrency(0, invoice.currency)]);
-    }
+    // Table for items
+    const tableColumn = ['Description', 'Qty', 'Rate', 'Amount'];
+    const tableRows = items.map(item => [
+      item.description || '',
+      (item.quantity || 0).toString(),
+      formatCurrency(item.rate || 0, invoice.currency),
+      formatCurrency(item.amount || 0, invoice.currency)
+    ]);
     
     doc.autoTable({
       head: [tableColumn],
-      body: tableRows,
-      startY: 100,
+      body: tableRows.length ? tableRows : [['No items', '', '', '']],
+      startY: 110,
       theme: 'grid',
-      styles: { fontSize: 9, cellPadding: 4 },
-      headStyles: { 
-        fillColor: [59, 130, 246],
-        textColor: [255, 255, 255],
-        fontStyle: 'bold'
+      styles: {
+        fontSize: 10
       },
-      columnStyles: {
-        0: { cellWidth: 'auto' },
-        1: { cellWidth: 30, halign: 'center' },
-        2: { cellWidth: 30, halign: 'right' },
-        3: { cellWidth: 30, halign: 'right' },
-      },
-      didDrawPage: (data: any) => {
-        // Footer on each page
-        doc.setFontSize(8);
-        doc.text(
-          'Invoice generated by InvoiceFlow',
-          data.settings.margin.left,
-          doc.internal.pageSize.height - 10
-        );
+      headStyles: {
+        fillColor: [100, 100, 100]
       }
     });
     
-    // Calculate the Y position after the table
-    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    // Summary
+    const finalY = (doc as any).lastAutoTable.finalY + 20;
     
-    // Add summary info
-    doc.text(`Subtotal:`, 140, finalY, { align: 'right' });
-    doc.text(formatCurrency(invoice.subtotal || 0, invoice.currency), 190, finalY, { align: 'right' });
-    
-    doc.text(`Tax (${invoice.taxRate || 0}%):`, 140, finalY + 5, { align: 'right' });
-    doc.text(formatCurrency(invoice.taxAmount || 0, invoice.currency), 190, finalY + 5, { align: 'right' });
-    
-    // Add total
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Total:`, 140, finalY + 12, { align: 'right' });
-    doc.setTextColor(59, 130, 246); // Primary color
-    doc.text(formatCurrency(invoice.total || 0, invoice.currency), 190, finalY + 12, { align: 'right' });
-    
-    // Reset font
-    doc.setTextColor(0, 0, 0);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    
-    // Add notes
-    if (invoice.notes) {
-      doc.setFontSize(11);
-      doc.text('Notes:', 14, finalY + 25);
-      doc.setFontSize(10);
-      doc.text(invoice.notes, 14, finalY + 32);
-    }
+    doc.text('Summary:', 130, finalY);
+    doc.text(`Subtotal: ${formatCurrency(invoice.subtotal || 0, invoice.currency)}`, 130, finalY + 10);
+    doc.text(`Tax (${invoice.taxRate || 0}%): ${formatCurrency(invoice.taxAmount || 0, invoice.currency)}`, 130, finalY + 20);
+    doc.text(`Total: ${formatCurrency(invoice.total || 0, invoice.currency)}`, 130, finalY + 30);
     
     // Generate file name
-    const fileName = `Invoice-${invoice.invoiceNumber}-${invoice.clientName.replace(/\s+/g, '-')}.pdf`;
+    const fileName = `Invoice-${invoice.invoiceNumber || 'unknown'}.pdf`;
     
     // Download the PDF
     doc.save(fileName);
   } catch (error) {
-    console.error('Error generating PDF:', error);
-    throw new Error('Failed to generate PDF. Please try again.');
+    console.error('Error generating PDF for download:', error);
+    throw new Error('PDF download failed');
   }
 };
