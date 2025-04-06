@@ -462,6 +462,11 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                           step="0.01"
                           value={item.quantity}
                           onChange={(e) => updateItem(index, 'quantity', parseFloat(e.target.value) || 0)}
+                          onFocus={(e) => {
+                            if (parseFloat(e.target.value) === 0) {
+                              e.target.select();
+                            }
+                          }}
                         />
                       </div>
                       <div className="col-span-4 sm:col-span-2">
@@ -473,6 +478,11 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                           step="0.01"
                           value={item.rate}
                           onChange={(e) => updateItem(index, 'rate', parseFloat(e.target.value) || 0)}
+                          onFocus={(e) => {
+                            if (parseFloat(e.target.value) === 0) {
+                              e.target.select();
+                            }
+                          }}
                         />
                       </div>
                       <div className="col-span-3 sm:col-span-2">
@@ -484,6 +494,11 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                             step="0.01"
                             value={item.amount}
                             onChange={(e) => updateItem(index, 'amount', parseFloat(e.target.value) || 0)}
+                            onFocus={(e) => {
+                              if (parseFloat(e.target.value) === 0) {
+                                e.target.select();
+                              }
+                            }}
                             className="pr-8"
                           />
                           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
@@ -526,6 +541,11 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                         step="0.1"
                         value={form.getValues('taxRate')}
                         onChange={(e) => handleTaxRateChange(e.target.value)}
+                        onFocus={(e) => {
+                          if (parseFloat(e.target.value) === 0) {
+                            e.target.select();
+                          }
+                        }}
                       />
                       <span className="text-sm text-gray-600 ml-1">%</span>
                     </div>
