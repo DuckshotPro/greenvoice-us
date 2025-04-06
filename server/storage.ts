@@ -5,6 +5,8 @@ import {
   type InvoiceWithItems
 } from "@shared/schema";
 import { nanoid } from "nanoid";
+import { db } from "./db";
+import { eq, and } from "drizzle-orm";
 
 // Storage interface
 export interface IStorage {
@@ -30,6 +32,131 @@ export interface IStorage {
   deleteLineItemsByInvoiceId(invoiceId: number): Promise<boolean>;
 }
 
+export class DatabaseStorage implements IStorage {
+  // User methods
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+
+  // Invoice methods
+  async getInvoice(id: number): Promise<Invoice | undefined> {
+    const [invoice] = await db.select().from(invoices).where(eq(invoices.id, id));
+    return invoice;
+  }
+
+  async getInvoiceByNumber(invoiceNumber: string): Promise<Invoice | undefined> {
+    const [invoice] = await db.select().from(invoices).where(eq(invoices.invoiceNumber, invoiceNumber));
+    return invoice;
+  }
+
+  async createInvoice(insertInvoice: InsertInvoice): Promise<Invoice> {
+    const shareableLink = nanoid(10);
+    const [invoice] = await db.insert(invoices).values({
+      ...insertInvoice,
+      shareableLink,
+      // Ensure currency is always defined (fallback to USD if missing)
+      currency: insertInvoice.currency || "USD"
+    }).returning();
+    
+    return invoice;
+  }
+
+  async createInvoiceWithItems(invoiceWithItems: InvoiceWithItems): Promise<Invoice> {
+    // Extract items from the request
+    const { items, ...invoiceData } = invoiceWithItems;
+    
+    // Create the invoice first
+    const invoice = await this.createInvoice(invoiceData as InsertInvoice);
+    
+    // Create all the line items
+    if (items && items.length > 0) {
+      for (const item of items) {
+        await this.createLineItem({
+          ...item,
+          invoiceId: invoice.id
+        });
+      }
+    }
+    
+    return invoice;
+  }
+
+  async updateInvoice(id: number, invoiceUpdate: Partial<InsertInvoice>): Promise<Invoice | undefined> {
+    const [updatedInvoice] = await db.update(invoices)
+      .set(invoiceUpdate)
+      .where(eq(invoices.id, id))
+      .returning();
+    
+    return updatedInvoice;
+  }
+
+  async deleteInvoice(id: number): Promise<boolean> {
+    // Delete related line items first
+    await this.deleteLineItemsByInvoiceId(id);
+    
+    // Then delete the invoice
+    const [deletedInvoice] = await db.delete(invoices)
+      .where(eq(invoices.id, id))
+      .returning();
+    
+    return !!deletedInvoice;
+  }
+
+  async getAllInvoices(userId?: number): Promise<Invoice[]> {
+    if (userId !== undefined) {
+      return db.select().from(invoices).where(eq(invoices.userId, userId));
+    }
+    
+    return db.select().from(invoices);
+  }
+
+  // Line item methods
+  async getLineItems(invoiceId: number): Promise<LineItem[]> {
+    return db.select().from(lineItems).where(eq(lineItems.invoiceId, invoiceId));
+  }
+
+  async createLineItem(insertLineItem: InsertLineItem): Promise<LineItem> {
+    const [lineItem] = await db.insert(lineItems).values(insertLineItem).returning();
+    return lineItem;
+  }
+
+  async updateLineItem(id: number, lineItemUpdate: Partial<InsertLineItem>): Promise<LineItem | undefined> {
+    const [updatedLineItem] = await db.update(lineItems)
+      .set(lineItemUpdate)
+      .where(eq(lineItems.id, id))
+      .returning();
+    
+    return updatedLineItem;
+  }
+
+  async deleteLineItem(id: number): Promise<boolean> {
+    const [deletedLineItem] = await db.delete(lineItems)
+      .where(eq(lineItems.id, id))
+      .returning();
+    
+    return !!deletedLineItem;
+  }
+
+  async deleteLineItemsByInvoiceId(invoiceId: number): Promise<boolean> {
+    await db.delete(lineItems)
+      .where(eq(lineItems.invoiceId, invoiceId));
+    
+    return true;
+  }
+}
+
+// Memory storage implementation for reference
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private invoices: Map<number, Invoice>;
@@ -195,4 +322,5 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Switch to DatabaseStorage
+export const storage = new DatabaseStorage();
