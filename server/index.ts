@@ -2,6 +2,11 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { scheduler } from "./scheduler";
+import { logInfo, logError } from "./lib/error-logger";
+import dotenv from "dotenv";
+
+// Load environment variables from .env file
+dotenv.config();
 
 const app = express();
 app.use(express.json());
@@ -40,12 +45,38 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
+    // Get relevant request information
+    const requestInfo = {
+      method: req.method,
+      path: req.path,
+      query: req.query,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    };
+    
+    // Determine response status and message
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    throw err;
+    
+    // Log the error with our structured logger
+    logError(
+      `Error handling ${req.method} ${req.path}: ${message}`, 
+      'ExpressErrorHandler',
+      {
+        request: requestInfo,
+        error: err,
+        status
+      }
+    );
+    
+    // Don't expose error details in production
+    const isDevelopment = app.get("env") === "development";
+    
+    res.status(status).json({ 
+      message,
+      ...(isDevelopment ? { error: err.message, stack: err.stack } : {})
+    });
   });
 
   // importantly only setup vite in development and after
@@ -66,10 +97,16 @@ app.use((req, res, next) => {
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
-    log(`serving on port ${port}`);
+    logInfo(`Server started and listening on port ${port}`, 'ServerStartup', {
+      port,
+      host: "0.0.0.0",
+      environment: app.get("env"),
+      nodeVersion: process.version,
+      adminKeySet: process.env.ADMIN_API_KEY ? true : false
+    });
     
     // Start the scheduler to process invoices automatically
     scheduler.start();
-    log('Invoice processor scheduler started');
+    logInfo('Invoice processor scheduler started', 'ServerStartup');
   });
 })();

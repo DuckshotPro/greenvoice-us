@@ -1,4 +1,5 @@
 import { InvoiceProcessor } from "./invoice-processor";
+import { logInfo, logError } from "./lib/error-logger";
 
 // Configuration for scheduled tasks
 const SCHEDULED_INVOICES_INTERVAL = 5 * 60 * 1000; // Run every 5 minutes
@@ -10,14 +11,14 @@ export class Scheduler {
   
   // Start the scheduler
   start(): void {
-    console.log("Starting invoice scheduler...");
+    logInfo("Starting invoice scheduler...", "Scheduler");
     this.startScheduledInvoicesProcessor();
     this.startRecurringTemplatesProcessor();
   }
   
   // Stop the scheduler
   stop(): void {
-    console.log("Stopping invoice scheduler...");
+    logInfo("Stopping invoice scheduler...", "Scheduler");
     
     if (this.scheduledInvoicesTimer) {
       clearInterval(this.scheduledInvoicesTimer);
@@ -55,22 +56,28 @@ export class Scheduler {
   // Process scheduled invoices
   private async processScheduledInvoices(): Promise<void> {
     try {
-      console.log("Processing scheduled invoices...");
+      logInfo("Processing scheduled invoices...", "Scheduler");
       const result = await InvoiceProcessor.processScheduledInvoices();
-      console.log(`Processed scheduled invoices - Success: ${result.success}, Failed: ${result.failed}`);
+      logInfo(`Processed scheduled invoices - Success: ${result.success}, Failed: ${result.failed}`, "Scheduler", { 
+        success: result.success, 
+        failed: result.failed 
+      });
     } catch (error) {
-      console.error("Error processing scheduled invoices:", error);
+      logError("Error processing scheduled invoices", "Scheduler", error);
     }
   }
   
   // Process recurring templates
   private async processRecurringTemplates(): Promise<void> {
     try {
-      console.log("Processing recurring templates...");
+      logInfo("Processing recurring templates...", "Scheduler");
       const result = await InvoiceProcessor.processRecurringTemplates();
-      console.log(`Processed recurring templates - Success: ${result.success}, Failed: ${result.failed}`);
+      logInfo(`Processed recurring templates - Success: ${result.success}, Failed: ${result.failed}`, "Scheduler", { 
+        success: result.success, 
+        failed: result.failed 
+      });
     } catch (error) {
-      console.error("Error processing recurring templates:", error);
+      logError("Error processing recurring templates", "Scheduler", error);
     }
   }
 }

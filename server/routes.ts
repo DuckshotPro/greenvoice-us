@@ -1,4 +1,4 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
@@ -14,6 +14,30 @@ import { nanoid } from "nanoid";
 import { ZodError } from "zod";
 import nodemailer from "nodemailer";
 import { InvoiceProcessor } from "./invoice-processor";
+import { ErrorLogger, LogLevel, logError, logInfo, logWarning } from "./lib/error-logger";
+import { log } from "./vite";
+
+// Security middleware to verify admin access
+const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
+  // In a production app, this would check if the authenticated user has admin role
+  // For this prototype, we'll use a simple API key approach
+  const apiKey = req.headers['x-admin-api-key'];
+  
+  if (!apiKey || apiKey !== process.env.ADMIN_API_KEY) {
+    logWarning(`Unauthorized access attempt to admin endpoint: ${req.path}`, 'SecurityMiddleware', {
+      path: req.path,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+    return res.status(403).json({ message: "Unauthorized access to admin endpoint" });
+  }
+  
+  logInfo(`Admin access granted to endpoint: ${req.path}`, 'SecurityMiddleware', {
+    path: req.path
+  });
+  
+  next();
+};
 
 // Mock transporter for email functionality
 const transporter = {
@@ -516,6 +540,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error processing invoices:", error);
       res.status(500).json({ message: "Failed to process invoices" });
+    }
+  });
+
+  // ADMIN & MONITORING ENDPOINTS
+  // These endpoints are protected with the requireAdmin middleware
+  
+  // Get application error logs
+  app.get("/api/admin/logs", requireAdmin, (req: Request, res: Response) => {
+    try {
+      const count = req.query.count ? parseInt(req.query.count as string) : 20;
+      const level = req.query.level as LogLevel | undefined;
+      
+      const logs = ErrorLogger.getRecentLogs(count, level);
+      
+      logInfo(`Admin retrieved ${logs.length} error logs`, 'AdminApi', {
+        count: logs.length,
+        level: level || 'all'
+      });
+      
+      res.json({
+        count: logs.length,
+        logs
+      });
+    } catch (error) {
+      logError(`Error fetching error logs`, 'AdminApi', { error });
+      res.status(500).json({ message: "Failed to retrieve error logs" });
+    }
+  });
+  
+  // Database health check
+  app.get("/api/admin/db-health", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      // Start time for measuring response time
+      const startTime = Date.now();
+      
+      // Test database access with a simple query
+      const testUser = await storage.getUserByUsername('admin');
+      const testInvoice = await storage.getAllInvoices(undefined);
+      
+      const responseTime = Date.now() - startTime;
+      
+      // Check tables and counts
+      const stats = {
+        users: testUser ? 'OK' : 'N/A',
+        invoices: testInvoice.length,
+        responseTimeMs: responseTime,
+        status: 'healthy'
+      };
+      
+      logInfo(`Database health check success`, 'AdminApi', {
+        responseTime,
+        invoiceCount: testInvoice.length
+      });
+      
+      res.json({
+        status: "OK",
+        timestamp: new Date().toISOString(),
+        dbHealth: stats
+      });
+    } catch (error) {
+      logError(`Database health check failed`, 'AdminApi', { error });
+      
+      res.status(500).json({
+        status: "ERROR",
+        timestamp: new Date().toISOString(),
+        error: error instanceof Error ? error.message : 'Unknown database error',
+        details: error
+      });
+    }
+  });
+  
+  // System information endpoint
+  app.get("/api/admin/system", requireAdmin, (req: Request, res: Response) => {
+    try {
+      // Collect system information
+      const systemInfo = {
+        timestamp: new Date().toISOString(),
+        nodeVersion: process.version,
+        platform: process.platform,
+        memory: {
+          total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
+          used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+          rss: Math.round(process.memoryUsage().rss / 1024 / 1024)
+        },
+        uptime: process.uptime()
+      };
+      
+      logInfo(`System information retrieved`, 'AdminApi', {
+        memory: systemInfo.memory,
+        uptime: systemInfo.uptime
+      });
+      
+      res.json(systemInfo);
+    } catch (error) {
+      logError(`Error fetching system information`, 'AdminApi', { error });
+      
+      res.status(500).json({
+        status: "ERROR",
+        error: error instanceof Error ? error.message : 'Unknown system error'
+      });
     }
   });
 
