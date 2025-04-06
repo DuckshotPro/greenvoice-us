@@ -101,7 +101,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
     return { subtotal, taxAmount, total };
   };
   
-  // Update item amount when quantity or rate changes
+  // Update item fields and handle bidirectional calculations
   const updateItem = (index: number, field: keyof LineItem, value: any) => {
     const newItems = [...items];
     
@@ -111,11 +111,24 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
       [field]: value,
     };
     
-    // If quantity or rate changed, recalculate amount
+    // Handle different update scenarios
     if (field === 'quantity' || field === 'rate') {
+      // If quantity or rate changed, recalculate amount
       const quantity = field === 'quantity' ? value : newItems[index].quantity;
       const rate = field === 'rate' ? value : newItems[index].rate;
       newItems[index].amount = quantity * rate;
+    } else if (field === 'amount') {
+      // If amount changed, update quantity based on rate (if rate is non-zero)
+      const rate = newItems[index].rate;
+      if (rate > 0) {
+        // Calculate new quantity based on amount ÷ rate
+        const newQuantity = value / rate;
+        // Round to 2 decimal places for better usability
+        newItems[index].quantity = Math.round(newQuantity * 100) / 100;
+      } else {
+        // If rate is zero, set quantity to 0 to avoid division by zero
+        newItems[index].quantity = 0;
+      }
     }
     
     setItems(newItems);
@@ -449,8 +462,18 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                       </div>
                       <div className="col-span-3 sm:col-span-2">
                         <label className="block text-xs font-medium text-gray-700">Amount</label>
-                        <div className="mt-1 block w-full text-gray-700 p-2 bg-gray-50 rounded-md border border-gray-200">
-                          {formatCurrency(item.amount, form.getValues('currency'))}
+                        <div className="mt-1 relative">
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={item.amount}
+                            onChange={(e) => updateItem(index, 'amount', parseFloat(e.target.value) || 0)}
+                            className="pr-8"
+                          />
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <span className="text-gray-500 sm:text-sm">{form.getValues('currency')}</span>
+                          </div>
                         </div>
                       </div>
                       <div className="col-span-1 flex items-end justify-end">
