@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { shareToSocial, sendViaEmail, copyShareableLink } from '@/lib/sharing';
+import { shareToSocial, sendViaEmail, copyShareableLink, shareViaWebShareAPI } from '@/lib/sharing';
 import { downloadPDF } from '@/lib/pdf-generator';
 import { downloadImage } from '@/lib/image-generator';
 import { useToast } from '@/hooks/use-toast';
@@ -86,13 +86,22 @@ const ShareOptions = ({ invoice, invoicePreviewRef, shareUrl }: ShareOptionsProp
   };
   
   // Handle social media sharing
-  const handleSocialShare = async (platform: 'twitter' | 'facebook' | 'linkedin' | 'whatsapp') => {
+  const handleSocialShare = async (platform: 'twitter' | 'facebook' | 'linkedin' | 'whatsapp' | 'telegram' | 'email') => {
     try {
       await shareToSocial(platform, invoice, shareUrl);
-      toast({
-        title: 'Sharing',
-        description: `Opening ${platform} sharing...`,
-      });
+      
+      // Different toast for email as it behaves differently
+      if (platform === 'email') {
+        toast({
+          title: 'Email',
+          description: 'Opening email client...',
+        });
+      } else {
+        toast({
+          title: 'Sharing',
+          description: `Opening ${platform} sharing...`,
+        });
+      }
     } catch (error) {
       console.error(`Error sharing to ${platform}:`, error);
       toast({
@@ -115,12 +124,12 @@ const ShareOptions = ({ invoice, invoicePreviewRef, shareUrl }: ShareOptionsProp
     }
     
     try {
-      const result = await sendViaEmail(
-        invoice.id,
-        emailForm.recipient,
-        emailForm.subject,
-        emailForm.message
-      );
+      const result = await sendViaEmail(invoice.id, {
+        recipient: emailForm.recipient,
+        subject: emailForm.subject,
+        message: emailForm.message,
+        attachPdf: true
+      });
       
       if (result.success) {
         setIsEmailDialogOpen(false);
@@ -282,14 +291,7 @@ const ShareOptions = ({ invoice, invoicePreviewRef, shareUrl }: ShareOptionsProp
             <Button
               variant="outline"
               size="sm"
-              onClick={() => {
-                // Using the same sharing mechanism as social networks
-                shareToSocial('telegram' as any, invoice, shareUrl);
-                toast({
-                  title: 'Sharing',
-                  description: `Opening Telegram sharing...`,
-                });
-              }}
+              onClick={() => handleSocialShare('telegram')}
               className="text-sm"
             >
               <FaTelegram className="mr-1.5 h-4 w-4 text-[#0088cc]" /> Telegram
@@ -314,16 +316,43 @@ const ShareOptions = ({ invoice, invoicePreviewRef, shareUrl }: ShareOptionsProp
               size="sm"
               className="text-sm bg-primary hover:bg-primary/90"
               onClick={() => {
-                if (navigator.share) {
-                  navigator.share({
-                    title: `Invoice ${invoice.invoiceNumber} from ${invoice.senderName}`,
-                    text: `Invoice amount: ${invoice.total.toFixed(2)} ${invoice.currency}`,
-                    url: shareUrl,
-                  }).catch(console.error);
-                } else {
+                try {
+                  if (navigator.share) {
+                    navigator.share({
+                      title: `Invoice ${invoice.invoiceNumber} from ${invoice.senderName}`,
+                      text: `Invoice amount: ${invoice.total.toFixed(2)} ${invoice.currency}. Due date: ${invoice.dueDate}`,
+                      url: shareUrl,
+                    })
+                    .then(() => {
+                      toast({
+                        title: 'Shared Successfully',
+                        description: 'Invoice has been shared',
+                      });
+                    })
+                    .catch((error) => {
+                      if (error.name !== 'AbortError') {
+                        // Only show error if it's not a user cancellation
+                        throw error;
+                      }
+                    });
+                  } else {
+                    // Fallback to copying the link
+                    copyShareableLink(shareUrl).then(success => {
+                      if (success) {
+                        toast({
+                          title: 'Link Copied',
+                          description: 'Native sharing not available. Link copied to clipboard instead.',
+                        });
+                      } else {
+                        throw new Error('Failed to copy link');
+                      }
+                    });
+                  }
+                } catch (error) {
+                  console.error('Error using share API:', error);
                   toast({
-                    title: 'Share',
-                    description: 'Native sharing not supported on this device',
+                    title: 'Share Failed',
+                    description: error instanceof Error ? error.message : 'Failed to share invoice',
                     variant: 'destructive',
                   });
                 }
