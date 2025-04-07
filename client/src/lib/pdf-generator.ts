@@ -1,4 +1,4 @@
-import { jsPDF } from 'jspdf';
+import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import type { Invoice } from '../types/invoice';
 import { formatCurrency, formatDate } from '../types/invoice';
@@ -49,29 +49,29 @@ const addPartyDetails = (doc: jsPDF, invoice: Invoice) => {
   doc.setFontSize(14);
   doc.setTextColor(60, 60, 60);
   doc.text('From:', 20, 80);
-  
+
   doc.setFontSize(12);
   doc.setTextColor(80, 80, 80);
   doc.text(invoice.senderName || 'Sender', 20, 90);
-  
+
   let fromY = 100;
-  
+
   // Add sender email if available
   if (invoice.senderEmail) {
     doc.text(invoice.senderEmail, 20, fromY);
     fromY += 6;
   }
-  
+
   // Add sender phone if available
   if (invoice.senderPhone) {
     doc.text(invoice.senderPhone, 20, fromY);
   }
-  
+
   // Add sender address if available
   if (invoice.senderAddress) {
     const addressLines = invoice.senderAddress.split('\n');
     let addressY = invoice.senderPhone ? fromY + 6 : fromY;
-    
+
     addressLines.forEach(line => {
       if (line.trim()) {
         doc.text(line, 20, addressY);
@@ -84,23 +84,23 @@ const addPartyDetails = (doc: jsPDF, invoice: Invoice) => {
   doc.setFontSize(14);
   doc.setTextColor(60, 60, 60);
   doc.text('To:', 120, 80);
-  
+
   doc.setFontSize(12);
   doc.setTextColor(80, 80, 80);
   doc.text(invoice.clientName || 'Client', 120, 90);
-  
+
   let toY = 100;
-  
+
   // Add client email if available
   if (invoice.clientEmail) {
     doc.text(invoice.clientEmail, 120, toY);
     toY += 6;
   }
-  
+
   // Add client address if available
   if (invoice.clientAddress) {
     const addressLines = invoice.clientAddress.split('\n');
-    
+
     addressLines.forEach(line => {
       if (line.trim()) {
         doc.text(line, 120, toY);
@@ -126,9 +126,9 @@ const addItemsTable = (doc: jsPDF, invoice: Invoice) => {
     // Make sure we start after the party details
     // We need extra space if addresses are multi-line
     invoice.senderAddress?.split('\n').length > 2 ||
-    invoice.clientAddress?.split('\n').length > 2 ? 130 : 120
+      invoice.clientAddress?.split('\n').length > 2 ? 130 : 120
   );
-  
+
   doc.autoTable({
     head: [tableColumn],
     body: tableRows.length ? tableRows : [['No items', '', '', '']],
@@ -158,22 +158,22 @@ const addSummary = (doc: jsPDF, invoice: Invoice) => {
   doc.setFontSize(14);
   doc.setTextColor(60, 60, 60);
   doc.text('Summary:', 130, finalY);
-  
+
   // Summary details
   doc.setFontSize(12);
   doc.setTextColor(80, 80, 80);
   doc.text(`Subtotal: ${formatCurrency(invoice.subtotal || 0, invoice.currency)}`, 130, finalY + 10);
   doc.text(`Tax (${invoice.taxRate || 0}%): ${formatCurrency(invoice.taxAmount || 0, invoice.currency)}`, 130, finalY + 20);
-  
+
   // Make the total stand out
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(60, 60, 60);
   doc.text(`Total: ${formatCurrency(invoice.total || 0, invoice.currency)}`, 130, finalY + 35);
-  
+
   // Reset font
   doc.setFont('helvetica', 'normal');
-  
+
   // Add notes if present
   if (invoice.notes) {
     doc.setFontSize(12);
@@ -182,7 +182,7 @@ const addSummary = (doc: jsPDF, invoice: Invoice) => {
     doc.setFontSize(10);
     doc.text(invoice.notes, 20, finalY + 20, { maxWidth: 100 });
   }
-  
+
   // Add footer
   doc.setFontSize(10);
   doc.setTextColor(150, 150, 150);
@@ -211,19 +211,79 @@ export const generatePDF = (invoice: Invoice): string => {
 
 export const downloadPDF = (invoice: Invoice): void => {
   try {
-    const doc = createBasePDF(invoice);
-    addHeader(doc, invoice);
-    addPartyDetails(doc, invoice);
-    addItemsTable(doc, invoice);
-    addSummary(doc, invoice);
+    const doc = new jsPDF();
 
-    // Generate file name
-    const fileName = `Invoice-${invoice.invoiceNumber || 'unknown'}.pdf`;
+    // Add header
+    doc.setFontSize(20);
+    doc.text('INVOICE', 105, 20, { align: 'center' });
+    doc.setFontSize(10);
+    doc.text(`Invoice #: ${invoice.invoiceNumber}`, 20, 35);
+    doc.text(`Date: ${formatDate(invoice.issueDate)}`, 20, 42);
+    doc.text(`Due: ${formatDate(invoice.dueDate)}`, 20, 49);
 
-    // Download the PDF
-    doc.save(fileName);
+    // Add sender info
+    doc.setFontSize(12);
+    doc.text('From:', 20, 65);
+    doc.setFontSize(10);
+    doc.text(invoice.senderName, 20, 72);
+    doc.text(invoice.senderEmail, 20, 79);
+    const senderAddressLines = invoice.senderAddress.split('\n');
+    senderAddressLines.forEach((line, index) => doc.text(line, 20, 86 + index * 7));
+
+
+    // Add client info
+    doc.setFontSize(12);
+    doc.text('Bill To:', 120, 65);
+    doc.setFontSize(10);
+    doc.text(invoice.clientName, 120, 72);
+    doc.text(invoice.clientEmail, 120, 79);
+    const clientAddressLines = invoice.clientAddress.split('\n');
+    clientAddressLines.forEach((line, index) => doc.text(line, 120, 86 + index * 7));
+
+    // Add items table
+    const tableTop = 120;
+    doc.line(20, tableTop, 190, tableTop);
+    doc.setFontSize(10);
+    doc.text('Description', 20, tableTop + 7);
+    doc.text('Qty', 120, tableTop + 7);
+    doc.text('Rate', 140, tableTop + 7);
+    doc.text('Amount', 170, tableTop + 7);
+
+    let currentY = tableTop + 15;
+    invoice.items.forEach(item => {
+      doc.text(item.description, 20, currentY);
+      doc.text(item.quantity.toString(), 120, currentY);
+      doc.text(formatCurrency(item.rate, invoice.currency), 140, currentY);
+      doc.text(formatCurrency(item.amount, invoice.currency), 170, currentY);
+      currentY += 8;
+    });
+
+    // Add totals
+    currentY += 10;
+    doc.line(20, currentY, 190, currentY);
+    currentY += 7;
+    doc.text('Subtotal:', 140, currentY);
+    doc.text(formatCurrency(invoice.subtotal, invoice.currency), 170, currentY);
+    currentY += 7;
+    doc.text('Tax:', 140, currentY);
+    doc.text(formatCurrency(invoice.taxAmount, invoice.currency), 170, currentY);
+    currentY += 7;
+    doc.text('Total:', 140, currentY);
+    doc.text(formatCurrency(invoice.total, invoice.currency), 170, currentY);
+
+    // Add notes
+    if (invoice.notes) {
+      currentY += 20;
+      doc.setFontSize(11);
+      doc.text('Notes:', 20, currentY);
+      doc.setFontSize(10);
+      doc.text(invoice.notes, 20, currentY + 7);
+    }
+
+    // Save the PDF
+    doc.save(`Invoice-${invoice.invoiceNumber}.pdf`);
   } catch (error) {
-    console.error('Error generating PDF for download:', error);
-    throw new Error('PDF download failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    console.error('Error generating PDF:', error);
+    throw new Error('Failed to generate PDF');
   }
 };
