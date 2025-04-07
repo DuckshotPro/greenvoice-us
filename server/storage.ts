@@ -5,6 +5,9 @@ import {
   recurringTemplates, type RecurringTemplate, type InsertRecurringTemplate,
   templateLineItems, type TemplateLineItem, type InsertTemplateLineItem,
   scheduledInvoices, type ScheduledInvoice, type InsertScheduledInvoice,
+  adRewards, type AdReward, type InsertAdReward,
+  subscriptionPlans, type SubscriptionPlan, type InsertSubscriptionPlan,
+  subscriptionTransactions, type SubscriptionTransaction, type InsertSubscriptionTransaction,
   type InvoiceWithItems, type RecurringTemplateWithItems
 } from "@shared/schema";
 import { nanoid } from "nanoid";
@@ -17,6 +20,10 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, userData: Partial<InsertUser>): Promise<User | undefined>;
+  updateUserSubscription(id: number, plan: string, expiryDate: Date): Promise<User | undefined>;
+  updateUserPremiumDays(id: number, daysToAdd: number): Promise<User | undefined>;
+  recordAdView(userId: number, daysAwarded: number): Promise<User | undefined>;
 
   // Invoice methods
   getInvoice(id: number): Promise<Invoice | undefined>;
@@ -85,6 +92,75 @@ export class DatabaseStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db.insert(users).values(insertUser).returning();
     return user;
+  }
+
+  async updateUser(id: number, userData: Partial<InsertUser>): Promise<User | undefined> {
+    const [updatedUser] = await db.update(users)
+      .set(userData)
+      .where(eq(users.id, id))
+      .returning();
+    
+    return updatedUser;
+  }
+
+  async updateUserSubscription(id: number, plan: string, expiryDate: Date): Promise<User | undefined> {
+    const [updatedUser] = await db.update(users)
+      .set({ 
+        subscriptionPlan: plan as any,
+        subscriptionExpiry: expiryDate
+      })
+      .where(eq(users.id, id))
+      .returning();
+    
+    return updatedUser;
+  }
+
+  async updateUserPremiumDays(id: number, daysToAdd: number): Promise<User | undefined> {
+    // First get the current user
+    const user = await this.getUser(id);
+    if (!user) return undefined;
+    
+    const currentDays = user.premiumDaysRemaining || 0;
+    const newDaysTotal = currentDays + daysToAdd;
+    
+    const [updatedUser] = await db.update(users)
+      .set({ premiumDaysRemaining: newDaysTotal })
+      .where(eq(users.id, id))
+      .returning();
+    
+    return updatedUser;
+  }
+
+  async recordAdView(userId: number, daysAwarded: number): Promise<User | undefined> {
+    // Get the current user
+    const user = await this.getUser(userId);
+    if (!user) return undefined;
+    
+    const now = new Date();
+    
+    // Record the ad view in the ad_rewards table
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + daysAwarded);
+    
+    await db.insert(adRewards).values({
+      userId,
+      rewardType: 'premium_day',
+      daysAwarded,
+      expiryDate,
+      adProvider: 'internal',
+    });
+    
+    // Update the user's premium days and ad viewing data
+    const [updatedUser] = await db.update(users)
+      .set({ 
+        lastAdViewTime: now,
+        lastAdDaysAwarded: daysAwarded,
+        premiumDaysRemaining: (user.premiumDaysRemaining || 0) + daysAwarded
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return updatedUser;
   }
 
   // Invoice methods
@@ -496,12 +572,18 @@ export class MemStorage implements IStorage {
   private recurringTemplates: Map<number, RecurringTemplate>;
   private templateLineItems: Map<number, TemplateLineItem>;
   private scheduledInvoices: Map<number, ScheduledInvoice>;
+  private adRewards: Map<number, AdReward>;
+  private subscriptionPlans: Map<number, SubscriptionPlan>;
+  private subscriptionTransactions: Map<number, SubscriptionTransaction>;
   private userCurrentId: number;
   private invoiceCurrentId: number;
   private lineItemCurrentId: number;
   private templateCurrentId: number;
   private templateLineItemCurrentId: number;
   private scheduledInvoiceCurrentId: number;
+  private adRewardCurrentId: number;
+  private subscriptionPlanCurrentId: number;
+  private subscriptionTransactionCurrentId: number;
 
   constructor() {
     this.users = new Map();
@@ -510,12 +592,18 @@ export class MemStorage implements IStorage {
     this.recurringTemplates = new Map();
     this.templateLineItems = new Map();
     this.scheduledInvoices = new Map();
+    this.adRewards = new Map();
+    this.subscriptionPlans = new Map();
+    this.subscriptionTransactions = new Map();
     this.userCurrentId = 1;
     this.invoiceCurrentId = 1;
     this.lineItemCurrentId = 1;
     this.templateCurrentId = 1;
     this.templateLineItemCurrentId = 1;
     this.scheduledInvoiceCurrentId = 1;
+    this.adRewardCurrentId = 1;
+    this.subscriptionPlanCurrentId = 1;
+    this.subscriptionTransactionCurrentId = 1;
   }
 
   // User methods
@@ -531,9 +619,70 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userCurrentId++;
-    const user: User = { ...insertUser, id };
+    const user = {
+      ...insertUser,
+      id,
+      subscriptionPlan: 'free',
+      subscriptionExpiry: null,
+      premiumDaysRemaining: 0,
+      lastAdViewTime: null,
+      lastAdDaysAwarded: 0,
+      totalInvoicesSent: 0,
+      registeredAt: new Date(),
+      verifiedAt: null
+    } as User;
     this.users.set(id, user);
     return user;
+  }
+
+  async updateUser(id: number, userData: Partial<InsertUser>): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    
+    const updatedUser: User = { ...user, ...userData };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+
+  async updateUserSubscription(id: number, plan: string, expiryDate: Date): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    
+    const updatedUser: User = { 
+      ...user, 
+      subscriptionPlan: plan as any, 
+      subscriptionExpiry: expiryDate 
+    };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+
+  async updateUserPremiumDays(id: number, daysToAdd: number): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    
+    const currentDays = user.premiumDaysRemaining || 0;
+    const newDaysTotal = currentDays + daysToAdd;
+    
+    const updatedUser: User = { ...user, premiumDaysRemaining: newDaysTotal };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+
+  async recordAdView(userId: number, daysAwarded: number): Promise<User | undefined> {
+    const user = this.users.get(userId);
+    if (!user) return undefined;
+    
+    const now = new Date();
+    const updatedUser: User = { 
+      ...user, 
+      lastAdViewTime: now,
+      lastAdDaysAwarded: daysAwarded,
+      premiumDaysRemaining: (user.premiumDaysRemaining || 0) + daysAwarded
+    };
+    
+    this.users.set(userId, updatedUser);
+    return updatedUser;
   }
 
   // Invoice methods
