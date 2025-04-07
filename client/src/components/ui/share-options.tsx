@@ -14,6 +14,7 @@ import { shareToSocial, sendViaEmail, copyShareableLink, shareViaWebShareAPI } f
 import { downloadPDF } from '@/lib/pdf-generator';
 import { downloadImage } from '@/lib/image-generator';
 import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 import { Invoice } from '@/types/invoice';
 import {
   FileText,
@@ -49,6 +50,20 @@ const ShareOptions = ({ invoice, invoicePreviewRef, shareUrl }: ShareOptionsProp
   // Handle export options
   const handleExport = async (format: 'pdf' | 'png' | 'jpeg' | 'link') => {
     try {
+      // Track export analytics if applicable
+      if (invoice.id) {
+        try {
+          await apiRequest('POST', '/api/analytics/track-share', {
+            invoiceId: invoice.id,
+            shareMethod: `export-${format}`,
+            metadata: { format }
+          });
+        } catch (analyticsError) {
+          // Don't let analytics errors stop the export
+          console.warn('Failed to track export analytics:', analyticsError);
+        }
+      }
+      
       if (format === 'pdf') {
         await downloadPDF(invoice);
         toast({
@@ -65,7 +80,7 @@ const ShareOptions = ({ invoice, invoicePreviewRef, shareUrl }: ShareOptionsProp
           description: `Your invoice has been downloaded as a ${format.toUpperCase()} file.`,
         });
       } else if (format === 'link') {
-        const success = await copyShareableLink(shareUrl);
+        const success = await copyShareableLink(shareUrl, invoice.id);
         if (success) {
           toast({
             title: 'Link Copied',
@@ -124,6 +139,18 @@ const ShareOptions = ({ invoice, invoicePreviewRef, shareUrl }: ShareOptionsProp
     }
     
     try {
+      // Track email analytics through the server-side API
+      try {
+        await apiRequest('POST', '/api/analytics/track-share', {
+          invoiceId: invoice.id,
+          shareMethod: 'email-direct',
+          metadata: { recipient: emailForm.recipient }
+        });
+      } catch (analyticsError) {
+        // Don't let analytics tracking failure stop the email
+        console.warn('Failed to track email analytics:', analyticsError);
+      }
+      
       const result = await sendViaEmail(invoice.id, {
         recipient: emailForm.recipient,
         subject: emailForm.subject,
@@ -301,7 +328,21 @@ const ShareOptions = ({ invoice, invoicePreviewRef, shareUrl }: ShareOptionsProp
               variant="outline"
               size="sm"
               className="text-sm"
-              onClick={() => {
+              onClick={async () => {
+                // Track SMS share analytics if invoice has an ID
+                if (invoice.id) {
+                  try {
+                    await apiRequest('POST', '/api/analytics/track-share', {
+                      invoiceId: invoice.id,
+                      shareMethod: 'sms',
+                      metadata: { url: shareUrl }
+                    });
+                  } catch (analyticsError) {
+                    // Don't let analytics tracking failure stop the SMS
+                    console.warn('Failed to track SMS analytics:', analyticsError);
+                  }
+                }
+                
                 window.open(`sms:?&body=${encodeURIComponent(`Invoice ${invoice.invoiceNumber} from ${invoice.senderName}: ${shareUrl}`)}`);
                 toast({
                   title: 'SMS',
@@ -317,36 +358,52 @@ const ShareOptions = ({ invoice, invoicePreviewRef, shareUrl }: ShareOptionsProp
               className="text-sm bg-primary hover:bg-primary/90"
               onClick={() => {
                 try {
-                  if (navigator.share) {
-                    navigator.share({
-                      title: `Invoice ${invoice.invoiceNumber} from ${invoice.senderName}`,
-                      text: `Invoice amount: ${invoice.total.toFixed(2)} ${invoice.currency}. Due date: ${invoice.dueDate}`,
-                      url: shareUrl,
-                    })
-                    .then(() => {
-                      toast({
-                        title: 'Shared Successfully',
-                        description: 'Invoice has been shared',
+                  const shareData = {
+                    title: `Invoice ${invoice.invoiceNumber} from ${invoice.senderName}`,
+                    text: `Invoice amount: ${invoice.total.toFixed(2)} ${invoice.currency}. Due date: ${invoice.dueDate}`,
+                    url: shareUrl,
+                  };
+                  
+                  // Use our enhanced Web Share API function that includes analytics tracking
+                  if (invoice.id) {
+                    shareViaWebShareAPI(shareData, invoice.id)
+                      .then((shared) => {
+                        if (shared) {
+                          toast({
+                            title: 'Shared Successfully',
+                            description: 'Invoice has been shared',
+                          });
+                        }
                       });
-                    })
-                    .catch((error) => {
-                      if (error.name !== 'AbortError') {
-                        // Only show error if it's not a user cancellation
-                        throw error;
-                      }
-                    });
                   } else {
-                    // Fallback to copying the link
-                    copyShareableLink(shareUrl).then(success => {
-                      if (success) {
-                        toast({
-                          title: 'Link Copied',
-                          description: 'Native sharing not available. Link copied to clipboard instead.',
+                    // If no invoice ID (unsaved invoice), fall back to standard sharing
+                    if (navigator.share) {
+                      navigator.share(shareData)
+                        .then(() => {
+                          toast({
+                            title: 'Shared Successfully',
+                            description: 'Invoice has been shared',
+                          });
+                        })
+                        .catch((error) => {
+                          if (error.name !== 'AbortError') {
+                            // Only show error if it's not a user cancellation
+                            throw error;
+                          }
                         });
-                      } else {
-                        throw new Error('Failed to copy link');
-                      }
-                    });
+                    } else {
+                      // Fallback to copying the link without tracking
+                      copyShareableLink(shareUrl).then(success => {
+                        if (success) {
+                          toast({
+                            title: 'Link Copied',
+                            description: 'Native sharing not available. Link copied to clipboard instead.',
+                          });
+                        } else {
+                          throw new Error('Failed to copy link');
+                        }
+                      });
+                    }
                   }
                 } catch (error) {
                   console.error('Error using share API:', error);

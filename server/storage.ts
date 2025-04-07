@@ -8,6 +8,7 @@ import {
   adRewards, type AdReward, type InsertAdReward,
   subscriptionPlans, type SubscriptionPlan, type InsertSubscriptionPlan,
   subscriptionTransactions, type SubscriptionTransaction, type InsertSubscriptionTransaction,
+  shareAnalytics, type ShareAnalytics, type InsertShareAnalytics,
   type InvoiceWithItems, type RecurringTemplateWithItems
 } from "@shared/schema";
 import { nanoid } from "nanoid";
@@ -75,6 +76,18 @@ export interface IStorage {
   updateRecurringTemplateNextDate(id: number, nextDate: Date): Promise<RecurringTemplate | undefined>;
   // Generate an invoice from a recurring template
   generateInvoiceFromTemplate(templateId: number): Promise<Invoice | undefined>;
+  
+  // Share analytics methods
+  // Track when an invoice is shared
+  trackShareAnalytics(shareData: InsertShareAnalytics): Promise<ShareAnalytics>;
+  // Record a view when a shared invoice is viewed
+  recordShareView(invoiceId: number, shareMethod: string, referrer?: string, userAgent?: string, ipAddress?: string): Promise<ShareAnalytics | undefined>;
+  // Get share analytics for a specific invoice
+  getShareAnalytics(invoiceId: number): Promise<ShareAnalytics[]>;
+  // Get share analytics grouped by method (for reporting)
+  getShareAnalyticsByMethod(userId: number): Promise<{ method: string, count: number }[]>;
+  // Get view analytics for shared invoices
+  getShareViewAnalytics(userId: number): Promise<{ invoiceId: number, views: number }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -561,6 +574,107 @@ export class DatabaseStorage implements IStorage {
     }
     
     return invoice;
+  }
+  
+  // Share analytics methods
+  async trackShareAnalytics(shareData: InsertShareAnalytics): Promise<ShareAnalytics> {
+    const [analytics] = await db.insert(shareAnalytics).values(shareData).returning();
+    return analytics;
+  }
+  
+  async recordShareView(
+    invoiceId: number,
+    shareMethod: string,
+    referrer?: string,
+    userAgent?: string,
+    ipAddress?: string
+  ): Promise<ShareAnalytics | undefined> {
+    // Find the most recent share record for this invoice and method
+    const [existingShare] = await db.select()
+      .from(shareAnalytics)
+      .where(and(
+        eq(shareAnalytics.invoiceId, invoiceId),
+        eq(shareAnalytics.shareMethod, shareMethod)
+      ))
+      .orderBy(desc(shareAnalytics.shareTimestamp))
+      .limit(1);
+      
+    if (!existingShare) return undefined;
+    
+    // Update the view count and last viewed timestamp
+    const [updatedShare] = await db.update(shareAnalytics)
+      .set({ 
+        viewCount: (existingShare.viewCount || 0) + 1,
+        lastViewedAt: new Date(),
+        referrer: referrer || existingShare.referrer,
+        userAgent: userAgent || existingShare.userAgent,
+        ipAddress: ipAddress || existingShare.ipAddress
+      })
+      .where(eq(shareAnalytics.id, existingShare.id))
+      .returning();
+      
+    return updatedShare;
+  }
+  
+  async getShareAnalytics(invoiceId: number): Promise<ShareAnalytics[]> {
+    return db.select()
+      .from(shareAnalytics)
+      .where(eq(shareAnalytics.invoiceId, invoiceId))
+      .orderBy(desc(shareAnalytics.shareTimestamp));
+  }
+  
+  async getShareAnalyticsByMethod(userId: number): Promise<{ method: string, count: number }[]> {
+    // First get all invoices for this user
+    const userInvoices = await this.getAllInvoices(userId);
+    const invoiceIds = userInvoices.map(invoice => invoice.id);
+    
+    if (invoiceIds.length === 0) {
+      return [];
+    }
+    
+    // Custom SQL query to group by method and count
+    const result = await db.execute(
+      `SELECT "share_method" as method, COUNT(*) as count 
+       FROM "share_analytics" 
+       WHERE "invoice_id" IN (${invoiceIds.join(',')}) 
+       GROUP BY "share_method" 
+       ORDER BY count DESC`
+    );
+    
+    // Handle the result format
+    const rows = result as unknown as { rows: Array<{ method: string, count: string }> };
+    
+    return (rows.rows || []).map((row: any) => ({
+      method: row.method,
+      count: parseInt(row.count)
+    }));
+  }
+  
+  async getShareViewAnalytics(userId: number): Promise<{ invoiceId: number, views: number }[]> {
+    // First get all invoices for this user
+    const userInvoices = await this.getAllInvoices(userId);
+    const invoiceIds = userInvoices.map(invoice => invoice.id);
+    
+    if (invoiceIds.length === 0) {
+      return [];
+    }
+    
+    // Custom SQL query to sum views by invoice
+    const result = await db.execute(
+      `SELECT "invoice_id" as "invoiceId", SUM("view_count") as views 
+       FROM "share_analytics" 
+       WHERE "invoice_id" IN (${invoiceIds.join(',')}) 
+       GROUP BY "invoice_id" 
+       ORDER BY views DESC`
+    );
+    
+    // Handle the result format
+    const rows = result as unknown as { rows: Array<{ invoiceId: string, views: string }> };
+    
+    return (rows.rows || []).map((row: any) => ({
+      invoiceId: parseInt(row.invoiceId),
+      views: parseInt(row.views)
+    }));
   }
 }
 
@@ -1192,6 +1306,51 @@ export class MemStorage implements IStorage {
     }
     
     return invoice;
+  }
+  
+  // Share analytics methods
+  async trackShareAnalytics(shareData: InsertShareAnalytics): Promise<ShareAnalytics> {
+    // Not fully implemented in memory storage - just return a mock
+    return {
+      id: 1,
+      invoiceId: shareData.invoiceId,
+      userId: shareData.userId,
+      shareMethod: shareData.shareMethod,
+      recipientEmail: shareData.recipientEmail || null,
+      shareTimestamp: new Date(),
+      lastViewedAt: null,
+      viewCount: 0,
+      referrer: shareData.referrer || null,
+      userAgent: shareData.userAgent || null,
+      ipAddress: shareData.ipAddress || null,
+      metadata: shareData.metadata || null
+    };
+  }
+  
+  async recordShareView(
+    invoiceId: number,
+    shareMethod: string,
+    referrer?: string,
+    userAgent?: string,
+    ipAddress?: string
+  ): Promise<ShareAnalytics | undefined> {
+    // Not implemented in memory storage
+    return undefined;
+  }
+  
+  async getShareAnalytics(invoiceId: number): Promise<ShareAnalytics[]> {
+    // Not implemented in memory storage
+    return [];
+  }
+  
+  async getShareAnalyticsByMethod(userId: number): Promise<{ method: string, count: number }[]> {
+    // Not implemented in memory storage
+    return [];
+  }
+  
+  async getShareViewAnalytics(userId: number): Promise<{ invoiceId: number, views: number }[]> {
+    // Not implemented in memory storage
+    return [];
   }
 }
 

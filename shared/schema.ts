@@ -278,6 +278,36 @@ export const insertAdRewardSchema = createInsertSchema(adRewards).omit({
   viewDate: true,
 });
 
+// Share analytics tracking
+export const shareAnalytics = pgTable("share_analytics", {
+  id: serial("id").primaryKey(),
+  invoiceId: integer("invoice_id").notNull(),
+  userId: integer("user_id").notNull(),
+  shareMethod: text("share_method").notNull(), // email, twitter, facebook, linkedin, whatsapp, telegram, sms, link, pdf, image
+  recipientEmail: text("recipient_email"), // Only for email sharing
+  shareTimestamp: timestamp("share_timestamp").defaultNow(),
+  // For tracking when shared links are viewed
+  lastViewedAt: timestamp("last_viewed_at"),
+  viewCount: integer("view_count").default(0),
+  // Optional referrer for tracking where views came from
+  referrer: text("referrer"),
+  // Client info
+  userAgent: text("user_agent"),
+  ipAddress: text("ip_address"),
+  // Additional metadata
+  metadata: jsonb("metadata"),
+});
+
+export const insertShareAnalyticsSchema = createInsertSchema(shareAnalytics).omit({
+  id: true,
+  shareTimestamp: true,
+  lastViewedAt: true,
+  viewCount: true,
+});
+
+export type ShareAnalytics = typeof shareAnalytics.$inferSelect;
+export type InsertShareAnalytics = z.infer<typeof insertShareAnalyticsSchema>;
+
 // Subscription related types
 export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
 export type InsertSubscriptionPlan = z.infer<typeof insertSubscriptionPlanSchema>;
