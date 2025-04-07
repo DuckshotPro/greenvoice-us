@@ -16,6 +16,7 @@ import nodemailer from "nodemailer";
 import { InvoiceProcessor } from "./invoice-processor";
 import { ErrorLogger, LogLevel, logError, logInfo, logWarning } from "./lib/error-logger";
 import { log } from "./vite";
+import { setupAuth } from "./auth";
 
 // Security middleware to verify admin access
 const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
@@ -50,9 +51,20 @@ const transporter = {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up server
   const httpServer = createServer(app);
+  
+  // Set up authentication routes
+  setupAuth(app);
+  
+  // Middleware to ensure user is authenticated
+  const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    next();
+  };
 
   // Get all invoices
-  app.get("/api/invoices", async (req: Request, res: Response) => {
+  app.get("/api/invoices", requireAuth, async (req: Request, res: Response) => {
     try {
       const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
       const invoices = await storage.getAllInvoices(userId);
@@ -64,7 +76,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get invoices by status - this must come before the general :id route
-  app.get("/api/invoices/status/:status", async (req: Request, res: Response) => {
+  app.get("/api/invoices/status/:status", requireAuth, async (req: Request, res: Response) => {
     try {
       const { status } = req.params;
       const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
@@ -83,7 +95,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get a specific invoice
-  app.get("/api/invoices/:id", async (req: Request, res: Response) => {
+  app.get("/api/invoices/:id", requireAuth, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       const invoice = await storage.getInvoice(id);
@@ -124,7 +136,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create a new invoice with line items
-  app.post("/api/invoices", async (req: Request, res: Response) => {
+  app.post("/api/invoices", requireAuth, async (req: Request, res: Response) => {
     try {
       // Validate the request body
       const invoiceData = invoiceWithItemsSchema.parse(req.body);
@@ -146,7 +158,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update an existing invoice
-  app.patch("/api/invoices/:id", async (req: Request, res: Response) => {
+  app.patch("/api/invoices/:id", requireAuth, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       const updateData = insertInvoiceSchema.partial().parse(req.body);
@@ -171,7 +183,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Delete an invoice
-  app.delete("/api/invoices/:id", async (req: Request, res: Response) => {
+  app.delete("/api/invoices/:id", requireAuth, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       const deleted = await storage.deleteInvoice(id);
@@ -188,7 +200,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Send invoice via email
-  app.post("/api/invoices/:id/email", async (req: Request, res: Response) => {
+  app.post("/api/invoices/:id/email", requireAuth, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       const { recipient, subject, message } = z.object({
@@ -237,7 +249,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Schedule an invoice for future sending
-  app.post("/api/invoices/:id/schedule", async (req: Request, res: Response) => {
+  app.post("/api/invoices/:id/schedule", requireAuth, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       const { scheduleDate } = z.object({
@@ -276,7 +288,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // RECURRING INVOICE TEMPLATES ROUTES
   
   // Get all recurring templates
-  app.get("/api/recurring-templates", async (req: Request, res: Response) => {
+  app.get("/api/recurring-templates", requireAuth, async (req: Request, res: Response) => {
     try {
       const userId = req.query.userId ? parseInt(req.query.userId as string) : 1; // Default to user 1 for demo
       const templates = await storage.getAllRecurringTemplates(userId);
@@ -288,7 +300,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get a specific recurring template
-  app.get("/api/recurring-templates/:id", async (req: Request, res: Response) => {
+  app.get("/api/recurring-templates/:id", requireAuth, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       const template = await storage.getRecurringTemplate(id);
@@ -308,7 +320,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Create a new recurring template with line items
-  app.post("/api/recurring-templates", async (req: Request, res: Response) => {
+  app.post("/api/recurring-templates", requireAuth, async (req: Request, res: Response) => {
     try {
       // Validate the request body
       const templateData = recurringTemplateWithItemsSchema.parse(req.body);
@@ -330,7 +342,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Update an existing recurring template
-  app.patch("/api/recurring-templates/:id", async (req: Request, res: Response) => {
+  app.patch("/api/recurring-templates/:id", requireAuth, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       const updateData = insertRecurringTemplateSchema.partial().parse(req.body);
@@ -355,7 +367,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Delete a recurring template
-  app.delete("/api/recurring-templates/:id", async (req: Request, res: Response) => {
+  app.delete("/api/recurring-templates/:id", requireAuth, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       const deleted = await storage.deleteRecurringTemplate(id);
@@ -372,7 +384,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Toggle active state of a recurring template
-  app.post("/api/recurring-templates/:id/toggle", async (req: Request, res: Response) => {
+  app.post("/api/recurring-templates/:id/toggle", requireAuth, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       const { isActive } = z.object({
@@ -401,7 +413,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Generate an invoice from a recurring template
-  app.post("/api/recurring-templates/:id/generate", async (req: Request, res: Response) => {
+  app.post("/api/recurring-templates/:id/generate", requireAuth, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       
@@ -466,13 +478,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
   
   // Process scheduled invoices
-  app.post("/api/process/scheduled-invoices", async (req: Request, res: Response) => {
+  app.post("/api/process/scheduled-invoices", requireAdmin, async (req: Request, res: Response) => {
     try {
-      // Validate API key if needed
-      // const apiKey = req.headers['x-api-key'];
-      // if (apiKey !== process.env.PROCESSOR_API_KEY) {
-      //   return res.status(401).json({ message: "Unauthorized" });
-      // }
       
       // Process scheduled invoices
       const result = await InvoiceProcessor.processScheduledInvoices();
@@ -489,13 +496,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Process recurring templates
-  app.post("/api/process/recurring-templates", async (req: Request, res: Response) => {
+  app.post("/api/process/recurring-templates", requireAdmin, async (req: Request, res: Response) => {
     try {
-      // Validate API key if needed
-      // const apiKey = req.headers['x-api-key'];
-      // if (apiKey !== process.env.PROCESSOR_API_KEY) {
-      //   return res.status(401).json({ message: "Unauthorized" });
-      // }
       
       // Process recurring templates
       const result = await InvoiceProcessor.processRecurringTemplates();
@@ -512,13 +514,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Process both scheduled invoices and recurring templates
-  app.post("/api/process/all", async (req: Request, res: Response) => {
+  app.post("/api/process/all", requireAdmin, async (req: Request, res: Response) => {
     try {
-      // Validate API key if needed
-      // const apiKey = req.headers['x-api-key'];
-      // if (apiKey !== process.env.PROCESSOR_API_KEY) {
-      //   return res.status(401).json({ message: "Unauthorized" });
-      // }
       
       // Process scheduled invoices
       const scheduledResult = await InvoiceProcessor.processScheduledInvoices();

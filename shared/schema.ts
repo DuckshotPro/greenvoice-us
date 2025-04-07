@@ -6,16 +6,36 @@ import { z } from "zod";
 export const recurringFrequencyEnum = pgEnum('recurring_frequency', ['daily', 'weekly', 'monthly', 'quarterly', 'yearly']);
 export const invoiceStatusEnum = pgEnum('invoice_status', ['draft', 'scheduled', 'sent', 'paid', 'void', 'overdue']);
 
+// Subscription plan types
+export const subscriptionPlanEnum = pgEnum('subscription_plan', ['free', 'basic', 'premium', 'enterprise']);
+
 // Business owner/sender
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  email: text("email").notNull().default(''),
+  fullName: text("full_name"),
+  subscriptionPlan: subscriptionPlanEnum("subscription_plan").default("free"),
+  subscriptionExpiry: timestamp("subscription_expiry"),
+  premiumDaysRemaining: integer("premium_days_remaining").default(0),
+  lastAdViewTime: timestamp("last_ad_view_time"),
+  lastAdDaysAwarded: integer("last_ad_days_awarded").default(0),
+  totalInvoicesSent: integer("total_invoices_sent").default(0),
+  registeredAt: timestamp("registered_at").defaultNow(),
+  verifiedAt: timestamp("verified_at"),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  subscriptionPlan: true,
+  subscriptionExpiry: true,
+  premiumDaysRemaining: true, 
+  lastAdViewTime: true,
+  lastAdDaysAwarded: true,
+  totalInvoicesSent: true,
+  registeredAt: true,
+  verifiedAt: true,
 });
 
 // Line item in an invoice
@@ -141,6 +161,54 @@ export const scheduledInvoices = pgTable("scheduled_invoices", {
   processedAt: timestamp("processed_at"),
 });
 
+// Subscription plans
+export const subscriptionPlans = pgTable("subscription_plans", {
+  id: serial("id").primaryKey(),
+  planType: subscriptionPlanEnum("plan_type").notNull(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  price: doublePrecision("price").notNull(),
+  currency: text("currency").notNull().default("USD"),
+  billingCycle: text("billing_cycle").notNull(), // monthly, quarterly, yearly
+  maxMonthlyInvoices: integer("max_monthly_invoices").notNull(),
+  maxClients: integer("max_clients").notNull(),
+  maxTemplates: integer("max_templates").notNull(),
+  featuresJson: jsonb("features_json").notNull(), // Array of included features
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  isActive: boolean("is_active").default(true),
+});
+
+// Subscription transactions
+export const subscriptionTransactions = pgTable("subscription_transactions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  planId: integer("plan_id").notNull(),
+  transactionType: text("transaction_type").notNull(), // purchase, renewal, refund, upgrade, downgrade
+  amount: doublePrecision("amount").notNull(),
+  currency: text("currency").notNull().default("USD"),
+  status: text("status").notNull(), // pending, completed, failed, refunded
+  paymentMethod: text("payment_method"),
+  transactionDate: timestamp("transaction_date").defaultNow(),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  metadata: jsonb("metadata"), // Additional transaction data
+});
+
+// Ad-rewards tracking
+export const adRewards = pgTable("ad_rewards", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  rewardType: text("reward_type").notNull(), // premium_day, feature_unlock, etc
+  daysAwarded: integer("days_awarded").notNull().default(1),
+  featureUnlocked: text("feature_unlocked"),
+  viewDate: timestamp("view_date").defaultNow(),
+  expiryDate: timestamp("expiry_date").notNull(),
+  adProvider: text("ad_provider"),
+  adCampaignId: text("ad_campaign_id"),
+  metadata: jsonb("metadata"), // Additional reward data
+});
+
 export const insertInvoiceSchema = createInsertSchema(invoices).omit({
   id: true,
   createdAt: true,
@@ -191,6 +259,34 @@ export type RecurringTemplate = typeof recurringTemplates.$inferSelect;
 
 export type InsertScheduledInvoice = z.infer<typeof insertScheduledInvoiceSchema>;
 export type ScheduledInvoice = typeof scheduledInvoices.$inferSelect;
+
+// Subscription related schemas
+export const insertSubscriptionPlanSchema = createInsertSchema(subscriptionPlans).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  isActive: true,
+});
+
+export const insertSubscriptionTransactionSchema = createInsertSchema(subscriptionTransactions).omit({
+  id: true,
+  transactionDate: true,
+});
+
+export const insertAdRewardSchema = createInsertSchema(adRewards).omit({
+  id: true,
+  viewDate: true,
+});
+
+// Subscription related types
+export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
+export type InsertSubscriptionPlan = z.infer<typeof insertSubscriptionPlanSchema>;
+
+export type SubscriptionTransaction = typeof subscriptionTransactions.$inferSelect;
+export type InsertSubscriptionTransaction = z.infer<typeof insertSubscriptionTransactionSchema>;
+
+export type AdReward = typeof adRewards.$inferSelect;
+export type InsertAdReward = z.infer<typeof insertAdRewardSchema>;
 
 // Extended types for front-end use
 export const invoiceWithItemsSchema = insertInvoiceSchema.extend({
