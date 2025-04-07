@@ -26,6 +26,7 @@ const Header = () => {
     { href: '/create-invoice', label: 'Create Invoice' },
     { href: '/templates', label: 'Templates' },
     { href: '/history', label: 'History' },
+    { href: '/analytics', label: 'Analytics' },
     { href: '/settings', label: 'Settings' },
   ];
 

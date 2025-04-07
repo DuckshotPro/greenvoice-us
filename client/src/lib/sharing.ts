@@ -95,6 +95,18 @@ export const shareToSocial = async (
   try {
     const urls = generateShareUrls(invoice, shareUrl);
     
+    // Log share analytics event
+    try {
+      await apiRequest('POST', '/api/analytics/track-share', {
+        invoiceId: invoice.id,
+        shareMethod: platform,
+        metadata: { platform, url: shareUrl }
+      });
+    } catch (analyticsError) {
+      // Don't let analytics errors stop the sharing
+      console.warn('Failed to track share analytics:', analyticsError);
+    }
+    
     // For email sharing, just open the mail client
     if (platform === 'email') {
       window.location.href = urls.email;
@@ -118,7 +130,21 @@ export const shareToSocial = async (
 };
 
 // Enhanced Web Share API with fallbacks
-export const shareViaWebShareAPI = async (data: ShareData): Promise<boolean> => {
+export const shareViaWebShareAPI = async (data: ShareData, invoiceId?: number): Promise<boolean> => {
+  // Track the share attempt if invoiceId is provided
+  if (invoiceId) {
+    try {
+      await apiRequest('POST', '/api/analytics/track-share', {
+        invoiceId,
+        shareMethod: 'web-share-api',
+        metadata: { url: data.url }
+      });
+    } catch (analyticsError) {
+      // Don't let analytics errors stop the sharing
+      console.warn('Failed to track share analytics:', analyticsError);
+    }
+  }
+  
   if (navigator.share) {
     try {
       await navigator.share(data);
@@ -138,7 +164,7 @@ export const shareViaWebShareAPI = async (data: ShareData): Promise<boolean> => 
   // If Web Share API is not available or failed, try to copy link as fallback
   if (data.url) {
     try {
-      const success = await copyShareableLink(data.url);
+      const success = await copyShareableLink(data.url, invoiceId);
       if (success) {
         return true;
       }
@@ -151,7 +177,21 @@ export const shareViaWebShareAPI = async (data: ShareData): Promise<boolean> => 
 };
 
 // Copy the shareable link to clipboard with better error handling
-export const copyShareableLink = async (link: string): Promise<boolean> => {
+export const copyShareableLink = async (link: string, invoiceId?: number): Promise<boolean> => {
+  // Track the copy to clipboard if invoiceId is provided
+  if (invoiceId) {
+    try {
+      await apiRequest('POST', '/api/analytics/track-share', {
+        invoiceId,
+        shareMethod: 'clipboard',
+        metadata: { url: link }
+      });
+    } catch (analyticsError) {
+      // Don't let analytics errors stop the copying
+      console.warn('Failed to track clipboard analytics:', analyticsError);
+    }
+  }
+  
   // Modern clipboard API
   if (navigator.clipboard) {
     try {

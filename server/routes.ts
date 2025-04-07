@@ -128,6 +128,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get line items for this invoice
       const lineItems = await storage.getLineItems(invoice.id);
       
+      // Track the view for analytics (using 'link' as the share method)
+      try {
+        // Extract user agent, IP and referrer for analytics
+        const userAgent = req.headers['user-agent'] || '';
+        const ipAddress = req.ip || req.socket.remoteAddress || '';
+        const referrer = req.headers.referer || req.headers.referrer || '';
+        
+        // Record the view
+        await storage.recordShareView(
+          invoice.id,
+          'link',
+          referrer as string,
+          userAgent as string,
+          ipAddress as string
+        );
+      } catch (analyticsError) {
+        // Don't let analytics tracking failure affect the response
+        console.error('Error tracking share view:', analyticsError);
+      }
+      
       res.json({ ...invoice, items: lineItems });
     } catch (error) {
       console.error("Error fetching shared invoice:", error);
@@ -237,6 +257,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
           </div>
         `,
       });
+      
+      // Track this share for analytics
+      if (req.user && req.user.id) {
+        try {
+          await storage.trackShareAnalytics({
+            invoiceId: id,
+            userId: req.user.id,
+            shareMethod: 'email',
+            recipientEmail: recipient,
+            referrer: null,
+            userAgent: null,
+            ipAddress: null,
+            metadata: { subject, recipientEmail: recipient }
+          });
+        } catch (analyticsError) {
+          // Don't let analytics tracking failure affect the response
+          console.error('Error tracking email share:', analyticsError);
+        }
+      }
       
       res.json({ message: "Email sent successfully" });
     } catch (error) {
@@ -637,6 +676,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: "ERROR",
         error: error instanceof Error ? error.message : 'Unknown system error'
       });
+    }
+  });
+  
+  // ANALYTICS ENDPOINTS
+  
+  // Get share analytics for a specific invoice
+  app.get("/api/analytics/shares/:invoiceId", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const invoiceId = parseInt(req.params.invoiceId);
+      
+      // Verify the invoice exists and belongs to the user
+      const invoice = await storage.getInvoice(invoiceId);
+      
+      if (!invoice) {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+      
+      // Check if the user has permission to view this invoice's analytics
+      if (req.user && req.user.id !== invoice.userId) {
+        return res.status(403).json({ message: "Not authorized to view this invoice's analytics" });
+      }
+      
+      // Get share analytics data
+      const analytics = await storage.getShareAnalytics(invoiceId);
+      
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error fetching share analytics:", error);
+      res.status(500).json({ message: "Failed to fetch share analytics" });
+    }
+  });
+  
+  // Get share analytics summary by method for the current user
+  app.get("/api/analytics/by-method", requireAuth, async (req: Request, res: Response) => {
+    try {
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const analytics = await storage.getShareAnalyticsByMethod(req.user.id);
+      
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error fetching share analytics by method:", error);
+      res.status(500).json({ message: "Failed to fetch share analytics" });
+    }
+  });
+  
+  // Get invoice view count analytics for the current user
+  app.get("/api/analytics/views", requireAuth, async (req: Request, res: Response) => {
+    try {
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const analytics = await storage.getShareViewAnalytics(req.user.id);
+      
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error fetching view analytics:", error);
+      res.status(500).json({ message: "Failed to fetch view analytics" });
+    }
+  });
+  
+  // Track a share event (called from the client)
+  app.post("/api/analytics/track-share", requireAuth, async (req: Request, res: Response) => {
+    try {
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const { invoiceId, shareMethod, recipientEmail, metadata } = req.body;
+      
+      if (!invoiceId || !shareMethod) {
+        return res.status(400).json({ message: "invoiceId and shareMethod are required" });
+      }
+      
+      // Verify invoice belongs to user
+      const invoice = await storage.getInvoice(invoiceId);
+      if (!invoice || invoice.userId !== req.user.id) {
+        return res.status(403).json({ message: "Not authorized to track shares for this invoice" });
+      }
+      
+      // Track the share event
+      const analytics = await storage.trackShareAnalytics({
+        invoiceId,
+        userId: req.user.id,
+        shareMethod,
+        recipientEmail: recipientEmail || null,
+        referrer: req.headers.referer as string || null,
+        userAgent: req.headers['user-agent'] as string || null,
+        ipAddress: req.ip || req.socket.remoteAddress || null,
+        metadata: metadata || null
+      });
+      
+      res.status(201).json({ message: "Share tracked successfully", shareId: analytics.id });
+    } catch (error) {
+      console.error("Error tracking share:", error);
+      res.status(500).json({ message: "Failed to track share" });
     }
   });
 
