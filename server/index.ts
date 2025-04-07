@@ -15,27 +15,45 @@ app.use(express.urlencoded({ extended: false }));
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+
+  // Log incoming request
+  if (path.startsWith("/api")) {
+    ErrorLogger.logActivity(
+      LogLevel.INFO,
+      LogCategory.SYSTEM,
+      `Incoming ${req.method} request`,
+      'RequestLogger',
+      {
+        path,
+        method: req.method,
+        query: req.query,
+        // Sanitize request headers to remove sensitive data
+        headers: ErrorLogger['sanitizeData']({
+          userAgent: req.headers['user-agent'],
+          referer: req.headers.referer,
+          origin: req.headers.origin
+        })
+      }
+    );
+  }
 
   const originalResJson = res.json;
   res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
     return originalResJson.apply(res, [bodyJson, ...args]);
   };
 
   res.on("finish", () => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      log(logLine);
+      ErrorLogger.logPerformance(
+        `${req.method} ${path}`,
+        duration,
+        {
+          statusCode: res.statusCode,
+          path,
+          method: req.method
+        }
+      );
     }
   });
 
