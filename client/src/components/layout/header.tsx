@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
+import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
-import { Bell } from 'lucide-react';
+import { Bell, LogIn, Crown } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +21,7 @@ import { Menu } from 'lucide-react';
 const Header = () => {
   const [location] = useLocation();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const { user, logoutMutation, isPremium } = useAuth();
 
   // Navigation links
   const navLinks = [
@@ -31,6 +33,11 @@ const Header = () => {
   ];
 
   const isActive = (path: string) => location === path;
+
+  // Handle logout
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
 
   return (
     <header className="bg-white shadow-sm">
@@ -60,27 +67,66 @@ const Header = () => {
             </nav>
           </div>
           
-          <div className="flex items-center">
-            <Button variant="ghost" size="icon" className="mr-2">
-              <Bell className="h-5 w-5 text-gray-400" />
-              <span className="sr-only">Notifications</span>
-            </Button>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full bg-primary text-white">
-                  JD
+          <div className="flex items-center space-x-2">
+            {/* Premium badge/button */}
+            {user && (
+              <Link href="/premium">
+                <Button 
+                  variant={isPremium ? "outline" : "default"}
+                  size="sm"
+                  className={`hidden sm:flex items-center ${isPremium ? 'border-yellow-300 text-yellow-700 bg-yellow-50 hover:bg-yellow-100' : ''}`}
+                >
+                  <Crown className={`h-4 w-4 ${isPremium ? 'text-yellow-500' : 'text-white'} mr-1`} />
+                  {isPremium ? 'Premium' : 'Upgrade'}
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>Profile</DropdownMenuItem>
-                <DropdownMenuItem>Settings</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>Logout</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </Link>
+            )}
+            
+            {user ? (
+              <>
+                <Button variant="ghost" size="icon" className="mr-1">
+                  <Bell className="h-5 w-5 text-gray-400" />
+                  <span className="sr-only">Notifications</span>
+                </Button>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full bg-primary text-white">
+                      {user.username ? user.username.substring(0, 2).toUpperCase() : 'U'}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>
+                      <span className="block text-sm">{user.fullName || user.username}</span>
+                      <span className="block text-xs text-gray-500 mt-0.5">{user.email}</span>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/premium">
+                        <div className="flex items-center">
+                          <Crown className="mr-2 h-4 w-4 text-yellow-500" />
+                          {isPremium ? 'Premium Status' : 'Upgrade to Premium'}
+                        </div>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/settings">Profile Settings</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout}>
+                      {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : (
+              <Button asChild className="flex items-center">
+                <Link href="/auth">
+                  <LogIn className="mr-2 h-4 w-4" />
+                  Login
+                </Link>
+              </Button>
+            )}
           </div>
           
           <div className="-mr-2 flex items-center md:hidden">
@@ -111,6 +157,32 @@ const Header = () => {
                       {link.label}
                     </Link>
                   ))}
+                  
+                  {/* Mobile premium link */}
+                  {user && (
+                    <Link
+                      href="/premium"
+                      className="flex items-center px-3 py-2 rounded-md text-base font-medium text-yellow-700 bg-yellow-50"
+                      onClick={() => setIsSheetOpen(false)}
+                    >
+                      <Crown className="mr-2 h-5 w-5 text-yellow-500" />
+                      {isPremium ? 'Premium Status' : 'Upgrade to Premium'}
+                    </Link>
+                  )}
+                  
+                  {/* Mobile logout */}
+                  {user && (
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start"
+                      onClick={() => {
+                        handleLogout();
+                        setIsSheetOpen(false);
+                      }}
+                    >
+                      Logout
+                    </Button>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>
