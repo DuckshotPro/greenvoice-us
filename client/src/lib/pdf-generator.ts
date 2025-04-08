@@ -196,6 +196,10 @@ const addSummary = (doc: jsPDF, invoice: Invoice) => {
 
 export const generatePDF = (invoice: Invoice): string => {
   try {
+    if (!invoice) {
+      throw new Error('Invoice data is required');
+    }
+    
     const doc = createBasePDF(invoice);
     addHeader(doc, invoice);
     addPartyDetails(doc, invoice);

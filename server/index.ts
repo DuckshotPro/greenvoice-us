@@ -2,7 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { scheduler } from "./scheduler";
-import { logInfo, logError } from "./lib/error-logger";
+import { ErrorLogger, LogLevel, LogCategory, logInfo, logError } from "./lib/error-logger";
 import dotenv from "dotenv";
 
 // Load environment variables from .env file
