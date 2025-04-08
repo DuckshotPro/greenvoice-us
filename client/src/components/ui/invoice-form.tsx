@@ -24,7 +24,14 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Trash2 } from 'lucide-react';
-import { type Invoice, type LineItem, CURRENCY_OPTIONS, formatCurrency } from '@/types/invoice';
+import { type Invoice, CURRENCY_OPTIONS, formatCurrency } from '@/types/invoice';
+
+interface LineItem {
+  description: string;
+  quantity: number;
+  rate: number;
+  amount: number;
+}
 
 // Form schema
 const formSchema = z.object({
@@ -33,21 +40,27 @@ const formSchema = z.object({
   senderEmail: z.string().email('Must be a valid email'),
   senderAddress: z.string().min(1, 'Address is required'),
   senderPhone: z.string().min(1, 'Phone number is required'),
-  
+
   // Client details
   clientName: z.string().min(1, 'Client name is required'),
   clientEmail: z.string().email('Must be a valid email'),
   clientAddress: z.string().min(1, 'Client address is required'),
-  
+
   // Invoice details
   invoiceNumber: z.string().min(1, 'Invoice number is required'),
   issueDate: z.string().min(1, 'Issue date is required'),
   dueDate: z.string().min(1, 'Due date is required'),
   currency: z.string().min(1, 'Currency is required'),
-  
+
   // Additional info
   notes: z.string().optional(),
-  
+
+  // Discount fields
+  discountType: z.enum(['none', 'percentage', 'fixed', 'coupon']).default('none'),
+  discountValue: z.number().min(0).default(0),
+  discountTotal: z.number().min(0).default(0),
+  couponCode: z.string().optional(),
+
   // These are calculated fields
   subtotal: z.number().min(0),
   taxRate: z.number().min(0),
@@ -67,7 +80,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
   const [items, setItems] = useState<LineItem[]>([
     { description: '', quantity: 1, rate: 0, amount: 0 }
   ]);
-  
+
   // Setup form with schema validation
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
@@ -84,6 +97,13 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       currency: 'USD',
       notes: 'Thank you for your business. Payment is due within 30 days.',
+      
+      // Default values for discount
+      discountType: 'none',
+      discountValue: 0,
+      discountTotal: 0,
+      
+      // Financial calculations
       subtotal: 0,
       taxRate: 8,
       taxAmount: 0,
@@ -91,42 +111,62 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
       ...defaultValues,
     },
   });
-  
-  // Calculate totals
-  const calculateTotals = (items: LineItem[], taxRate: number) => {
+
+  // Calculate totals with discount
+  const calculateTotals = (
+    items: LineItem[], 
+    taxRate: number, 
+    discountType = form.getValues('discountType'), 
+    discountValue = form.getValues('discountValue')
+  ) => {
     const subtotal = items.reduce((sum, item) => sum + item.amount, 0);
-    const taxAmount = (subtotal * taxRate) / 100;
-    const total = subtotal + taxAmount;
     
-    return { subtotal, taxAmount, total };
+    // Calculate discount
+    let discountTotal = 0;
+    if (discountType === 'percentage' && discountValue > 0) {
+      discountTotal = (subtotal * discountValue) / 100;
+    } else if (discountType === 'fixed' && discountValue > 0) {
+      discountTotal = Math.min(discountValue, subtotal); // Can't discount more than subtotal
+    }
+    
+    // Apply discount before tax
+    const discountedSubtotal = subtotal - discountTotal;
+    const taxAmount = (discountedSubtotal * taxRate) / 100;
+    const total = discountedSubtotal + taxAmount;
+
+    return { subtotal, discountTotal, taxAmount, total };
   };
-  
+
   // Update item fields and handle bidirectional calculations
   const updateItem = (index: number, field: keyof LineItem, value: any) => {
     // Ensure value is a valid number
     const numericValue = typeof value === 'number' ? value : parseFloat(value) || 0;
-    
+
     const newItems = [...items];
-    
+
     // Make a copy of the current item to work with
     const updatedItem = { ...newItems[index] };
-    
+
     // Update the specified field with the new value
-    updatedItem[field] = numericValue;
-    
+    if (field === 'description') {
+      updatedItem.description = value as string;
+    } else if (field === 'quantity' || field === 'rate' || field === 'amount') {
+      updatedItem[field] = numericValue;
+    }
+
     // Handle different update scenarios
     if (field === 'quantity' || field === 'rate') {
       // If quantity or rate changed, recalculate amount
       // Ensure we're using the updated values, not the old ones
       const quantity = updatedItem.quantity;
       const rate = updatedItem.rate;
-      
+
       // Calculate and round to 2 decimal places
       updatedItem.amount = Math.round((quantity * rate) * 100) / 100;
     } else if (field === 'amount') {
       // If amount changed, update quantity based on rate (if rate is non-zero)
       const rate = updatedItem.rate;
-      
+
       if (rate > 0) {
         // Calculate new quantity based on amount ÷ rate
         const newQuantity = numericValue / rate;
@@ -143,58 +183,89 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
         }
       }
     }
-    
+
     // Update the item in the array
     newItems[index] = updatedItem;
     setItems(newItems);
-    
+
     // Recalculate totals
-    const { subtotal, taxAmount, total } = calculateTotals(newItems, form.getValues('taxRate'));
-    
+    const { subtotal, discountTotal, taxAmount, total } = calculateTotals(newItems, form.getValues('taxRate'));
+
     // Update form values
     form.setValue('subtotal', subtotal);
+    form.setValue('discountTotal', discountTotal);
     form.setValue('taxAmount', taxAmount);
     form.setValue('total', total);
-    
+
     // Notify parent of form changes
     const currentValues = form.getValues();
     onFormChange({ ...currentValues, items: newItems });
   };
-  
+
   // Add new item
   const addItem = () => {
     setItems([...items, { description: '', quantity: 1, rate: 0, amount: 0 }]);
   };
-  
+
   // Remove item
   const removeItem = (index: number) => {
     if (items.length === 1) return; // Keep at least one item
-    
+
     const newItems = items.filter((_, i) => i !== index);
     setItems(newItems);
-    
+
     // Recalculate totals
-    const { subtotal, taxAmount, total } = calculateTotals(newItems, form.getValues('taxRate'));
-    
+    const { subtotal, discountTotal, taxAmount, total } = calculateTotals(newItems, form.getValues('taxRate'));
+
     // Update form values
     form.setValue('subtotal', subtotal);
+    form.setValue('discountTotal', discountTotal);
     form.setValue('taxAmount', taxAmount);
     form.setValue('total', total);
-    
+
     // Notify parent of form changes
     const currentValues = form.getValues();
     onFormChange({ ...currentValues, items: newItems });
   };
-  
+
   // When tax rate changes
   const handleTaxRateChange = (value: string) => {
     const taxRate = parseFloat(value) || 0;
     form.setValue('taxRate', taxRate);
-    
+
     // Recalculate totals
-    const { subtotal, taxAmount, total } = calculateTotals(items, taxRate);
+    const { subtotal, discountTotal, taxAmount, total } = calculateTotals(items, taxRate);
+
+    // Update form values
+    form.setValue('discountTotal', discountTotal);
+    form.setValue('taxAmount', taxAmount);
+    form.setValue('total', total);
+
+    // Notify parent of form changes
+    const currentValues = form.getValues();
+    onFormChange({ ...currentValues, items });
+  };
+  
+  // Handle discount changes
+  const handleDiscountChange = (type: 'none' | 'percentage' | 'fixed' | 'coupon', value?: number) => {
+    // Update discount type
+    form.setValue('discountType', type);
+    
+    // Update discount value if provided
+    if (value !== undefined) {
+      form.setValue('discountValue', value);
+    }
+    
+    // Recalculate totals with new discount
+    const { subtotal, discountTotal, taxAmount, total } = calculateTotals(
+      items, 
+      form.getValues('taxRate'), 
+      type, 
+      value !== undefined ? value : form.getValues('discountValue')
+    );
     
     // Update form values
+    form.setValue('discountTotal', discountTotal);
     form.setValue('taxAmount', taxAmount);
     form.setValue('total', total);
     
@@ -202,7 +273,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
     const currentValues = form.getValues();
     onFormChange({ ...currentValues, items });
   };
-  
+
   // Listen for form changes
   useEffect(() => {
     const subscription = form.watch((value) => {
@@ -211,26 +282,27 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
         onFormChange({ ...value as FormSchema, items });
       }
     });
-    
+
     return () => subscription.unsubscribe();
   }, [form, items, onFormChange]);
-  
+
   // Set initial values on mount
   useEffect(() => {
     if (defaultValues && defaultValues.subtotal !== undefined) {
-      const { subtotal, taxAmount, total } = calculateTotals(items, form.getValues('taxRate'));
-      
+      const { subtotal, discountTotal, taxAmount, total } = calculateTotals(items, form.getValues('taxRate'));
+
       // Update form values
       form.setValue('subtotal', subtotal);
+      form.setValue('discountTotal', discountTotal);
       form.setValue('taxAmount', taxAmount);
       form.setValue('total', total);
-      
+
       // Notify parent of form changes
       const currentValues = form.getValues();
       onFormChange({ ...currentValues, items });
     }
   }, []);
-  
+
   return (
     <Form {...form}>
       <div className="lg:col-span-1">
@@ -257,7 +329,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="senderEmail"
@@ -270,7 +342,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="senderAddress"
@@ -283,7 +355,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="senderPhone"
@@ -299,7 +371,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                 </div>
               </CardContent>
             </Card>
-            
+
             {/* Client Details */}
             <Card className="shadow-sm">
               <CardContent className="p-4 sm:p-6">
@@ -317,7 +389,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="clientEmail"
@@ -330,7 +402,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="clientAddress"
@@ -346,7 +418,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                 </div>
               </CardContent>
             </Card>
-            
+
             {/* Invoice Details */}
             <Card className="shadow-sm">
               <CardContent className="p-4 sm:p-6">
@@ -365,7 +437,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="issueDate"
@@ -379,7 +451,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                       )}
                     />
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -393,7 +465,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="currency"
@@ -424,7 +496,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                 </div>
               </CardContent>
             </Card>
-            
+
             {/* Line Items */}
             <Card className="shadow-sm">
               <CardContent className="p-4 sm:p-6">
@@ -440,7 +512,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                     <Plus className="mr-1 h-4 w-4" /> Add Item
                   </Button>
                 </div>
-                
+
                 {/* Line items */}
                 {items.map((item, index) => (
                   <div key={index} className="mt-4 border border-gray-200 rounded-md p-3">
@@ -448,9 +520,10 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                       <div className="col-span-12 sm:col-span-5">
                         <label className="block text-xs font-medium text-gray-700">Description</label>
                         <Input
-                          className="mt-1"
+                          className="mt-1 w-full cursor-text"
                           value={item.description}
                           onChange={(e) => updateItem(index, 'description', e.target.value)}
+                          readOnly={false}
                         />
                       </div>
                       <div className="col-span-4 sm:col-span-2">
@@ -521,7 +594,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                     </div>
                   </div>
                 ))}
-                
+
                 {/* Totals */}
                 <div className="mt-4 space-y-2 px-3 py-4 bg-gray-50 rounded-md">
                   <div className="flex justify-between items-center">
@@ -531,6 +604,74 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                     </span>
                   </div>
                   
+                  {/* Discount Section */}
+                  <div className="flex flex-col space-y-2 border-t border-gray-200 pt-2 pb-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Discount</span>
+                      <div className="flex space-x-2">
+                        <Button 
+                          type="button" 
+                          variant={form.getValues('discountType') === 'none' ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handleDiscountChange('none')}
+                          className="h-7 text-xs"
+                        >
+                          None
+                        </Button>
+                        <Button 
+                          type="button" 
+                          variant={form.getValues('discountType') === 'percentage' ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handleDiscountChange('percentage')}
+                          className="h-7 text-xs"
+                        >
+                          %
+                        </Button>
+                        <Button 
+                          type="button" 
+                          variant={form.getValues('discountType') === 'fixed' ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handleDiscountChange('fixed')}
+                          className="h-7 text-xs"
+                        >
+                          Fixed
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {form.getValues('discountType') !== 'none' && (
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <Input
+                            type="number"
+                            className="w-20 h-7 text-xs"
+                            min="0"
+                            step={form.getValues('discountType') === 'percentage' ? "1" : "0.01"}
+                            value={form.getValues('discountValue')}
+                            onChange={(e) => handleDiscountChange(
+                              form.getValues('discountType') as 'percentage' | 'fixed', 
+                              parseFloat(e.target.value) || 0
+                            )}
+                            onFocus={(e) => {
+                              if (parseFloat(e.target.value) === 0) {
+                                e.target.select();
+                              }
+                            }}
+                          />
+                          {form.getValues('discountType') === 'percentage' && (
+                            <span className="text-sm text-gray-600 ml-1">%</span>
+                          )}
+                          {form.getValues('discountType') === 'fixed' && (
+                            <span className="text-sm text-gray-600 ml-1">{form.getValues('currency')}</span>
+                          )}
+                        </div>
+                        <span className="text-sm font-medium text-gray-900">
+                          -{formatCurrency(form.getValues('discountTotal'), form.getValues('currency'))}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="flex justify-between items-center">
                     <div className="flex items-center">
                       <span className="text-sm text-gray-600">Tax</span>
@@ -553,7 +694,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                       {formatCurrency(form.getValues('taxAmount'), form.getValues('currency'))}
                     </span>
                   </div>
-                  
+
                   <div className="border-t border-gray-200 pt-2 flex justify-between items-center">
                     <span className="text-base font-medium text-gray-900">Total</span>
                     <span className="text-base font-bold text-gray-900">
@@ -561,7 +702,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                     </span>
                   </div>
                 </div>
-                
+
                 {/* Notes */}
                 <div className="mt-4">
                   <FormField

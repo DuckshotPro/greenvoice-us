@@ -14,11 +14,11 @@ const Home = () => {
     queryKey: ['/api/invoices'],
     staleTime: 60000, // 1 minute
   });
-  
+
   return (
     <div className="bg-gray-100 min-h-screen flex flex-col">
       <Header />
-      
+
       <main className="flex-grow">
         {/* Hero Section */}
         <section className="bg-gradient-to-r from-primary to-accent py-16">
@@ -46,7 +46,7 @@ const Home = () => {
             </div>
           </div>
         </section>
-        
+
         {/* Features Section */}
         <section id="features" className="py-16 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -58,7 +58,7 @@ const Home = () => {
                 Everything you need to create and share professional invoices.
               </p>
             </div>
-            
+
             <div className="mt-12 grid gap-8 md:grid-cols-3">
               <Card>
                 <CardHeader className="text-center">
@@ -71,7 +71,7 @@ const Home = () => {
                   Create beautiful, professional invoices that make a great impression on your clients.
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="text-center">
                   <div className="mx-auto bg-primary/10 p-3 rounded-full w-12 h-12 flex items-center justify-center mb-4">
@@ -83,7 +83,7 @@ const Home = () => {
                   Share invoices via PDF, image, email, or directly to social platforms with just one click.
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="text-center">
                   <div className="mx-auto bg-primary/10 p-3 rounded-full w-12 h-12 flex items-center justify-center mb-4">
@@ -98,7 +98,7 @@ const Home = () => {
             </div>
           </div>
         </section>
-        
+
         {/* CTA Section */}
         <section className="bg-gray-50 py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -123,7 +123,7 @@ const Home = () => {
           </div>
         </section>
       </main>
-      
+
       <Footer />
     </div>
   );

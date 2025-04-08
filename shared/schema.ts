@@ -52,11 +52,28 @@ export const insertLineItemSchema = createInsertSchema(lineItems).omit({
   id: true,
 });
 
+// Coupon codes
+export const coupons = pgTable("coupons", {
+  id: serial("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  type: text("type").notNull(), // 'percentage' or 'fixed'
+  value: doublePrecision("value").notNull(),
+  validFrom: timestamp("valid_from").notNull(),
+  validTo: timestamp("valid_to"),
+  maxUses: integer("max_uses"),
+  currentUses: integer("current_uses").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Invoice
 export const invoices = pgTable("invoices", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   invoiceNumber: text("invoice_number").notNull(),
+  discountType: text("discount_type"), // 'percentage', 'fixed', or 'coupon'
+  discountValue: doublePrecision("discount_value").default(0),
+  discountTotal: doublePrecision("discount_total").default(0),
+  couponCode: text("coupon_code"),
   issueDate: text("issue_date").notNull(),
   dueDate: text("due_date").notNull(),
   currency: text("currency").notNull().default("USD"),

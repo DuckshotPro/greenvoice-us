@@ -1,3 +1,4 @@
+
 import { log } from "../vite";
 
 export enum LogLevel {
@@ -7,146 +8,188 @@ export enum LogLevel {
   CRITICAL = 'CRITICAL'
 }
 
-interface ErrorLogEntry {
+export enum LogCategory {
+  SECURITY = 'SECURITY',
+  PERFORMANCE = 'PERFORMANCE',
+  USER_ACTIVITY = 'USER_ACTIVITY',
+  SYSTEM = 'SYSTEM',
+  AUDIT = 'AUDIT'
+}
+
+interface LogEntry {
   timestamp: string;
   level: LogLevel;
+  category: LogCategory;
   message: string;
   source: string;
   details?: any;
+  userId?: number;
 }
 
-/**
- * ErrorLogger provides structured error logging throughout the application
- */
 export class ErrorLogger {
-  private static logBuffer: ErrorLogEntry[] = [];
-  private static MAX_BUFFER_SIZE = 100;
+  private static logBuffer: LogEntry[] = [];
+  private static MAX_BUFFER_SIZE = 1000;
+  private static SENSITIVE_FIELDS = [
+    'password', 'secret', 'token', 'apiKey', 'api_key', 
+    'creditCard', 'ssn', 'email', 'phone', 'address'
+  ];
   
-  /**
-   * Log an error message
-   * @param level The severity level of the error
-   * @param message The error message
-   * @param source The component or module where the error occurred
-   * @param details Additional error details (object, error instance, etc.)
-   */
-  static logError(level: LogLevel, message: string, source: string, details?: any): void {
-    // Create log entry
-    const entry: ErrorLogEntry = {
+  static logActivity(
+    level: LogLevel,
+    category: LogCategory,
+    message: string,
+    source: string,
+    details?: any,
+    userId?: number
+  ): void {
+    const entry: LogEntry = {
       timestamp: new Date().toISOString(),
       level,
+      category,
       message,
       source,
-      details: details ? this.sanitizeErrorDetails(details) : undefined
+      details: details ? this.sanitizeData(details) : undefined,
+      userId: userId ? this.hashIdentifier(userId) : undefined
     };
     
-    // Add to buffer with circular buffer behavior
+    this.addToBuffer(entry);
+    this.outputLog(entry);
+  }
+
+  private static addToBuffer(entry: LogEntry): void {
     if (this.logBuffer.length >= this.MAX_BUFFER_SIZE) {
-      this.logBuffer.shift(); // Remove oldest entry
+      this.logBuffer.shift();
     }
     this.logBuffer.push(entry);
+  }
+
+  private static outputLog(entry: LogEntry): void {
+    const formattedMessage = `[${entry.level}][${entry.category}] ${entry.source}: ${entry.message}`;
     
-    // Format and output the log
-    const formattedMessage = `[${entry.level}] ${entry.source}: ${entry.message}`;
-    
-    // Use the existing log function for consistency
-    switch (level) {
+    switch (entry.level) {
       case LogLevel.INFO:
-        log(formattedMessage, 'error-logger');
+        log(formattedMessage, 'logger');
         break;
       case LogLevel.WARNING:
-        log(`⚠️ ${formattedMessage}`, 'error-logger');
+        log(`⚠️ ${formattedMessage}`, 'logger');
         break;
       case LogLevel.ERROR:
       case LogLevel.CRITICAL:
-        log(`❌ ${formattedMessage}`, 'error-logger');
-        console.error(formattedMessage, details || '');
+        log(`❌ ${formattedMessage}`, 'logger');
+        console.error(formattedMessage, entry.details || '');
         break;
     }
   }
-  
-  /**
-   * Convenience method for logging database errors
-   * @param operation The database operation that failed
-   * @param error The error that occurred
-   * @param entityId Optional ID of the entity being operated on
-   */
-  static logDatabaseError(operation: string, error: any, entityId?: number | string): void {
-    let errorMessage = `Database error during ${operation}`;
-    if (entityId !== undefined) {
-      errorMessage += ` (ID: ${entityId})`;
-    }
+
+  private static sanitizeData(data: any): any {
+    if (!data) return data;
     
-    this.logError(
-      LogLevel.ERROR,
-      errorMessage,
-      'Database',
-      error
-    );
-  }
-  
-  /**
-   * Get recent error logs (useful for admin dashboard)
-   * @param count The number of recent logs to retrieve
-   * @param level Optional filter by log level
-   */
-  static getRecentLogs(count = 20, level?: LogLevel): ErrorLogEntry[] {
-    let logs = [...this.logBuffer];
-    
-    if (level) {
-      logs = logs.filter(log => log.level === level);
-    }
-    
-    // Return most recent logs first
-    return logs.reverse().slice(0, count);
-  }
-  
-  /**
-   * Sanitize error details to prevent sensitive data leakage
-   * @param details The error details to sanitize
-   */
-  private static sanitizeErrorDetails(details: any): any {
-    if (details instanceof Error) {
-      return {
-        name: details.name,
-        message: details.message,
-        stack: details.stack,
-      };
-    }
-    
-    // For objects, perform a deep copy and sanitize
-    if (typeof details === 'object' && details !== null) {
-      const sanitized = { ...details };
+    if (typeof data === 'object' && data !== null) {
+      const sanitized = { ...data };
       
-      // Remove potentially sensitive fields
-      const sensitiveFields = ['password', 'secret', 'token', 'apiKey', 'api_key'];
-      
-      for (const field of sensitiveFields) {
+      for (const field of this.SENSITIVE_FIELDS) {
         if (field in sanitized) {
           sanitized[field] = '[REDACTED]';
+        }
+      }
+
+      // Remove potentially sensitive URL parameters
+      if (sanitized.url) {
+        try {
+          const url = new URL(sanitized.url);
+          url.search = '[REDACTED]';
+          sanitized.url = url.toString();
+        } catch (e) {
+          // Not a valid URL, leave as is
         }
       }
       
       return sanitized;
     }
     
-    return details;
+    return data;
+  }
+
+  private static hashIdentifier(id: number | string): string {
+    // In production, use a proper hashing function
+    return `hashed_${id}`;
+  }
+
+  static getRecentLogs(
+    count = 20,
+    level?: LogLevel,
+    category?: LogCategory
+  ): LogEntry[] {
+    let logs = [...this.logBuffer];
+    
+    if (level) {
+      logs = logs.filter(log => log.level === level);
+    }
+    
+    if (category) {
+      logs = logs.filter(log => log.category === category);
+    }
+    
+    return logs.reverse().slice(0, count);
+  }
+
+  // Convenience methods for different log types
+  static logPerformance(operation: string, duration: number, details?: any): void {
+    this.logActivity(
+      LogLevel.INFO,
+      LogCategory.PERFORMANCE,
+      `Operation ${operation} took ${duration}ms`,
+      'Performance',
+      details
+    );
+  }
+
+  static logUserActivity(action: string, userId: number, details?: any): void {
+    this.logActivity(
+      LogLevel.INFO,
+      LogCategory.USER_ACTIVITY,
+      `User performed action: ${action}`,
+      'UserActivity',
+      details,
+      userId
+    );
+  }
+
+  static logAudit(action: string, userId: number, details?: any): void {
+    this.logActivity(
+      LogLevel.INFO,
+      LogCategory.AUDIT,
+      `Audit: ${action}`,
+      'AuditLog',
+      details,
+      userId
+    );
+  }
+
+  static logSecurity(event: string, details?: any, userId?: number): void {
+    this.logActivity(
+      LogLevel.WARNING,
+      LogCategory.SECURITY,
+      `Security event: ${event}`,
+      'Security',
+      details,
+      userId
+    );
   }
 }
 
-/**
- * Convenience functions for logging
- */
+// Export convenience functions
 export const logInfo = (message: string, source: string, details?: any) => 
-  ErrorLogger.logError(LogLevel.INFO, message, source, details);
+  ErrorLogger.logActivity(LogLevel.INFO, LogCategory.SYSTEM, message, source, details);
 
 export const logWarning = (message: string, source: string, details?: any) => 
-  ErrorLogger.logError(LogLevel.WARNING, message, source, details);
+  ErrorLogger.logActivity(LogLevel.WARNING, LogCategory.SYSTEM, message, source, details);
 
 export const logError = (message: string, source: string, details?: any) => 
-  ErrorLogger.logError(LogLevel.ERROR, message, source, details);
+  ErrorLogger.logActivity(LogLevel.ERROR, LogCategory.SYSTEM, message, source, details);
 
 export const logCritical = (message: string, source: string, details?: any) => 
-  ErrorLogger.logError(LogLevel.CRITICAL, message, source, details);
+  ErrorLogger.logActivity(LogLevel.CRITICAL, LogCategory.SYSTEM, message, source, details);
 
-export const logDbError = (operation: string, error: any, entityId?: number | string) => 
-  ErrorLogger.logDatabaseError(operation, error, entityId);
+export const logDbError = (operation: string, error: any, entityId?: number) => 
+  ErrorLogger.logActivity(LogLevel.ERROR, LogCategory.SYSTEM, `Database error during ${operation}`, 'Database', { error, entityId });

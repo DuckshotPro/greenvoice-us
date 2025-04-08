@@ -196,6 +196,15 @@ const addSummary = (doc: jsPDF, invoice: Invoice) => {
 
 export const generatePDF = (invoice: Invoice): string => {
   try {
+    if (!invoice || !invoice.items || !Array.isArray(invoice.items)) {
+      throw new Error('Invalid invoice data structure');
+    }
+    
+    // Ensure all required fields are present
+    if (!invoice.invoiceNumber || !invoice.senderName || !invoice.clientName) {
+      throw new Error('Required invoice fields are missing');
+    }
+    
     const doc = createBasePDF(invoice);
     addHeader(doc, invoice);
     addPartyDetails(doc, invoice);
