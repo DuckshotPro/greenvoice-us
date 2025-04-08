@@ -14,6 +14,7 @@ import { shareToSocial, sendViaEmail, copyShareableLink, shareViaWebShareAPI } f
 import { downloadPDF } from '@/lib/pdf-generator';
 import { downloadImage } from '@/lib/image-generator';
 import { useToast } from '@/hooks/use-toast';
+import { ToastAction } from '@/components/ui/toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Invoice } from '@/types/invoice';
 import {
@@ -36,9 +37,10 @@ interface ShareOptionsProps {
   invoice: Invoice;
   invoicePreviewRef: React.RefObject<HTMLDivElement>;
   shareUrl: string;
+  onSaveInvoice?: (invoice: Invoice) => Promise<Invoice | undefined>;
 }
 
-const ShareOptions = ({ invoice, invoicePreviewRef, shareUrl }: ShareOptionsProps) => {
+const ShareOptions = ({ invoice, invoicePreviewRef, shareUrl, onSaveInvoice }: ShareOptionsProps) => {
   const { toast } = useToast();
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
   const [emailForm, setEmailForm] = useState({
@@ -128,12 +130,74 @@ const ShareOptions = ({ invoice, invoicePreviewRef, shareUrl }: ShareOptionsProp
   };
   
   // Handle email sending
-  const handleSendEmail = async () => {
-    if (!invoice.id) {
+  // Save invoice and then send email
+  const handleSaveAndSend = async () => {
+    if (!onSaveInvoice) {
       toast({
         title: 'Error',
-        description: 'Please save the invoice before sending via email.',
+        description: 'Cannot save invoice at this time',
         variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      toast({
+        title: 'Saving Invoice',
+        description: 'Please wait while we save your invoice...',
+      });
+
+      // Save the invoice
+      const savedInvoice = await onSaveInvoice(invoice);
+      
+      if (!savedInvoice || !savedInvoice.id) {
+        throw new Error('Failed to save invoice');
+      }
+
+      // Update the invoice reference and close the dialog
+      toast({
+        title: 'Invoice Saved',
+        description: 'Your invoice has been saved. Now sending email...',
+      });
+      
+      // Send the email with the saved invoice ID
+      const result = await sendViaEmail(savedInvoice.id, {
+        recipient: emailForm.recipient,
+        subject: emailForm.subject,
+        message: emailForm.message,
+        attachPdf: true
+      });
+      
+      if (result.success) {
+        setIsEmailDialogOpen(false);
+        toast({
+          title: 'Email Sent',
+          description: 'Your invoice has been saved and sent successfully.',
+        });
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (error) {
+      console.error('Error during save and send operation:', error);
+      toast({
+        title: 'Operation Failed',
+        description: error instanceof Error ? error.message : 'Failed to save and send invoice',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleSendEmail = async () => {
+    if (!invoice.id) {
+      // If invoice isn't saved yet, show save and send dialog
+      toast({
+        title: 'Save Required',
+        description: 'This invoice needs to be saved first. Would you like to save it now and send?',
+        action: (
+          <ToastAction altText="Save and Send" onClick={handleSaveAndSend}>
+            Save & Send
+          </ToastAction>
+        ),
       });
       return;
     }

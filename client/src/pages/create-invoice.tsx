@@ -177,6 +177,19 @@ const CreateInvoice = () => {
                 invoice={invoice}
                 invoicePreviewRef={invoicePreviewRef}
                 shareUrl={shareableLink}
+                onSaveInvoice={async (invoiceToSave) => {
+                  try {
+                    const result = await createInvoiceMutation.mutateAsync(invoiceToSave);
+                    return {
+                      ...invoiceToSave,
+                      id: result.id,
+                      shareableLink: result.shareableLink
+                    };
+                  } catch (error) {
+                    console.error('Failed to save invoice:', error);
+                    return undefined;
+                  }
+                }}
               />
             </div>
           </div>
