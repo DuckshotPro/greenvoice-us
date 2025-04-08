@@ -10,22 +10,21 @@ import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
-    <Layout>
-      <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/create-invoice" component={CreateInvoice} />
-        <Route path="/analytics" component={AnalyticsDashboard} />
-        {/* Fallback to 404 */}
-        <Route component={NotFound} />
-      </Switch>
-    </Layout>
+    <Switch>
+      <Route path="/" component={Home} />
+      <Route path="/create-invoice" component={CreateInvoice} />
+      <Route path="/analytics" component={AnalyticsDashboard} />
+      <Route component={NotFound} />
+    </Switch>
   );
 }
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router />
+      <Layout>
+        <Router />
+      </Layout>
       <Toaster />
     </QueryClientProvider>
   );
