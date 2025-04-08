@@ -196,13 +196,27 @@ const addSummary = (doc: jsPDF, invoice: Invoice) => {
 
 export const generatePDF = (invoice: Invoice): string => {
   try {
-    if (!invoice || !invoice.items || !Array.isArray(invoice.items)) {
-      throw new Error('Invalid invoice data structure');
+    if (!invoice) {
+      throw new Error('Invoice data is required');
+    }
+
+    if (!Array.isArray(invoice.items) || invoice.items.length === 0) {
+      throw new Error('Invoice must have at least one item');
     }
     
-    // Ensure all required fields are present
-    if (!invoice.invoiceNumber || !invoice.senderName || !invoice.clientName) {
-      throw new Error('Required invoice fields are missing');
+    const requiredFields = [
+      'invoiceNumber',
+      'senderName',
+      'senderEmail',
+      'senderAddress',
+      'clientName',
+      'clientEmail',
+      'clientAddress'
+    ];
+    
+    const missingFields = requiredFields.filter(field => !invoice[field]);
+    if (missingFields.length > 0) {
+      throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
     }
     
     const doc = createBasePDF(invoice);
