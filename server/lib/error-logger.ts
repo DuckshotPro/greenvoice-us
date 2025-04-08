@@ -190,3 +190,6 @@ export const logError = (message: string, source: string, details?: any) =>
 
 export const logCritical = (message: string, source: string, details?: any) => 
   ErrorLogger.logActivity(LogLevel.CRITICAL, LogCategory.SYSTEM, message, source, details);
+
+export const logDbError = (operation: string, error: any, entityId?: number) => 
+  ErrorLogger.logActivity(LogLevel.ERROR, LogCategory.SYSTEM, `Database error during ${operation}`, 'Database', { error, entityId });
