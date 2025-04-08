@@ -124,13 +124,15 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
     // Calculate discount
     let discountTotal = 0;
     if (discountType === 'percentage' && discountValue > 0) {
-      discountTotal = (subtotal * discountValue) / 100;
+      // Limit percentage discount to 100%
+      const adjustedDiscountValue = Math.min(discountValue, 100);
+      discountTotal = (subtotal * adjustedDiscountValue) / 100;
     } else if (discountType === 'fixed' && discountValue > 0) {
       discountTotal = Math.min(discountValue, subtotal); // Can't discount more than subtotal
     }
     
-    // Apply discount before tax
-    const discountedSubtotal = subtotal - discountTotal;
+    // Apply discount before tax (ensure we don't have negative values)
+    const discountedSubtotal = Math.max(0, subtotal - discountTotal);
     const taxAmount = (discountedSubtotal * taxRate) / 100;
     const total = discountedSubtotal + taxAmount;
 
@@ -432,7 +434,10 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                         <FormItem>
                           <FormLabel>Invoice #</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input 
+                              {...field} 
+                              onFocus={(e) => e.target.select()}
+                            />
                           </FormControl>
                         </FormItem>
                       )}
@@ -445,7 +450,11 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                         <FormItem>
                           <FormLabel>Date</FormLabel>
                           <FormControl>
-                            <Input type="date" {...field} />
+                            <Input 
+                              type="date" 
+                              {...field} 
+                              onFocus={(e) => e.target.select()}
+                            />
                           </FormControl>
                         </FormItem>
                       )}
@@ -460,7 +469,11 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                         <FormItem>
                           <FormLabel>Due Date</FormLabel>
                           <FormControl>
-                            <Input type="date" {...field} />
+                            <Input 
+                              type="date" 
+                              {...field} 
+                              onFocus={(e) => e.target.select()}
+                            />
                           </FormControl>
                         </FormItem>
                       )}
@@ -523,6 +536,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                           className="mt-1 w-full cursor-text"
                           value={item.description}
                           onChange={(e) => updateItem(index, 'description', e.target.value)}
+                          onFocus={(e) => e.target.select()}
                           readOnly={false}
                         />
                       </div>
@@ -646,12 +660,25 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                             type="number"
                             className="w-20 h-7 text-xs"
                             min="0"
+                            max={form.getValues('discountType') === 'percentage' ? "100" : undefined}
                             step={form.getValues('discountType') === 'percentage' ? "1" : "0.01"}
                             value={form.getValues('discountValue')}
-                            onChange={(e) => handleDiscountChange(
-                              form.getValues('discountType') as 'percentage' | 'fixed', 
-                              parseFloat(e.target.value) || 0
-                            )}
+                            onChange={(e) => {
+                              // Ensure valid values
+                              let value = parseFloat(e.target.value) || 0;
+                              
+                              // Enforce limits
+                              if (form.getValues('discountType') === 'percentage') {
+                                value = Math.min(value, 100);
+                              } else if (form.getValues('discountType') === 'fixed') {
+                                value = Math.min(value, form.getValues('subtotal'));
+                              }
+                              
+                              handleDiscountChange(
+                                form.getValues('discountType') as 'percentage' | 'fixed', 
+                                value
+                              );
+                            }}
                             onFocus={(e) => {
                               if (parseFloat(e.target.value) === 0) {
                                 e.target.select();
