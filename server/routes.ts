@@ -679,6 +679,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // PREMIUM FEATURES ENDPOINTS
+  
+  // Watch an ad to get premium access
+  app.post("/api/premium/watch-ad", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Default is 1 day of premium access
+      const daysAwarded = 1;
+      
+      // Record the ad view and update user's premium days
+      const updatedUser = await storage.recordAdView(userId, daysAwarded);
+      
+      if (!updatedUser) {
+        return res.status(500).json({ message: "Failed to record ad view" });
+      }
+      
+      // Log successful ad view
+      logInfo(`User ${userId} received ${daysAwarded} premium days for watching an ad`, 'PremiumAPI', {
+        userId,
+        daysAwarded,
+        premiumDaysRemaining: updatedUser.premiumDaysRemaining
+      });
+      
+      res.json({
+        success: true,
+        premiumDaysRemaining: updatedUser.premiumDaysRemaining,
+        message: `You've earned ${daysAwarded} day${daysAwarded !== 1 ? 's' : ''} of premium access!`
+      });
+    } catch (error) {
+      logError(`Error processing ad view for premium access`, 'PremiumAPI', { error });
+      res.status(500).json({ message: "Failed to process ad view" });
+    }
+  });
+  
   // ANALYTICS ENDPOINTS
   
   // Get share analytics for a specific invoice
