@@ -24,7 +24,14 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Trash2 } from 'lucide-react';
-import { type Invoice, type LineItem, CURRENCY_OPTIONS, formatCurrency } from '@/types/invoice';
+import { type Invoice, CURRENCY_OPTIONS, formatCurrency } from '@/types/invoice';
+
+interface LineItem {
+  description: string;
+  quantity: number;
+  rate: number;
+  amount: number;
+}
 
 // Form schema
 const formSchema = z.object({
@@ -47,6 +54,12 @@ const formSchema = z.object({
 
   // Additional info
   notes: z.string().optional(),
+
+  // Discount fields
+  discountType: z.enum(['none', 'percentage', 'fixed', 'coupon']).default('none'),
+  discountValue: z.number().min(0).default(0),
+  discountTotal: z.number().min(0).default(0),
+  couponCode: z.string().optional(),
 
   // These are calculated fields
   subtotal: z.number().min(0),
@@ -84,6 +97,13 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       currency: 'USD',
       notes: 'Thank you for your business. Payment is due within 30 days.',
+      
+      // Default values for discount
+      discountType: 'none',
+      discountValue: 0,
+      discountTotal: 0,
+      
+      // Financial calculations
       subtotal: 0,
       taxRate: 8,
       taxAmount: 0,
@@ -92,13 +112,29 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
     },
   });
 
-  // Calculate totals
-  const calculateTotals = (items: LineItem[], taxRate: number) => {
+  // Calculate totals with discount
+  const calculateTotals = (
+    items: LineItem[], 
+    taxRate: number, 
+    discountType = form.getValues('discountType'), 
+    discountValue = form.getValues('discountValue')
+  ) => {
     const subtotal = items.reduce((sum, item) => sum + item.amount, 0);
-    const taxAmount = (subtotal * taxRate) / 100;
-    const total = subtotal + taxAmount;
+    
+    // Calculate discount
+    let discountTotal = 0;
+    if (discountType === 'percentage' && discountValue > 0) {
+      discountTotal = (subtotal * discountValue) / 100;
+    } else if (discountType === 'fixed' && discountValue > 0) {
+      discountTotal = Math.min(discountValue, subtotal); // Can't discount more than subtotal
+    }
+    
+    // Apply discount before tax
+    const discountedSubtotal = subtotal - discountTotal;
+    const taxAmount = (discountedSubtotal * taxRate) / 100;
+    const total = discountedSubtotal + taxAmount;
 
-    return { subtotal, taxAmount, total };
+    return { subtotal, discountTotal, taxAmount, total };
   };
 
   // Update item fields and handle bidirectional calculations
@@ -112,7 +148,11 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
     const updatedItem = { ...newItems[index] };
 
     // Update the specified field with the new value
-    updatedItem[field] = numericValue;
+    if (field === 'description') {
+      updatedItem.description = value as string;
+    } else if (field === 'quantity' || field === 'rate' || field === 'amount') {
+      updatedItem[field] = numericValue;
+    }
 
     // Handle different update scenarios
     if (field === 'quantity' || field === 'rate') {
@@ -149,10 +189,11 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
     setItems(newItems);
 
     // Recalculate totals
-    const { subtotal, taxAmount, total } = calculateTotals(newItems, form.getValues('taxRate'));
+    const { subtotal, discountTotal, taxAmount, total } = calculateTotals(newItems, form.getValues('taxRate'));
 
     // Update form values
     form.setValue('subtotal', subtotal);
+    form.setValue('discountTotal', discountTotal);
     form.setValue('taxAmount', taxAmount);
     form.setValue('total', total);
 
@@ -174,10 +215,11 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
     setItems(newItems);
 
     // Recalculate totals
-    const { subtotal, taxAmount, total } = calculateTotals(newItems, form.getValues('taxRate'));
+    const { subtotal, discountTotal, taxAmount, total } = calculateTotals(newItems, form.getValues('taxRate'));
 
     // Update form values
     form.setValue('subtotal', subtotal);
+    form.setValue('discountTotal', discountTotal);
     form.setValue('taxAmount', taxAmount);
     form.setValue('total', total);
 
@@ -192,12 +234,41 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
     form.setValue('taxRate', taxRate);
 
     // Recalculate totals
-    const { subtotal, taxAmount, total } = calculateTotals(items, taxRate);
+    const { subtotal, discountTotal, taxAmount, total } = calculateTotals(items, taxRate);
 
     // Update form values
+    form.setValue('discountTotal', discountTotal);
     form.setValue('taxAmount', taxAmount);
     form.setValue('total', total);
 
+    // Notify parent of form changes
+    const currentValues = form.getValues();
+    onFormChange({ ...currentValues, items });
+  };
+  
+  // Handle discount changes
+  const handleDiscountChange = (type: 'none' | 'percentage' | 'fixed' | 'coupon', value?: number) => {
+    // Update discount type
+    form.setValue('discountType', type);
+    
+    // Update discount value if provided
+    if (value !== undefined) {
+      form.setValue('discountValue', value);
+    }
+    
+    // Recalculate totals with new discount
+    const { subtotal, discountTotal, taxAmount, total } = calculateTotals(
+      items, 
+      form.getValues('taxRate'), 
+      type, 
+      value !== undefined ? value : form.getValues('discountValue')
+    );
+    
+    // Update form values
+    form.setValue('discountTotal', discountTotal);
+    form.setValue('taxAmount', taxAmount);
+    form.setValue('total', total);
+    
     // Notify parent of form changes
     const currentValues = form.getValues();
     onFormChange({ ...currentValues, items });
@@ -218,10 +289,11 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
   // Set initial values on mount
   useEffect(() => {
     if (defaultValues && defaultValues.subtotal !== undefined) {
-      const { subtotal, taxAmount, total } = calculateTotals(items, form.getValues('taxRate'));
+      const { subtotal, discountTotal, taxAmount, total } = calculateTotals(items, form.getValues('taxRate'));
 
       // Update form values
       form.setValue('subtotal', subtotal);
+      form.setValue('discountTotal', discountTotal);
       form.setValue('taxAmount', taxAmount);
       form.setValue('total', total);
 
@@ -530,6 +602,74 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                     <span className="text-sm font-medium text-gray-900">
                       {formatCurrency(form.getValues('subtotal'), form.getValues('currency'))}
                     </span>
+                  </div>
+                  
+                  {/* Discount Section */}
+                  <div className="flex flex-col space-y-2 border-t border-gray-200 pt-2 pb-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Discount</span>
+                      <div className="flex space-x-2">
+                        <Button 
+                          type="button" 
+                          variant={form.getValues('discountType') === 'none' ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handleDiscountChange('none')}
+                          className="h-7 text-xs"
+                        >
+                          None
+                        </Button>
+                        <Button 
+                          type="button" 
+                          variant={form.getValues('discountType') === 'percentage' ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handleDiscountChange('percentage')}
+                          className="h-7 text-xs"
+                        >
+                          %
+                        </Button>
+                        <Button 
+                          type="button" 
+                          variant={form.getValues('discountType') === 'fixed' ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handleDiscountChange('fixed')}
+                          className="h-7 text-xs"
+                        >
+                          Fixed
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {form.getValues('discountType') !== 'none' && (
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <Input
+                            type="number"
+                            className="w-20 h-7 text-xs"
+                            min="0"
+                            step={form.getValues('discountType') === 'percentage' ? "1" : "0.01"}
+                            value={form.getValues('discountValue')}
+                            onChange={(e) => handleDiscountChange(
+                              form.getValues('discountType') as 'percentage' | 'fixed', 
+                              parseFloat(e.target.value) || 0
+                            )}
+                            onFocus={(e) => {
+                              if (parseFloat(e.target.value) === 0) {
+                                e.target.select();
+                              }
+                            }}
+                          />
+                          {form.getValues('discountType') === 'percentage' && (
+                            <span className="text-sm text-gray-600 ml-1">%</span>
+                          )}
+                          {form.getValues('discountType') === 'fixed' && (
+                            <span className="text-sm text-gray-600 ml-1">{form.getValues('currency')}</span>
+                          )}
+                        </div>
+                        <span className="text-sm font-medium text-gray-900">
+                          -{formatCurrency(form.getValues('discountTotal'), form.getValues('currency'))}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex justify-between items-center">
