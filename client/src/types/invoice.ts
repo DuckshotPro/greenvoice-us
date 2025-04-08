@@ -11,6 +11,10 @@ export interface Invoice {
   id?: number;
   userId: number;
   invoiceNumber: string;
+  discountType?: 'percentage' | 'fixed' | 'coupon';
+  discountValue?: number;
+  discountTotal?: number;
+  couponCode?: string;
   issueDate: string;
   dueDate: string;
   currency: string;
