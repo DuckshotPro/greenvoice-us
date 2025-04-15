@@ -1,6 +1,6 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { storage } from "../models/storage";
 import { z } from "zod";
 import { 
   invoiceWithItemsSchema, 
@@ -13,10 +13,10 @@ import path from "path";
 import { nanoid } from "nanoid";
 import { ZodError } from "zod";
 import nodemailer from "nodemailer";
-import { InvoiceProcessor } from "./invoice-processor";
-import { ErrorLogger, LogLevel, logError, logInfo, logWarning } from "./lib/error-logger";
-import { log } from "./vite";
-import { setupAuth } from "./auth";
+import { InvoiceProcessor } from "../services/invoice-processor";
+import { ErrorLogger, LogLevel, logError, logInfo, logWarning } from "../utils/error-logger";
+import { log } from "../utils/vite";
+import { setupAuth } from "../middleware/auth";
 
 // Security middleware to verify admin access
 /**
@@ -544,6 +544,7 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
     return nextDate;
   }
   
+
   // Process scheduled invoices
   app.post("/api/process/scheduled-invoices", requireAdmin, async (req: Request, res: Response) => {
     try {
@@ -707,6 +708,7 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
     }
   });
   
+
   // PREMIUM FEATURES ENDPOINTS
   
   // Watch an ad to get premium access
@@ -747,6 +749,7 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
     }
   });
   
+
   // ANALYTICS ENDPOINTS
   
   // Get share analytics for a specific invoice
