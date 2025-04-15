@@ -19,6 +19,12 @@ import { log } from "./vite";
 import { setupAuth } from "./auth";
 
 // Security middleware to verify admin access
+/**
+ * Security middleware to verify admin access
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object
+ * @param {NextFunction} next - Express next middleware function
+ */
 const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
   // In a production app, this would check if the authenticated user has admin role
   // For this prototype, we'll use a simple API key approach
@@ -41,6 +47,11 @@ const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
 };
 
 // Mock transporter for email functionality
+/**
+ * Mock transporter for email functionality
+ * @type {Object}
+ * @property {Function} sendMail - Sends a mock email
+ */
 const transporter = {
   sendMail: async (options: any) => {
     console.log("Email sent with options:", options);
@@ -48,6 +59,11 @@ const transporter = {
   }
 };
 
+/**
+ * Registers API routes for the application
+ * @param {Express} app - An instance of the Express application
+ * @returns {Promise<Server>} The HTTP server instance
+ */
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up server
   const httpServer = createServer(app);
@@ -56,7 +72,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
   
   // Middleware to ensure user is authenticated
-  const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+  /**
+ * Middleware to ensure user is authenticated
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object
+ * @param {NextFunction} next - Express next middleware function
+ */
+const requireAuth = (req: Request, res: Response, next: NextFunction) => {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "Authentication required" });
     }
@@ -490,7 +512,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Helper function to calculate the next invoice date based on frequency
-  function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
+  /**
+ * Helper function to calculate the next invoice date based on frequency
+ * @param {string} frequency - Frequency of the recurring invoice (e.g., 'daily', 'weekly')
+ * @param {Date} currentDate - The current date
+ * @returns {Date} The next date for invoice generation
+ */
+function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
     const nextDate = new Date(currentDate);
     
     switch (frequency) {
