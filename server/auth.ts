@@ -15,12 +15,23 @@ declare global {
 
 const scryptAsync = promisify(scrypt);
 
+/**
+ * Hashes a password using scrypt and a random salt.
+ * @param {string} password - Password to hash.
+ * @returns {Promise<string>} The hashed password in format hex.salt.
+ */
 async function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
   const buf = (await scryptAsync(password, salt, 64)) as Buffer;
   return `${buf.toString("hex")}.${salt}`;
 }
 
+/**
+ * Compares a supplied password with a stored hashed password securely.
+ * @param {string} supplied - The password to check.
+ * @param {string} stored - The stored hash to compare with.
+ * @returns {Promise<boolean>} True if passwords match, false otherwise.
+ */
 async function comparePasswords(supplied: string, stored: string) {
   const [hashed, salt] = stored.split(".");
   const hashedBuf = Buffer.from(hashed, "hex");
@@ -28,6 +39,10 @@ async function comparePasswords(supplied: string, stored: string) {
   return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
+/**
+ * Configures passport.js authentication for the Express app.
+ * @param {Express} app - An instance of the Express application.
+ */
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "invoice-app-secret",

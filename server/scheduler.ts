@@ -10,14 +10,20 @@ export class Scheduler {
   private recurringTemplatesTimer: NodeJS.Timeout | null = null;
   
   // Start the scheduler
-  start(): void {
+  /**
+ * Starts the invoice processing scheduler.
+ */
+start(): void {
     logInfo("Starting invoice scheduler...", "Scheduler");
     this.startScheduledInvoicesProcessor();
     this.startRecurringTemplatesProcessor();
   }
   
   // Stop the scheduler
-  stop(): void {
+  /**
+ * Stops the invoice processing scheduler.
+ */
+stop(): void {
     logInfo("Stopping invoice scheduler...", "Scheduler");
     
     if (this.scheduledInvoicesTimer) {

@@ -6,4 +6,8 @@ import * as schema from '@shared/schema';
 const connectionString = process.env.DATABASE_URL!;
 // For Drizzle with postgres-js we need to use prepared statements
 const client = postgres(connectionString);
+/**
+ * Connects to the PostgreSQL database using drizzle-orm.
+ * @type {Drizzle<postgres.Client>}
+ */
 export const db = drizzle(client, { schema });

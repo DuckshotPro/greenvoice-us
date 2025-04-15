@@ -13,7 +13,11 @@ export class InvoiceProcessor {
    * Process all scheduled invoices that need to be sent
    * @returns Statistics about the processing
    */
-  static async processScheduledInvoices(): Promise<{ success: number, failed: number }> {
+  /**
+ * Processes all scheduled invoices that are due to be sent.
+ * @returns {Promise<{ success: number, failed: number }>} Processing statistics.
+ */
+static async processScheduledInvoices(): Promise<{ success: number, failed: number }> {
     try {
       const scheduledInvoices = await storage.getScheduledInvoicesToProcess();
       let success = 0;
@@ -103,7 +107,11 @@ export class InvoiceProcessor {
    * Process recurring templates to generate new invoices
    * @returns Statistics about the processing
    */
-  static async processRecurringTemplates(): Promise<{ success: number, failed: number }> {
+  /**
+ * Processes recurring templates to generate new invoices.
+ * @returns {Promise<{ success: number, failed: number }>} Processing statistics.
+ */
+static async processRecurringTemplates(): Promise<{ success: number, failed: number }> {
     try {
       const templates = await storage.getRecurringTemplatesToProcess();
       let success = 0;
