@@ -1,6 +1,5 @@
 import React from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { Helmet } from 'react-helmet';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -15,9 +14,6 @@ const History = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Invoice History | InvoiceFlow</title>
-      </Helmet>
 
       <div className="container mx-auto py-8 px-4 md:px-6">
         <div className="flex items-center justify-between mb-6">
