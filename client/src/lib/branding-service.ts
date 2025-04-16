@@ -6,7 +6,12 @@ export interface BrandingSettings {
   accentColor: string;
   fontFamily: string;
   logoUrl?: string | null;
-  customTemplate?: string;
+  patternUrl?: string | null;
+  customHeader?: string;
+  customFooter?: string;
+  showLogo?: boolean;
+  showPattern?: boolean;
+  customTemplateId?: string;
 }
 
 const defaultBrandingSettings: BrandingSettings = {
@@ -15,7 +20,10 @@ const defaultBrandingSettings: BrandingSettings = {
   accentColor: '#FF6B6B',
   fontFamily: 'Inter',
   logoUrl: null,
-  customTemplate: 'default'
+  patternUrl: null,
+  showLogo: true,
+  showPattern: false,
+  customTemplateId: 'default'
 };
 
 /**
@@ -28,7 +36,8 @@ export async function getBrandingSettings(): Promise<BrandingSettings> {
     if (!response.ok) {
       throw new Error('Failed to get branding settings');
     }
-    return await response.json();
+    const data = await response.json();
+    return data.settings || defaultBrandingSettings;
   } catch (error) {
     console.error('Error fetching branding settings:', error);
     return defaultBrandingSettings;
@@ -46,37 +55,63 @@ export async function saveBrandingSettings(settings: BrandingSettings): Promise<
     throw new Error('Failed to save branding settings');
   }
   const data = await response.json();
-  return data.brandingSettings;
+  return data.settings || settings;
 }
 
 /**
  * Generate a logo based on description
- * @param description Text description of the desired logo
+ * @param prompt Text description of the desired logo
+ * @param options Additional options for generation
  * @returns Promise with the generated logo URL
  */
-export async function generateLogo(description: string): Promise<Blob> {
-  const response = await apiRequest('POST', '/api/branding/generate-logo', { description });
+export async function generateLogo(
+  prompt: string, 
+  options: { model?: string, size?: string, style?: string } = {}
+): Promise<string> {
+  const response = await apiRequest('POST', '/api/branding/generate-logo', { 
+    prompt,
+    ...options
+  });
+  
   if (!response.ok) {
+    // Check if it's a premium feature error
+    const errorData = await response.json().catch(() => ({}));
+    if (errorData.premiumRequired) {
+      throw new Error('Premium feature: Logo generation requires a premium subscription or premium days');
+    }
     throw new Error('Failed to generate logo');
   }
-  return await response.blob();
+  
+  const data = await response.json();
+  return data.result.imageData;
 }
 
 /**
- * Generate a pattern based on brand colors and style description
- * @param brandColors Description of color scheme (e.g. "blue and gold")
- * @param style Description of pattern style (e.g. "geometric", "abstract", "minimalist")
+ * Generate a pattern based on description
+ * @param prompt Text description of the desired pattern
+ * @param options Additional options for generation
  * @returns Promise with the generated pattern URL
  */
-export async function generatePattern(brandColors: string, style: string): Promise<Blob> {
+export async function generatePattern(
+  prompt: string,
+  options: { model?: string, size?: string, style?: string, seamless?: boolean } = {}
+): Promise<string> {
   const response = await apiRequest('POST', '/api/branding/generate-pattern', { 
-    brandColors, 
-    style 
+    prompt,
+    ...options
   });
+  
   if (!response.ok) {
+    // Check if it's a premium feature error
+    const errorData = await response.json().catch(() => ({}));
+    if (errorData.premiumRequired) {
+      throw new Error('Premium feature: Pattern generation requires a premium subscription or premium days');
+    }
     throw new Error('Failed to generate pattern');
   }
-  return await response.blob();
+  
+  const data = await response.json();
+  return data.result.imageData;
 }
 
 /**
