@@ -9,6 +9,8 @@ export interface BrandingSettings {
   patternUrl?: string | null;
   customHeader?: string;
   customFooter?: string;
+  headerText?: string;
+  footerText?: string;
   showLogo?: boolean;
   showPattern?: boolean;
   customTemplateId?: string;
@@ -23,7 +25,9 @@ const defaultBrandingSettings: BrandingSettings = {
   patternUrl: null,
   showLogo: true,
   showPattern: false,
-  customTemplateId: 'default'
+  customTemplateId: 'default',
+  headerText: 'INVOICE',
+  footerText: 'Thank you for your business'
 };
 
 /**

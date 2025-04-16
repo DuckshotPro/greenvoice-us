@@ -436,6 +436,36 @@ export default function BrandingSettingsPage() {
                         </SelectContent>
                       </Select>
                     </div>
+                    
+                    <div className="space-y-4 mt-4">
+                      <div>
+                        <Label htmlFor="headerText" className="mb-2 block font-medium">
+                          Header Text
+                        </Label>
+                        <Input
+                          id="headerText"
+                          placeholder="e.g., INVOICE"
+                          value={settings.headerText || ""}
+                          onChange={(e) => 
+                            setSettings({ ...settings, headerText: e.target.value })
+                          }
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="footerText" className="mb-2 block font-medium">
+                          Footer Text
+                        </Label>
+                        <Input
+                          id="footerText"
+                          placeholder="e.g., Thank you for your business"
+                          value={settings.footerText || ""}
+                          onChange={(e) => 
+                            setSettings({ ...settings, footerText: e.target.value })
+                          }
+                        />
+                      </div>
+                    </div>
                   </div>
                 </TabsContentComponent>
               </TabsComponent>
