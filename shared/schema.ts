@@ -24,6 +24,7 @@ export const users = pgTable("users", {
   totalInvoicesSent: integer("total_invoices_sent").default(0),
   registeredAt: timestamp("registered_at").defaultNow(),
   verifiedAt: timestamp("verified_at"),
+  isAdmin: boolean("is_admin").default(false),
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
@@ -36,6 +37,7 @@ export const insertUserSchema = createInsertSchema(users).omit({
   totalInvoicesSent: true,
   registeredAt: true,
   verifiedAt: true,
+  isAdmin: true,
 });
 
 // Line item in an invoice
