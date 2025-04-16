@@ -1,7 +1,11 @@
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import * as schema from '@shared/schema';
 
-```typescript
-Place the following file content into `server/models/db.ts`.
+// Create a PostgreSQL connection pool
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
 
-This file handles PostgreSQL database connection setup using drizzle-orm, categorized under models.
-
-```
+// Initialize Drizzle with the PostgreSQL pool
+export const db = drizzle(pool, { schema });

@@ -1,6 +1,6 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "../models/db";
+import { storage } from "./models/storage";
 import rateLimit from 'express-rate-limit';
 
 // Define rate limit settings
@@ -21,10 +21,26 @@ import path from "path";
 import { nanoid } from "nanoid";
 import { ZodError } from "zod";
 import nodemailer from "nodemailer";
-import { InvoiceProcessor } from "../services/invoice-processor";
-import { ErrorLogger, LogLevel, logError, logInfo, logWarning } from "../utils/error-logger";
-import { log } from "../utils/vite";
-import { setupAuth } from "../middleware/auth";
+import { InvoiceProcessor } from "./services/invoice-processor";
+import { ErrorLogger, LogLevel, logError, logInfo, logWarning } from "./lib/error-logger";
+import { log } from "./utils/vite";
+import { setupAuth } from "./middleware/auth";
+import { validateBody, validateQuery, validateParams, validateIdParam } from "./middleware/validation";
+import { 
+  idParamSchema, 
+  emailRequestSchema, 
+  scheduleRequestSchema, 
+  paginationSchema, 
+  toggleActiveSchema,
+  extendedInvoiceSchema,
+  extendedTemplateSchema,
+  adViewSchema,
+  statusParamSchema
+} from "./middleware/validation-schemas";
+import {
+  trackShareSchema,
+  analyticsQuerySchema
+} from "./middleware/validation-schemas-analytics";
 
 // Security middleware to verify admin access
 /**
@@ -97,7 +113,7 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   };
 
   // Get all invoices
-  app.get("/api/invoices", requireAuth, async (req: Request, res: Response) => {
+  app.get("/api/invoices", requireAuth, validateQuery(paginationSchema), async (req: Request, res: Response) => {
     try {
       const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
       const invoices = await storage.getAllInvoices(userId);
@@ -109,15 +125,12 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   });
 
   // Get invoices by status - this must come before the general :id route
-  app.get("/api/invoices/status/:status", requireAuth, async (req: Request, res: Response) => {
+  app.get("/api/invoices/status/:status", requireAuth, validateParams(statusParamSchema), async (req: Request, res: Response) => {
     try {
       const { status } = req.params;
       const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
 
-      // Validate status
-      if (!['draft', 'scheduled', 'sent', 'paid', 'void', 'overdue'].includes(status)) {
-        return res.status(400).json({ message: "Invalid status parameter" });
-      }
+      // Status is already validated by the middleware
 
       const invoices = await storage.getInvoicesByStatus(status, userId);
       res.json(invoices);
@@ -128,7 +141,7 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   });
 
   // Get a specific invoice
-  app.get("/api/invoices/:id", requireAuth, async (req: Request, res: Response) => {
+  app.get("/api/invoices/:id", requireAuth, validateIdParam, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       const invoice = await storage.getInvoice(id);
@@ -189,10 +202,10 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   });
 
   // Create a new invoice with line items
-  app.post("/api/invoices", requireAuth, async (req: Request, res: Response) => {
+  app.post("/api/invoices", requireAuth, validateBody(invoiceWithItemsSchema), async (req: Request, res: Response) => {
     try {
-      // Validate the request body
-      const invoiceData = invoiceWithItemsSchema.parse(req.body);
+      // Request body is already validated by middleware
+      const invoiceData = req.body;
 
       // Create invoice with items
       const newInvoice = await storage.createInvoiceWithItems(invoiceData);
@@ -203,18 +216,16 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
       res.status(201).json({ ...newInvoice, items: lineItems });
     } catch (error) {
       console.error("Error creating invoice:", error);
-      if (error instanceof ZodError) {
-        return res.status(400).json({ message: "Invalid invoice data", errors: error.errors });
-      }
+      logError("Failed to create invoice", "InvoiceController", { error });
       res.status(500).json({ message: "Failed to create invoice" });
     }
   });
 
   // Update an existing invoice
-  app.patch("/api/invoices/:id", requireAuth, async (req: Request, res: Response) => {
+  app.patch("/api/invoices/:id", requireAuth, validateIdParam, validateBody(extendedInvoiceSchema.partial()), async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
-      const updateData = insertInvoiceSchema.partial().parse(req.body);
+      const updateData = req.body;
 
       const updatedInvoice = await storage.updateInvoice(id, updateData);
 
@@ -228,39 +239,52 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
       res.json({ ...updatedInvoice, items: lineItems });
     } catch (error) {
       console.error("Error updating invoice:", error);
-      if (error instanceof ZodError) {
-        return res.status(400).json({ message: "Invalid invoice data", errors: error.errors });
-      }
+      logError("Failed to update invoice", "InvoiceController", { error, invoiceId: req.params.id });
       res.status(500).json({ message: "Failed to update invoice" });
     }
   });
 
   // Delete an invoice
-  app.delete("/api/invoices/:id", requireAuth, async (req: Request, res: Response) => {
+  app.delete("/api/invoices/:id", requireAuth, validateIdParam, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
-      const deleted = await storage.deleteInvoice(id);
-
-      if (!deleted) {
+      
+      // Verify invoice exists
+      const invoice = await storage.getInvoice(id);
+      if (!invoice) {
         return res.status(404).json({ message: "Invoice not found" });
       }
+      
+      // Verify invoice belongs to user
+      if (req.user && invoice.userId !== req.user.id) {
+        logWarning(`Unauthorized delete attempt for invoice ${id}`, "InvoiceController", {
+          invoiceId: id,
+          requestUserId: req.user.id,
+          invoiceUserId: invoice.userId
+        });
+        return res.status(403).json({ message: "Not authorized to delete this invoice" });
+      }
+      
+      const deleted = await storage.deleteInvoice(id);
+
+      logInfo(`Invoice ${id} deleted successfully`, "InvoiceController", { 
+        invoiceId: id,
+        userId: req.user?.id
+      });
 
       res.json({ message: "Invoice deleted successfully" });
     } catch (error) {
       console.error("Error deleting invoice:", error);
+      logError("Failed to delete invoice", "InvoiceController", { error, invoiceId: req.params.id });
       res.status(500).json({ message: "Failed to delete invoice" });
     }
   });
 
   // Send invoice via email
-  app.post("/api/invoices/:id/email", requireAuth, async (req: Request, res: Response) => {
+  app.post("/api/invoices/:id/email", requireAuth, validateIdParam, validateBody(emailRequestSchema), async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
-      const { recipient, subject, message } = z.object({
-        recipient: z.string().email(),
-        subject: z.string(),
-        message: z.string(),
-      }).parse(req.body);
+      const { recipient, subject, message } = req.body;
 
       const invoice = await storage.getInvoice(id);
 
@@ -321,14 +345,10 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   });
 
   // Schedule an invoice for future sending
-  app.post("/api/invoices/:id/schedule", requireAuth, async (req: Request, res: Response) => {
+  app.post("/api/invoices/:id/schedule", requireAuth, validateIdParam, validateBody(scheduleRequestSchema), async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
-      const { scheduleDate } = z.object({
-        scheduleDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
-          message: "Invalid date format"
-        })
-      }).parse(req.body);
+      const { scheduleDate } = req.body;
 
       const invoice = await storage.getInvoice(id);
 
@@ -360,7 +380,7 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   // RECURRING INVOICE TEMPLATES ROUTES
 
   // Get all recurring templates
-  app.get("/api/recurring-templates", requireAuth, async (req: Request, res: Response) => {
+  app.get("/api/recurring-templates", requireAuth, validateQuery(paginationSchema), async (req: Request, res: Response) => {
     try {
       const userId = req.query.userId ? parseInt(req.query.userId as string) : 1; // Default to user 1 for demo
       const templates = await storage.getAllRecurringTemplates(userId);
@@ -372,7 +392,7 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   });
 
   // Get a specific recurring template
-  app.get("/api/recurring-templates/:id", requireAuth, async (req: Request, res: Response) => {
+  app.get("/api/recurring-templates/:id", requireAuth, validateIdParam, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       const template = await storage.getRecurringTemplate(id);
@@ -392,10 +412,10 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   });
 
   // Create a new recurring template with line items
-  app.post("/api/recurring-templates", requireAuth, async (req: Request, res: Response) => {
+  app.post("/api/recurring-templates", requireAuth, validateBody(recurringTemplateWithItemsSchema), async (req: Request, res: Response) => {
     try {
-      // Validate the request body
-      const templateData = recurringTemplateWithItemsSchema.parse(req.body);
+      // Request body is already validated by middleware
+      const templateData = req.body;
 
       // Create template with items
       const newTemplate = await storage.createRecurringTemplateWithItems(templateData);
@@ -403,65 +423,100 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
       // Get line items for the response
       const lineItems = await storage.getTemplateLineItems(newTemplate.id);
 
+      logInfo(`New recurring template created`, "TemplateController", { 
+        templateId: newTemplate.id,
+        userId: req.user?.id 
+      });
+
       res.status(201).json({ ...newTemplate, items: lineItems });
     } catch (error) {
       console.error("Error creating recurring template:", error);
-      if (error instanceof ZodError) {
-        return res.status(400).json({ message: "Invalid template data", errors: error.errors });
-      }
+      logError("Failed to create recurring template", "TemplateController", { error });
       res.status(500).json({ message: "Failed to create recurring template" });
     }
   });
 
   // Update an existing recurring template
-  app.patch("/api/recurring-templates/:id", requireAuth, async (req: Request, res: Response) => {
+  app.patch("/api/recurring-templates/:id", requireAuth, validateIdParam, validateBody(extendedTemplateSchema.partial()), async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
-      const updateData = insertRecurringTemplateSchema.partial().parse(req.body);
+      const updateData = req.body;
 
-      const updatedTemplate = await storage.updateRecurringTemplate(id, updateData);
-
-      if (!updatedTemplate) {
+      // Verify template exists
+      const template = await storage.getRecurringTemplate(id);
+      if (!template) {
         return res.status(404).json({ message: "Recurring template not found" });
       }
+      
+      // Verify template belongs to user
+      if (req.user && template.userId !== req.user.id) {
+        logWarning(`Unauthorized update attempt for template ${id}`, "TemplateController", {
+          templateId: id,
+          requestUserId: req.user.id,
+          templateUserId: template.userId
+        });
+        return res.status(403).json({ message: "Not authorized to update this template" });
+      }
+
+      const updatedTemplate = await storage.updateRecurringTemplate(id, updateData);
 
       // Get line items for the response
       const lineItems = await storage.getTemplateLineItems(id);
 
+      logInfo(`Template ${id} updated successfully`, "TemplateController", { 
+        templateId: id,
+        userId: req.user?.id 
+      });
+
       res.json({ ...updatedTemplate, items: lineItems });
     } catch (error) {
       console.error("Error updating recurring template:", error);
-      if (error instanceof ZodError) {
-        return res.status(400).json({ message: "Invalid template data", errors: error.errors });
-      }
+      logError("Failed to update recurring template", "TemplateController", { error, templateId: req.params.id });
       res.status(500).json({ message: "Failed to update recurring template" });
     }
   });
 
   // Delete a recurring template
-  app.delete("/api/recurring-templates/:id", requireAuth, async (req: Request, res: Response) => {
+  app.delete("/api/recurring-templates/:id", requireAuth, validateIdParam, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
-      const deleted = await storage.deleteRecurringTemplate(id);
-
-      if (!deleted) {
+      
+      // Verify template exists
+      const template = await storage.getRecurringTemplate(id);
+      if (!template) {
         return res.status(404).json({ message: "Recurring template not found" });
       }
+      
+      // Verify template belongs to user
+      if (req.user && template.userId !== req.user.id) {
+        logWarning(`Unauthorized delete attempt for template ${id}`, "TemplateController", {
+          templateId: id,
+          requestUserId: req.user.id,
+          templateUserId: template.userId
+        });
+        return res.status(403).json({ message: "Not authorized to delete this template" });
+      }
+      
+      const deleted = await storage.deleteRecurringTemplate(id);
+
+      logInfo(`Template ${id} deleted successfully`, "TemplateController", { 
+        templateId: id,
+        userId: req.user?.id 
+      });
 
       res.json({ message: "Recurring template deleted successfully" });
     } catch (error) {
       console.error("Error deleting recurring template:", error);
+      logError("Failed to delete recurring template", "TemplateController", { error, templateId: req.params.id });
       res.status(500).json({ message: "Failed to delete recurring template" });
     }
   });
 
   // Toggle active state of a recurring template
-  app.post("/api/recurring-templates/:id/toggle", requireAuth, async (req: Request, res: Response) => {
+  app.post("/api/recurring-templates/:id/toggle", requireAuth, validateIdParam, validateBody(toggleActiveSchema), async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
-      const { isActive } = z.object({
-        isActive: z.boolean()
-      }).parse(req.body);
+      const { isActive } = req.body;
 
       const template = await storage.getRecurringTemplate(id);
 
@@ -485,7 +540,7 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   });
 
   // Generate an invoice from a recurring template
-  app.post("/api/recurring-templates/:id/generate", requireAuth, async (req: Request, res: Response) => {
+  app.post("/api/recurring-templates/:id/generate", requireAuth, validateIdParam, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
 
@@ -723,7 +778,7 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
   // PREMIUM FEATURES ENDPOINTS
 
   // Watch an ad to get premium access
-  app.post("/api/premium/watch-ad", requireAuth, async (req: Request, res: Response) => {
+  app.post("/api/premium/watch-ad", requireAuth, validateBody(adViewSchema), async (req: Request, res: Response) => {
     try {
       const userId = req.user!.id;
       const user = await storage.getUser(userId);
@@ -732,8 +787,11 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Default is 1 day of premium access
-      const daysAwarded = 1;
+      // Capture ad view details from the request
+      const { watchedSeconds, adId, campaign, platform, completionRate } = req.body;
+      
+      // Default is 1 day of premium access, could be adjusted based on completion rate
+      const daysAwarded = completionRate && completionRate >= 90 ? 2 : 1;
 
       // Record the ad view and update user's premium days
       const updatedUser = await storage.recordAdView(userId, daysAwarded);
@@ -764,7 +822,7 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
   // ANALYTICS ENDPOINTS
 
   // Get share analytics for a specific invoice
-  app.get("/api/analytics/shares/:invoiceId", requireAuth, async (req: Request, res: Response) => {
+  app.get("/api/analytics/shares/:invoiceId", requireAuth, validateIdParam, async (req: Request, res: Response) => {
     try {
       const invoiceId = parseInt(req.params.invoiceId);
 
@@ -777,27 +835,52 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
 
       // Check if the user has permission to view this invoice's analytics
       if (req.user && req.user.id !== invoice.userId) {
+        logWarning(`Unauthorized analytics access attempt for invoice ${invoiceId}`, "AnalyticsController", {
+          invoiceId,
+          requestUserId: req.user.id,
+          invoiceUserId: invoice.userId
+        });
         return res.status(403).json({ message: "Not authorized to view this invoice's analytics" });
       }
 
       // Get share analytics data
       const analytics = await storage.getShareAnalytics(invoiceId);
+      
+      logInfo(`Share analytics retrieved for invoice ${invoiceId}`, "AnalyticsController", { 
+        invoiceId, 
+        userId: req.user?.id,
+        shareCount: analytics.length
+      });
 
       res.json(analytics);
     } catch (error) {
       console.error("Error fetching share analytics:", error);
+      logError("Failed to fetch share analytics", "AnalyticsController", { error, invoiceId: req.params.invoiceId });
       res.status(500).json({ message: "Failed to fetch share analytics" });
     }
   });
 
   // Get share analytics summary by method for the current user
-  app.get("/api/analytics/by-method", requireAuth, async (req: Request, res: Response) => {
+  app.get("/api/analytics/by-method", requireAuth, (req, res, next) => {
+    // Apply the analytics query schema validation
+    validateQuery(analyticsQuerySchema)(req, res, next);
+  }, async (req: Request, res: Response) => {
     try {
       if (!req.user || !req.user.id) {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      const analytics = await storage.getShareAnalyticsByMethod(req.user.id);
+      // Pass query parameters as options object
+      const { startDate, endDate, groupBy } = req.query;
+      
+      // Create options object for analytics query
+      const options = {
+        ...(startDate && { startDate: new Date(startDate as string) }),
+        ...(endDate && { endDate: new Date(endDate as string) }),
+        ...(groupBy && { groupBy: groupBy as string })
+      };
+      
+      const analytics = await storage.getShareAnalyticsByMethod(req.user.id, options as any);
 
       res.json(analytics);
     } catch (error) {
@@ -807,13 +890,26 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
   });
 
   // Get invoice view count analytics for the current user
-  app.get("/api/analytics/views", requireAuth, async (req: Request, res: Response) => {
+  app.get("/api/analytics/views", requireAuth, (req, res, next) => {
+    // Apply the analytics query schema validation
+    validateQuery(analyticsQuerySchema)(req, res, next);
+  }, async (req: Request, res: Response) => {
     try {
       if (!req.user || !req.user.id) {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      const analytics = await storage.getShareViewAnalytics(req.user.id);
+      // Pass query parameters as options object
+      const { startDate, endDate, groupBy } = req.query;
+      
+      // Create options object for analytics query
+      const options = {
+        ...(startDate && { startDate: new Date(startDate as string) }),
+        ...(endDate && { endDate: new Date(endDate as string) }),
+        ...(groupBy && { groupBy: groupBy as string })
+      };
+      
+      const analytics = await storage.getShareViewAnalytics(req.user.id, options as any);
 
       res.json(analytics);
     } catch (error) {
@@ -823,17 +919,13 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
   });
 
   // Track a share event (called from the client)
-  app.post("/api/analytics/track-share", requireAuth, async (req: Request, res: Response) => {
+  app.post("/api/analytics/track-share", requireAuth, validateBody(trackShareSchema), async (req: Request, res: Response) => {
     try {
       if (!req.user || !req.user.id) {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
       const { invoiceId, shareMethod, recipientEmail, metadata } = req.body;
-
-      if (!invoiceId || !shareMethod) {
-        return res.status(400).json({ message: "invoiceId and shareMethod are required" });
-      }
 
       // Verify invoice belongs to user
       const invoice = await storage.getInvoice(invoiceId);

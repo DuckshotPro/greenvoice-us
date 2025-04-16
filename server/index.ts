@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
-import { scheduler } from "./scheduler";
+import { setupVite, serveStatic, log } from "./utils/vite";
+import { scheduler } from "./services/scheduler";
 import { ErrorLogger, LogLevel, LogCategory, logInfo, logError } from "./lib/error-logger";
 import dotenv from "dotenv";
 
