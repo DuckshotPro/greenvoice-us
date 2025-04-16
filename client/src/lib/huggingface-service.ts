@@ -2,7 +2,8 @@ import { HfInference } from '@huggingface/inference';
 
 // Initialize the Hugging Face inference client
 // Access through environment variables for security
-const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
+// Note: For client-side, we need to use import.meta.env rather than process.env
+const hf = new HfInference(import.meta.env.VITE_HUGGINGFACE_API_KEY as string);
 
 export interface ImageGenerationOptions {
   prompt: string;
