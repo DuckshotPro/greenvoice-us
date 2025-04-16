@@ -40,6 +40,7 @@ import {
   statusParamSchema
 } from "./middleware/validation-schemas";
 import { analyticsRoutes } from "./routes/analytics-routes";
+import brandingRoutes from "./routes/branding-routes";
 import {
   trackShareSchema,
   analyticsQuerySchema,
@@ -79,6 +80,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register analytics routes
   app.use("/api/analytics", analyticsRoutes);
+  
+  // Register branding routes
+  app.use("/api/branding", brandingRoutes);
 
   // Auth middleware is now imported from './middleware/auth'
 
