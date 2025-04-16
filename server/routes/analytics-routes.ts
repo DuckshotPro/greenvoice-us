@@ -110,7 +110,7 @@ router.post("/track-utm", validateBody(trackUtmSchema), async (req: Request, res
 
     return res.status(200).json(result);
   } catch (error) {
-    logError("Error tracking UTM parameters", { error });
+    logError("Error tracking UTM parameters", "AnalyticsController", { error });
     return res.status(500).json({ error: "Failed to track UTM parameters" });
   }
 });
@@ -128,7 +128,7 @@ router.post("/track-share", requireAuth, validateBody(trackShareSchema), async (
       .insert(shareAnalytics)
       .values({
         invoiceId,
-        userId: req.user.id,
+        userId: req.user?.id,
         shareMethod,
         eventType: "share",
         metadata: {
@@ -139,15 +139,15 @@ router.post("/track-share", requireAuth, validateBody(trackShareSchema), async (
       })
       .returning();
 
-    logInfo("Analytics: Invoice share recorded", {
+    logInfo("Analytics: Invoice share recorded", "AnalyticsController", {
       invoiceId,
       shareMethod,
-      userId: req.user.id,
+      userId: req.user?.id,
     });
 
     return res.status(200).json(result);
   } catch (error) {
-    logError("Error tracking share", { error });
+    logError("Error tracking share", "AnalyticsController", { error });
     return res.status(500).json({ error: "Failed to track share" });
   }
 });
@@ -173,7 +173,7 @@ router.get(
         .where(
           and(
             eq(shareAnalytics.eventType, "share"),
-            req.user.isAdmin ? undefined : eq(shareAnalytics.userId, req.user.id),
+            req.user?.isAdmin ? undefined : eq(shareAnalytics.userId, req.user?.id || 0),
             startDate ? gte(shareAnalytics.timestamp, new Date(startDate)) : undefined,
             endDate ? sql`${shareAnalytics.timestamp} <= ${new Date(endDate)}` : undefined
           )
@@ -200,7 +200,7 @@ router.get(
 
       return res.status(200).json(result);
     } catch (error) {
-      logError("Error fetching share methods analytics", { error });
+      logError("Error fetching share methods analytics", "AnalyticsController", { error });
       return res.status(500).json({ error: "Failed to fetch share methods analytics" });
     }
   }
@@ -254,7 +254,7 @@ router.get(
 
       return res.status(200).json(result);
     } catch (error) {
-      logError("Error fetching share views analytics", { error });
+      logError("Error fetching share views analytics", "AnalyticsController", { error });
       return res.status(500).json({ error: "Failed to fetch share views analytics" });
     }
   }
@@ -316,7 +316,7 @@ router.get(
         utmSources,
       });
     } catch (error) {
-      logError("Error fetching invoice share analytics", { error, invoiceId: req.params.invoiceId });
+      logError("Error fetching invoice share analytics", "AnalyticsController", { error, invoiceId: req.params.invoiceId });
       return res.status(500).json({ error: "Failed to fetch invoice share analytics" });
     }
   }
