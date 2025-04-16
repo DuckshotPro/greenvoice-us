@@ -1,6 +1,14 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "../models/db";
+import rateLimit from 'express-rate-limit';
+
+// Define rate limit settings
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: "Too many requests from this IP, please try again later"
+});
 import { z } from "zod";
 import { 
   invoiceWithItemsSchema, 
@@ -67,6 +75,9 @@ const transporter = {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up server
   const httpServer = createServer(app);
+
+  // Apply the rate limiting middleware to all /api/ routes
+  app.use("/api/", apiLimiter);
 
   // Set up authentication routes
   setupAuth(app);
