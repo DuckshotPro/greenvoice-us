@@ -1,4 +1,4 @@
-# InvoiceFlow Application
+draftraft InvoiceFlow Application
 
 InvoiceFlow is a comprehensive invoice management platform that enables professional document creation, distribution, and secure financial transactions across multiple digital channels.
 
@@ -49,7 +49,7 @@ InvoiceFlow provides a complete invoice creation and management solution:
 - **Advanced Analytics Dashboard**
   - Share method tracking (email, link, social media)
   - View count analytics for invoices
-  - Filtering by date ranges (today, 7 days, 30 days, 90 days, all time)
+  - Filtering by date rangesAccessing7 days, 30 days, 90 days, all time)
   - Data grouping options (by method, day, week, month)
   - Visual charts and graphs for data interpretation
 
