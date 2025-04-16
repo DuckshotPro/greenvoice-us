@@ -39,6 +39,13 @@ InvoiceFlow provides a complete invoice creation and management solution:
   - Direct link sharing with unique URLs
   - SMS sharing capability
 
+- **Branding Customization**
+  - Custom color schemes for invoices
+  - Font selection and typography options
+  - AI-powered logo and pattern generation (via Hugging Face)
+  - Custom header and footer text
+  - Multiple template designs
+
 - **Advanced Analytics Dashboard**
   - Share method tracking (email, link, social media)
   - View count analytics for invoices
@@ -54,6 +61,8 @@ InvoiceFlow provides a complete invoice creation and management solution:
 - **Premium Features (Freemium Model)**
   - Ad-based temporary premium access
   - Analytics dashboard for premium users
+  - AI-generated branding assets (logos and patterns)
+  - Premium invoice templates
   - Subscription management system
 
 ## 🔧 Prerequisites
@@ -96,6 +105,9 @@ SENDGRID_API_KEY=your_sendgrid_api_key
 # Stripe Integration (Optional - for premium subscriptions)
 STRIPE_SECRET_KEY=your_stripe_secret_key
 VITE_STRIPE_PUBLIC_KEY=your_stripe_publishable_key
+
+# AI Integration (Required for branding features)
+HUGGINGFACE_API_KEY=your_huggingface_api_key
 ```
 
 ### Step 4: Start the Development Server
@@ -227,6 +239,25 @@ RECURRING_TEMPLATES_INTERVAL: 60 * 60 * 1000 // 1 hour
    - Filter by date range
    - Group data by different time periods
 
+### Branding Customization
+
+1. **Basic Branding Settings**:
+   - Navigate to "Branding Settings"
+   - Customize primary, secondary, and accent colors
+   - Select font family for invoices
+   - Choose invoice template design
+
+2. **AI-Generated Branding (Premium)**:
+   - Generate custom logos by providing a text description
+   - Create seamless patterns using color and style preferences
+   - Preview and apply generated assets to invoices
+   - All generated assets are saved to your account
+
+3. **Apply Branding to Invoices**:
+   - All branding settings are automatically applied to new invoices
+   - Existing invoices will use the current branding settings
+   - Brand settings are preserved when exporting to PDF
+
 ## 🔍 Advanced Features
 
 ### Admin Controls
@@ -256,6 +287,8 @@ InvoiceFlow provides a comprehensive API:
 - **Invoices**: `/api/invoices`, `/api/invoices/:id`
 - **Templates**: `/api/recurring-templates`
 - **Analytics**: `/api/analytics/share-methods`, `/api/analytics/share-views`
+- **Branding**: `/api/branding/settings`, `/api/branding/generate-logo`, `/api/branding/generate-pattern`
+- **Premium**: `/api/premium/watch-ad`, `/api/premium/verify-subscription`
 - **Admin**: `/api/admin/logs`, `/api/admin/db-health`, `/api/admin/system`
 
 ## 🔧 Troubleshooting
@@ -287,6 +320,18 @@ InvoiceFlow provides a comprehensive API:
    ```bash
    npm run db:check share_analytics
    ```
+
+5. **AI Branding Feature Issues**:
+   - Verify the Hugging Face API key is correctly configured:
+   ```bash
+   # Test the Hugging Face API connection
+   curl -X POST \
+     -H "Authorization: Bearer $HUGGINGFACE_API_KEY" \
+     -H "Content-Type: application/json" \
+     https://api-inference.huggingface.co/status
+   ```
+   - Check premium access status for the user
+   - Inspect network requests when generating logos and patterns
 
 ## 📄 License
 

@@ -601,88 +601,146 @@ export default function BrandingSettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="border rounded-md p-4 bg-white" style={{
+              <div className="border rounded-md p-4 bg-white relative overflow-hidden" style={{
                 fontFamily: settings.fontFamily
               }}>
-                <div className="flex justify-between items-center mb-4">
-                  {(settings.logoUrl || previewLogoUrl) ? (
-                    <img 
-                      src={previewLogoUrl || settings.logoUrl || ''}
-                      alt="Company Logo" 
-                      className="h-12"
-                    />
-                  ) : (
-                    <div 
-                      className="h-12 w-32 bg-gray-100 rounded flex items-center justify-center font-bold"
-                      style={{ color: settings.primaryColor }}
-                    >
-                      COMPANY
-                    </div>
-                  )}
+                {/* Background Pattern (if available) */}
+                {(settings.patternUrl || previewPatternUrl) && (
                   <div 
-                    className="text-xl font-bold"
-                    style={{ color: settings.primaryColor }}
-                  >
-                    INVOICE
-                  </div>
-                </div>
+                    className="absolute inset-0 opacity-10 z-0" 
+                    style={{ 
+                      backgroundImage: `url(${previewPatternUrl || settings.patternUrl})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                    }}
+                  />
+                )}
                 
-                <div className="mb-6">
-                  <div className="h-1 w-full" style={{ backgroundColor: settings.primaryColor }}></div>
-                  <div className="h-0.5 w-full mt-0.5" style={{ backgroundColor: settings.secondaryColor }}></div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div>
-                    <p className="text-sm text-gray-500">From:</p>
-                    <p className="font-bold">Your Company</p>
-                    <p className="text-sm">your.email@example.com</p>
-                    <p className="text-sm">123 Business St.</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">To:</p>
-                    <p className="font-bold">Client Name</p>
-                    <p className="text-sm">client@example.com</p>
-                    <p className="text-sm">456 Client Ave.</p>
-                  </div>
-                </div>
-                
-                <div className="mb-6">
-                  <div className="grid grid-cols-4 gap-2 font-bold text-sm p-2"
-                    style={{ backgroundColor: settings.secondaryColor, color: "white" }}
-                  >
-                    <div className="col-span-2">Item</div>
-                    <div>Price</div>
-                    <div>Amount</div>
-                  </div>
-                  <div className="border-b py-2 grid grid-cols-4 gap-2 text-sm">
-                    <div className="col-span-2">Service 1</div>
-                    <div>$100.00</div>
-                    <div>$100.00</div>
-                  </div>
-                  <div className="border-b py-2 grid grid-cols-4 gap-2 text-sm">
-                    <div className="col-span-2">Service 2</div>
-                    <div>$200.00</div>
-                    <div>$200.00</div>
-                  </div>
-                </div>
-                
-                <div className="flex justify-end">
-                  <div className="w-1/3">
-                    <div className="flex justify-between py-1">
-                      <span className="text-sm">Subtotal:</span>
-                      <span className="text-sm">$300.00</span>
+                <div className="relative z-10">
+                  {/* Header Section */}
+                  <div className="flex justify-between items-center mb-4">
+                    {/* Logo */}
+                    {(settings.logoUrl || previewLogoUrl) ? (
+                      <div className="h-16 flex items-center">
+                        <img 
+                          src={previewLogoUrl || settings.logoUrl || ''}
+                          alt="Company Logo" 
+                          className="max-h-full object-contain"
+                        />
+                      </div>
+                    ) : (
+                      <div 
+                        className="h-12 w-32 bg-gray-100 rounded flex items-center justify-center font-bold"
+                        style={{ color: settings.primaryColor }}
+                      >
+                        COMPANY
+                      </div>
+                    )}
+                    
+                    {/* Invoice Title */}
+                    <div>
+                      <div 
+                        className="text-xl font-bold mb-1"
+                        style={{ color: settings.primaryColor }}
+                      >
+                        {settings.headerText || "INVOICE"}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        Invoice #INV-2025-001
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        Date: {new Date().toLocaleDateString()}
+                      </div>
                     </div>
-                    <div className="flex justify-between py-1">
-                      <span className="text-sm">Tax (10%):</span>
-                      <span className="text-sm">$30.00</span>
+                  </div>
+                  
+                  {/* Divider */}
+                  <div className="mb-6">
+                    <div className="h-1 w-full" style={{ backgroundColor: settings.primaryColor }}></div>
+                    <div className="h-0.5 w-full mt-0.5" style={{ backgroundColor: settings.secondaryColor }}></div>
+                  </div>
+                  
+                  {/* From/To Section */}
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">From:</p>
+                      <p className="font-bold">Your Company</p>
+                      <p className="text-sm">your.email@example.com</p>
+                      <p className="text-sm">123 Business St.</p>
+                      <p className="text-sm">City, State 12345</p>
+                      <p className="text-sm">Phone: (555) 123-4567</p>
                     </div>
-                    <div className="flex justify-between py-2 font-bold"
-                      style={{ color: settings.accentColor }}
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">To:</p>
+                      <p className="font-bold">Client Name</p>
+                      <p className="text-sm">client@example.com</p>
+                      <p className="text-sm">456 Client Ave.</p>
+                      <p className="text-sm">Client City, State 67890</p>
+                      <p className="text-sm">Phone: (555) 987-6543</p>
+                    </div>
+                  </div>
+                  
+                  {/* Line Items */}
+                  <div className="mb-6">
+                    <div className="grid grid-cols-12 gap-2 font-bold text-sm p-2"
+                      style={{ backgroundColor: settings.secondaryColor, color: "white" }}
                     >
-                      <span>Total:</span>
-                      <span>$330.00</span>
+                      <div className="col-span-1">#</div>
+                      <div className="col-span-5">Item</div>
+                      <div className="col-span-2">Qty</div>
+                      <div className="col-span-2">Rate</div>
+                      <div className="col-span-2">Amount</div>
                     </div>
+                    <div className="border-b py-2 grid grid-cols-12 gap-2 text-sm">
+                      <div className="col-span-1">1</div>
+                      <div className="col-span-5">Professional Consultation</div>
+                      <div className="col-span-2">2</div>
+                      <div className="col-span-2">$100.00</div>
+                      <div className="col-span-2">$200.00</div>
+                    </div>
+                    <div className="border-b py-2 grid grid-cols-12 gap-2 text-sm">
+                      <div className="col-span-1">2</div>
+                      <div className="col-span-5">Website Development</div>
+                      <div className="col-span-2">1</div>
+                      <div className="col-span-2">$1,500.00</div>
+                      <div className="col-span-2">$1,500.00</div>
+                    </div>
+                    <div className="border-b py-2 grid grid-cols-12 gap-2 text-sm">
+                      <div className="col-span-1">3</div>
+                      <div className="col-span-5">Content Writing</div>
+                      <div className="col-span-2">5</div>
+                      <div className="col-span-2">$85.00</div>
+                      <div className="col-span-2">$425.00</div>
+                    </div>
+                  </div>
+                  
+                  {/* Totals */}
+                  <div className="flex justify-end">
+                    <div className="w-1/3">
+                      <div className="flex justify-between py-1">
+                        <span className="text-sm">Subtotal:</span>
+                        <span className="text-sm">$2,125.00</span>
+                      </div>
+                      <div className="flex justify-between py-1">
+                        <span className="text-sm">Discount (5%):</span>
+                        <span className="text-sm">-$106.25</span>
+                      </div>
+                      <div className="flex justify-between py-1">
+                        <span className="text-sm">Tax (10%):</span>
+                        <span className="text-sm">$201.88</span>
+                      </div>
+                      <div className="flex justify-between py-2 font-bold mt-2 border-t border-gray-300"
+                        style={{ color: settings.accentColor }}
+                      >
+                        <span>Total:</span>
+                        <span>$2,220.63</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Footer */}
+                  <div className="mt-8 pt-4 border-t text-center text-sm text-gray-500">
+                    {settings.footerText || "Thank you for your business"}
                   </div>
                 </div>
               </div>
@@ -714,7 +772,34 @@ export default function BrandingSettingsPage() {
               </ul>
             </CardContent>
             <CardFooter>
-              <Button variant="outline" className="w-full">
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => {
+                  const defaultSettings: BrandingSettings = {
+                    primaryColor: "#4f46e5",
+                    secondaryColor: "#0f172a",
+                    accentColor: "#ef4444",
+                    fontFamily: "Inter, sans-serif",
+                    customTemplateId: "default",
+                    showLogo: false,
+                    logoUrl: "",
+                    patternUrl: "",
+                    headerText: "INVOICE",
+                    footerText: "Thank you for your business"
+                  };
+                  
+                  setSettings(defaultSettings);
+                  setPreviewLogoUrl("");
+                  setPreviewPatternUrl("");
+                  
+                  toast({
+                    title: "Reset Complete",
+                    description: "Your branding settings have been reset to default values.",
+                    variant: "default",
+                  });
+                }}
+              >
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Reset to Default
               </Button>
