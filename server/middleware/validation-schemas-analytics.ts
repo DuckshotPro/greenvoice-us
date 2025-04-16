@@ -11,6 +11,25 @@ export const trackShareSchema = z.object({
 });
 
 /**
+ * Schema for validating share view recording
+ */
+export const recordViewSchema = z.object({
+  invoiceId: z.number().positive({ message: 'Invoice ID must be a positive number' }),
+  shareMethod: z.string().min(1, { message: 'Share method is required' })
+});
+
+/**
+ * Schema for validating UTM parameter tracking
+ */
+export const trackUtmSchema = z.object({
+  invoiceId: z.number().positive({ message: 'Invoice ID must be a positive number' }),
+  shareMethod: z.string().min(1, { message: 'Share method is required' }),
+  utmSource: z.string().optional().nullable(),
+  utmMedium: z.string().optional().nullable(),
+  utmCampaign: z.string().optional().nullable()
+});
+
+/**
  * Schema for validating analytics query parameters
  */
 export const analyticsQuerySchema = z.object({
