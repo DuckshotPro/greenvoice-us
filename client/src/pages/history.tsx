@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '@/hooks/use-auth';
+import { Link } from 'wouter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -53,7 +54,7 @@ const History = () => {
                       You haven't created any invoices yet. Start by creating your first invoice.
                     </p>
                     <Button className="mt-4" asChild>
-                      <a href="/create-invoice">Create Invoice</a>
+                      <Link href="/create-invoice">Create Invoice</Link>
                     </Button>
                   </div>
                 </div>
@@ -76,7 +77,7 @@ const History = () => {
                       You don't have any draft invoices. Create a new invoice to get started.
                     </p>
                     <Button className="mt-4" asChild>
-                      <a href="/create-invoice">Create Invoice</a>
+                      <Link href="/create-invoice">Create Invoice</Link>
                     </Button>
                   </div>
                 </div>
@@ -99,7 +100,7 @@ const History = () => {
                       You haven't sent any invoices yet.
                     </p>
                     <Button className="mt-4" asChild>
-                      <a href="/create-invoice">Create Invoice</a>
+                      <Link href="/create-invoice">Create Invoice</Link>
                     </Button>
                   </div>
                 </div>
@@ -122,7 +123,7 @@ const History = () => {
                       You don't have any paid invoices yet.
                     </p>
                     <Button className="mt-4" asChild>
-                      <a href="/create-invoice">Create Invoice</a>
+                      <Link href="/create-invoice">Create Invoice</Link>
                     </Button>
                   </div>
                 </div>
@@ -145,7 +146,7 @@ const History = () => {
                       You don't have any overdue invoices. Great job!
                     </p>
                     <Button className="mt-4" asChild>
-                      <a href="/create-invoice">Create Invoice</a>
+                      <Link href="/create-invoice">Create Invoice</Link>
                     </Button>
                   </div>
                 </div>
