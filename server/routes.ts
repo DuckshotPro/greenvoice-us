@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./models/storage";
 import { pool } from "./models/db";
 import rateLimit from 'express-rate-limit';
+import Stripe from 'stripe';
 
 // Define rate limit settings
 const apiLimiter = rateLimit({
@@ -83,6 +84,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register branding routes
   app.use("/api/branding", brandingRoutes);
+  
+  // Initialize Stripe with secret key
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+    apiVersion: '2023-10-16',
+  });
+  
+  // Create a payment intent for Stripe with Google Pay support
+  app.post("/api/create-payment-intent", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const { amount, currency = 'usd' } = req.body;
+      
+      if (!amount) {
+        return res.status(400).json({ message: "Amount is required" });
+      }
+      
+      // Amount should be in cents (e.g., $12.00 = 1200)
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: currency,
+        payment_method_types: ['card', 'google_pay'],
+        metadata: {
+          userId: req.user?.id.toString() || '',
+          userEmail: req.user?.email || '',
+          plan: 'premium'
+        },
+      });
+      
+      logInfo(`Payment intent created for user`, "PaymentController", {
+        userId: req.user?.id,
+        amount,
+        currency
+      });
+      
+      res.json({
+        clientSecret: paymentIntent.client_secret,
+        id: paymentIntent.id
+      });
+    } catch (error) {
+      console.error("Error creating payment intent:", error);
+      logError("Payment intent creation failed", "PaymentController", { 
+        error, 
+        userId: req.user?.id 
+      });
+      res.status(500).json({ 
+        message: "Failed to create payment intent",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
 
   // Auth middleware is now imported from './middleware/auth'
 
