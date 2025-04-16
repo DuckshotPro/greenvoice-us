@@ -29,6 +29,7 @@ const Header = () => {
     { href: '/templates', label: 'Templates' },
     { href: '/history', label: 'History' },
     { href: '/analytics', label: 'Analytics' },
+    { href: '/branding', label: 'Branding' },
     { href: '/settings', label: 'Settings' },
   ];
 
@@ -108,6 +109,9 @@ const Header = () => {
                           {isPremium ? 'Premium Status' : 'Upgrade to Premium'}
                         </div>
                       </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/branding">Brand Customization</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href="/settings">Profile Settings</Link>

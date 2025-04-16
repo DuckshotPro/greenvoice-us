@@ -34,8 +34,8 @@ export default function BrandingSettingsPage() {
   const [patternColors, setPatternColors] = useState("");
   const [patternStyle, setPatternStyle] = useState("");
   const [isGeneratingPattern, setIsGeneratingPattern] = useState(false);
-  const [previewLogoUrl, setPreviewLogoUrl] = useState<string | null>(null);
-  const [previewPatternUrl, setPreviewPatternUrl] = useState<string | null>(null);
+  const [previewLogoUrl, setPreviewLogoUrl] = useState<string>('');
+  const [previewPatternUrl, setPreviewPatternUrl] = useState<string>('');
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   
   // Check if user has premium access
@@ -81,10 +81,16 @@ export default function BrandingSettingsPage() {
       if (previewLogoUrl) {
         // In a real implementation, you would upload the image here
         // For this example, we'll just use the data URL
-        setSettings({ ...settings, logoUrl: previewLogoUrl });
+        const updatedSettings = { 
+          ...settings, 
+          logoUrl: previewLogoUrl 
+        };
+        setSettings(updatedSettings);
+        await saveBrandingSettings(updatedSettings);
+      } else {
+        await saveBrandingSettings(settings);
       }
       
-      await saveBrandingSettings(settings);
       toast({
         title: "Settings saved",
         description: "Your branding settings have been saved.",
@@ -555,9 +561,9 @@ export default function BrandingSettingsPage() {
                 fontFamily: settings.fontFamily
               }}>
                 <div className="flex justify-between items-center mb-4">
-                  {settings.logoUrl || previewLogoUrl ? (
+                  {(settings.logoUrl || previewLogoUrl) ? (
                     <img 
-                      src={previewLogoUrl || settings.logoUrl}
+                      src={previewLogoUrl || settings.logoUrl || ''}
                       alt="Company Logo" 
                       className="h-12"
                     />
