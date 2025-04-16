@@ -10,6 +10,7 @@ import AnalyticsDashboard from "@/pages/analytics-dashboard";
 import AuthPage from "@/pages/auth-page";
 import PremiumPage from "@/pages/premium-page";
 import SharedInvoiceView from "@/pages/shared-invoice-view";
+import BrandingSettings from "@/pages/branding-settings";
 import NotFound from "@/pages/not-found";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/premium" component={PremiumPage} />
       <ProtectedRoute path="/create-invoice" component={CreateInvoice} />
       <ProtectedRoute path="/analytics" component={AnalyticsDashboard} requirePremium />
+      <ProtectedRoute path="/branding" component={BrandingSettings} />
       {/* Public shareable invoice route */}
       <Route path="/share/:shareableLink" component={SharedInvoiceView} />
       <Route component={NotFound} />
