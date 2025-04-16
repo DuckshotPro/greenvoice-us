@@ -40,7 +40,9 @@ import {
 } from "./middleware/validation-schemas";
 import {
   trackShareSchema,
-  analyticsQuerySchema
+  analyticsQuerySchema,
+  recordViewSchema,
+  trackUtmSchema
 } from "./middleware/validation-schemas-analytics";
 
 // Security middleware to verify admin access
@@ -949,7 +951,98 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
       res.status(201).json({ message: "Share tracked successfully", shareId: analytics.id });
     } catch (error) {
       console.error("Error tracking share:", error);
+      logError("Error tracking share analytics", "AnalyticsController", { error, invoiceId: req.body.invoiceId });
       res.status(500).json({ message: "Failed to track share" });
+    }
+  });
+  
+  // Record a view of a shared invoice
+  app.post("/api/analytics/record-view", validateBody(recordViewSchema), async (req: Request, res: Response) => {
+    try {
+      const { invoiceId, shareMethod } = req.body;
+      
+      // Get IP and user agent for tracking
+      const userAgent = req.headers['user-agent'] as string || undefined;
+      const ipAddress = req.ip || req.socket.remoteAddress || undefined;
+      const referrer = req.headers.referer as string || undefined;
+      
+      // Record the view
+      const result = await storage.recordShareView(
+        invoiceId,
+        shareMethod,
+        referrer,
+        userAgent,
+        ipAddress
+      );
+      
+      if (!result) {
+        return res.status(404).json({
+          message: "No matching share found to record view"
+        });
+      }
+      
+      logInfo(`Share view recorded for invoice ${invoiceId}`, "AnalyticsController", {
+        invoiceId,
+        shareMethod,
+        viewCount: result.viewCount
+      });
+      
+      res.status(200).json({ 
+        message: "View recorded", 
+        viewCount: result.viewCount 
+      });
+    } catch (error) {
+      console.error("Error recording share view:", error);
+      logError("Error recording share view", "AnalyticsController", { error, invoiceId: req.body.invoiceId });
+      res.status(500).json({ message: "Failed to record view" });
+    }
+  });
+  
+  // Track UTM parameters for marketing campaign analysis
+  app.post("/api/analytics/track-utm", validateBody(trackUtmSchema), async (req: Request, res: Response) => {
+    try {
+      const { invoiceId, shareMethod, utmSource, utmMedium, utmCampaign } = req.body;
+      
+      // Skip if no UTM parameters
+      if (!utmSource && !utmMedium && !utmCampaign) {
+        return res.status(200).json({ 
+          message: "No UTM parameters to track" 
+        });
+      }
+      
+      // Store the UTM data in the metadata field
+      const metadata = {
+        utm_source: utmSource,
+        utm_medium: utmMedium,
+        utm_campaign: utmCampaign,
+        tracked_at: new Date().toISOString()
+      };
+      
+      // Record as a special type of view with UTM data
+      const result = await storage.recordShareView(
+        invoiceId,
+        shareMethod,
+        req.headers.referer as string || undefined,
+        req.headers['user-agent'] as string || undefined,
+        req.ip || req.socket.remoteAddress || undefined,
+        metadata
+      );
+      
+      logInfo(`UTM parameters tracked for invoice ${invoiceId}`, "AnalyticsController", {
+        invoiceId,
+        shareMethod,
+        utmSource,
+        utmMedium,
+        utmCampaign
+      });
+      
+      res.status(200).json({ 
+        message: "UTM parameters tracked successfully" 
+      });
+    } catch (error) {
+      console.error("Error tracking UTM parameters:", error);
+      logError("Error tracking UTM parameters", "AnalyticsController", { error, invoiceId: req.body.invoiceId });
+      res.status(500).json({ message: "Failed to track UTM parameters" });
     }
   });
 

@@ -81,7 +81,7 @@ export interface IStorage {
   // Track when an invoice is shared
   trackShareAnalytics(shareData: InsertShareAnalytics): Promise<ShareAnalytics>;
   // Record a view when a shared invoice is viewed
-  recordShareView(invoiceId: number, shareMethod: string, referrer?: string, userAgent?: string, ipAddress?: string): Promise<ShareAnalytics | undefined>;
+  recordShareView(invoiceId: number, shareMethod: string, referrer?: string, userAgent?: string, ipAddress?: string, metadata?: Record<string, any>): Promise<ShareAnalytics | undefined>;
   // Get share analytics for a specific invoice
   getShareAnalytics(invoiceId: number): Promise<ShareAnalytics[]>;
   // Get share analytics grouped by method (for reporting)
@@ -587,7 +587,8 @@ export class DatabaseStorage implements IStorage {
     shareMethod: string,
     referrer?: string,
     userAgent?: string,
-    ipAddress?: string
+    ipAddress?: string,
+    metadata?: Record<string, any>
   ): Promise<ShareAnalytics | undefined> {
     // Find the most recent share record for this invoice and method
     const [existingShare] = await db.select()
@@ -608,7 +609,8 @@ export class DatabaseStorage implements IStorage {
         lastViewedAt: new Date(),
         referrer: referrer || existingShare.referrer,
         userAgent: userAgent || existingShare.userAgent,
-        ipAddress: ipAddress || existingShare.ipAddress
+        ipAddress: ipAddress || existingShare.ipAddress,
+        metadata: metadata || existingShare.metadata
       })
       .where(eq(shareAnalytics.id, existingShare.id))
       .returning();
