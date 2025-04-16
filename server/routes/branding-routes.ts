@@ -3,8 +3,8 @@ import { z } from 'zod';
 import { huggingFaceService } from '../services/huggingface-service';
 import { requireAuth } from '../middleware/auth';
 import { validateBody } from '../middleware/validation';
-import { storage } from '../models/storage';
-import { ErrorLogger } from '../lib/error-logger';
+import { storage } from '../storage';
+import { logError } from '../lib/error-logger';
 
 const router = Router();
 
@@ -40,7 +40,8 @@ router.post('/generate-logo', requireAuth, validateBody(logoGenerationSchema), a
     
     // Ensure the user has premium permissions
     const user = req.user;
-    if (!user?.isPremium && !user?.premiumUntil) {
+    // Check if user has premium subscription or temporary premium days
+    if (user?.subscriptionPlan !== 'premium' && (user?.premiumDaysRemaining || 0) <= 0) {
       return res.status(403).json({ message: 'Premium feature: Logo generation requires premium access' });
     }
     
@@ -54,8 +55,8 @@ router.post('/generate-logo', requireAuth, validateBody(logoGenerationSchema), a
     // Send the image data with proper content type
     res.set('Content-Type', 'image/png');
     res.send(buffer);
-  } catch (error) {
-    ErrorLogger.logError('Error generating logo', 'BrandingRoutes', { error });
+  } catch (error: any) {
+    logError('Error generating logo', 'BrandingRoutes', { error });
     res.status(500).json({ message: 'Failed to generate logo', error: error.message });
   }
 });
@@ -71,7 +72,8 @@ router.post('/generate-pattern', requireAuth, validateBody(patternGenerationSche
     
     // Ensure the user has premium permissions
     const user = req.user;
-    if (!user?.isPremium && !user?.premiumUntil) {
+    // Check if user has premium subscription or temporary premium days
+    if (user?.subscriptionPlan !== 'premium' && (user?.premiumDaysRemaining || 0) <= 0) {
       return res.status(403).json({ message: 'Premium feature: Pattern generation requires premium access' });
     }
     
@@ -85,8 +87,8 @@ router.post('/generate-pattern', requireAuth, validateBody(patternGenerationSche
     // Send the image data with proper content type
     res.set('Content-Type', 'image/png');
     res.send(buffer);
-  } catch (error) {
-    ErrorLogger.logError('Error generating pattern', 'BrandingRoutes', { error });
+  } catch (error: any) {
+    logError('Error generating pattern', 'BrandingRoutes', { error });
     res.status(500).json({ message: 'Failed to generate pattern', error: error.message });
   }
 });
@@ -98,12 +100,14 @@ router.post('/generate-pattern', requireAuth, validateBody(patternGenerationSche
  */
 router.post('/settings', requireAuth, validateBody(brandingSettingsSchema), async (req, res) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    
     const userId = req.user.id;
     const brandingSettings = req.body;
     
     // Update the user's branding settings in the database
-    // For now, we'll store it in the user object, but in a real implementation
-    // this would likely be in a separate table with proper relations
     const updatedUser = await storage.updateUser(userId, {
       brandingSettings: JSON.stringify(brandingSettings)
     });
@@ -116,8 +120,8 @@ router.post('/settings', requireAuth, validateBody(brandingSettingsSchema), asyn
       message: 'Branding settings saved successfully',
       brandingSettings
     });
-  } catch (error) {
-    ErrorLogger.logError('Error saving branding settings', 'BrandingRoutes', { error });
+  } catch (error: any) {
+    logError('Error saving branding settings', 'BrandingRoutes', { error });
     res.status(500).json({ message: 'Failed to save branding settings', error: error.message });
   }
 });
@@ -129,6 +133,10 @@ router.post('/settings', requireAuth, validateBody(brandingSettingsSchema), asyn
  */
 router.get('/settings', requireAuth, async (req, res) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    
     const userId = req.user.id;
     
     // Get the user with their branding settings
@@ -143,8 +151,8 @@ router.get('/settings', requireAuth, async (req, res) => {
     if (user.brandingSettings) {
       try {
         brandingSettings = JSON.parse(user.brandingSettings);
-      } catch (e) {
-        ErrorLogger.logError('Error parsing branding settings', 'BrandingRoutes', { error: e });
+      } catch (e: any) {
+        logError('Error parsing branding settings', 'BrandingRoutes', { error: e });
       }
     }
     
@@ -161,8 +169,8 @@ router.get('/settings', requireAuth, async (req, res) => {
     }
     
     res.status(200).json(brandingSettings);
-  } catch (error) {
-    ErrorLogger.logError('Error getting branding settings', 'BrandingRoutes', { error });
+  } catch (error: any) {
+    logError('Error getting branding settings', 'BrandingRoutes', { error });
     res.status(500).json({ message: 'Failed to get branding settings', error: error.message });
   }
 });
