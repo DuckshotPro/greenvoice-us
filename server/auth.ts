@@ -50,7 +50,9 @@ export function setupAuth(app: Express) {
     saveUninitialized: false,
     cookie: {
       secure: process.env.NODE_ENV === "production",
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours default
+      httpOnly: true,
+      sameSite: 'lax'
     }
   };
 
@@ -113,6 +115,20 @@ export function setupAuth(app: Express) {
       if (!user) {
         return res.status(401).json({ message: info.message || "Invalid credentials" });
       }
+      
+      // If rememberMe is true, extend session expiration
+      if (req.body.rememberMe) {
+        // Set cookie to expire in 30 days
+        if (req.session.cookie) {
+          req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
+        }
+      } else {
+        // Set session to expire when the browser is closed
+        if (req.session.cookie) {
+          req.session.cookie.maxAge = 0;
+        }
+      }
+      
       req.login(user, (err: Error | null) => {
         if (err) return next(err);
         // Return user without password
