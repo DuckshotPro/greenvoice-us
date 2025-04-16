@@ -1,394 +1,177 @@
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Loader2, ExternalLink, CalendarIcon } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Link } from 'wouter';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { format } from 'date-fns';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
-import { Calendar } from '@/components/ui/calendar';
+import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ShareAnalyticsDashboard from "@/components/analytics/share-analytics-dashboard";
+import { ChevronLeft, Crown, Loader2, BarChart2, Share2 } from "lucide-react";
+import { Link, useLocation } from "wouter";
 
-// Define types for our analytics data
-interface ShareMethodAnalytics {
-  method: string;
-  count: number;
-}
+/**
+ * AnalyticsDashboard - Premium feature to display invoice analytics
+ * Shows insights into sharing methods, view counts, and campaign effectiveness
+ */
+const AnalyticsDashboard = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
-interface ShareViewAnalytics {
-  invoiceId: number;
-  views: number;
-}
+  // Check if the user has premium access
+  const isPremium = user?.subscriptionPlan === "premium" || (user?.premiumDaysRemaining || 0) > 0;
 
-// Custom colors for our charts
-const CHART_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A569BD', '#5DADE2', '#48C9B0', '#F4D03F'];
-const DEFAULT_COLOR = '#7C3AED';
-
-// Formatting for method names
-const formatMethodName = (method: string): string => {
-  switch (method) {
-    case 'email':
-      return 'Email';
-    case 'link':
-      return 'Direct Link';
-    case 'twitter':
-      return 'Twitter';
-    case 'facebook':
-      return 'Facebook';
-    case 'linkedin':
-      return 'LinkedIn';
-    case 'whatsapp':
-      return 'WhatsApp';
-    case 'telegram':
-      return 'Telegram';
-    case 'clipboard':
-      return 'Clipboard';
-    case 'web-share-api':
-      return 'Web Share';
-    default:
-      return method.charAt(0).toUpperCase() + method.slice(1);
-  }
-};
-
-const AnalyticsDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('sharing');
-  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
-  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
-  const [groupBy, setGroupBy] = useState<string>("none");
-  
-  // Build query parameters
-  const getQueryParams = () => {
-    const params = new URLSearchParams();
-    
-    if (startDate) {
-      params.append('startDate', startDate.toISOString());
+  // Redirect if not a premium user
+  useEffect(() => {
+    if (user && !isPremium) {
+      toast({
+        title: "Premium Feature",
+        description: "Analytics dashboard requires premium access.",
+        variant: "destructive",
+      });
+      setLocation("/premium");
     }
-    
-    if (endDate) {
-      params.append('endDate', endDate.toISOString());
-    }
-    
-    if (groupBy && groupBy !== "none") {
-      params.append('groupBy', groupBy);
-    }
-    
-    return params.toString();
-  };
+  }, [user, isPremium, toast, setLocation]);
 
-  // Fetch share method analytics with filters
-  const { data: shareMethodData, isLoading: isLoadingMethods, error: methodsError } = useQuery<ShareMethodAnalytics[]>({
-    queryKey: ['/api/analytics/by-method', getQueryParams()],
-    staleTime: 60000, // 1 minute
+  // Fetch user's premium status details
+  const { data: premiumData, isLoading: isLoadingPremium } = useQuery({
+    queryKey: ["/api/user/premium-status"],
+    queryFn: async () => {
+      const response = await fetch("/api/user/premium-status");
+      if (!response.ok) {
+        throw new Error("Failed to fetch premium status");
+      }
+      return response.json();
+    },
+    enabled: !!user && isPremium,
   });
 
-  // Fetch view count analytics with filters
-  const { data: viewsData, isLoading: isLoadingViews, error: viewsError } = useQuery<ShareViewAnalytics[]>({
-    queryKey: ['/api/analytics/views', getQueryParams()],
-    staleTime: 60000, // 1 minute
-  });
-
-  // Format data for the pie chart
-  const getPieData = () => {
-    if (!shareMethodData || shareMethodData.length === 0) return [];
-    
-    return shareMethodData.map(item => ({
-      name: formatMethodName(item.method),
-      value: item.count
-    }));
-  };
-
-  // Format data for the bar chart
-  const getBarData = () => {
-    if (!viewsData || viewsData.length === 0) return [];
-    
-    return viewsData.slice(0, 10).map(item => ({
-      invoiceId: `Inv-${item.invoiceId}`,
-      views: item.views
-    }));
-  };
-
-  // Loading state
-  if (isLoadingMethods || isLoadingViews) {
+  // If not premium, show loading while redirecting
+  if (!isPremium) {
     return (
-      <div className="flex items-center justify-center h-[70vh]">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
-  // Error state
-  if (methodsError || viewsError) {
+  // Show loading state while fetching premium status
+  if (isLoadingPremium) {
     return (
-      <Alert variant="destructive" className="mx-auto max-w-2xl mt-8">
-        <AlertDescription>
-          Error loading analytics data. Please try again later.
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
-  // Empty state
-  const isEmpty = (!shareMethodData || shareMethodData.length === 0) && 
-                 (!viewsData || viewsData.length === 0);
-
-  if (isEmpty) {
-    return (
-      <div className="max-w-3xl mx-auto mt-8 p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Share Analytics</CardTitle>
-            <CardDescription>Track how your invoices are shared and viewed</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-12">
-              <h3 className="text-lg font-medium mb-2">No sharing activity yet</h3>
-              <p className="text-muted-foreground mb-6">
-                Share some invoices to start collecting analytics data
-              </p>
-              <Button asChild>
-                <Link to="/">Create or Share Invoices</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="container mx-auto py-10">
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mr-2" />
+          <p>Loading analytics dashboard...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-4 md:p-6">
-      <div className="mb-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h1>
-            <p className="text-muted-foreground mt-1">Track how your invoices are being shared and viewed</p>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0">
-            {/* Start Date */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "justify-start text-left font-normal w-full sm:w-[200px]",
-                    !startDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {startDate ? format(startDate, "PPP") : "Start Date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={startDate}
-                  onSelect={setStartDate}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-            
-            {/* End Date */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "justify-start text-left font-normal w-full sm:w-[200px]",
-                    !endDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {endDate ? format(endDate, "PPP") : "End Date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={endDate}
-                  onSelect={setEndDate}
-                  initialFocus
-                  disabled={(date) => startDate ? date < startDate : false}
-                />
-              </PopoverContent>
-            </Popover>
-            
-            {/* Group By */}
-            <Select value={groupBy} onValueChange={setGroupBy}>
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Group By" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">No Grouping</SelectItem>
-                <SelectItem value="day">By Day</SelectItem>
-                <SelectItem value="week">By Week</SelectItem>
-                <SelectItem value="month">By Month</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            {/* Reset Filters Button */}
-            <Button 
-              variant="outline" 
-              className="w-full sm:w-auto"
-              onClick={() => {
-                setStartDate(undefined);
-                setEndDate(undefined);
-                setGroupBy("none");
-              }}
-              disabled={!startDate && !endDate && groupBy === "none"}
-            >
-              Reset Filters
+    <div className="container mx-auto py-8 px-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center">
+            <BarChart2 className="h-8 w-8 mr-2" />
+            Analytics Dashboard
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Track and analyze your invoice sharing performance
+          </p>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button variant="outline" asChild>
+            <Link to="/">
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Back to Invoices
+            </Link>
+          </Button>
+          {user?.subscriptionPlan !== "premium" && (
+            <Button variant="default" asChild className="bg-gradient-to-r from-violet-600 to-indigo-600">
+              <Link to="/premium">
+                <Crown className="h-4 w-4 mr-1" />
+                Upgrade to Premium
+              </Link>
             </Button>
-          </div>
+          )}
         </div>
       </div>
 
-      <Tabs defaultValue="sharing" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="sharing">Share Methods</TabsTrigger>
-          <TabsTrigger value="views">View Counts</TabsTrigger>
+      {/* Premium status banner */}
+      <Card className="mb-8 border-0 bg-gradient-to-r from-indigo-800/20 to-purple-800/20">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Crown className="h-5 w-5 mr-2 text-yellow-500" />
+            Premium Features Active
+          </CardTitle>
+          <CardDescription>
+            {user?.subscriptionPlan === "premium" ? (
+              <>You have full access to analytics with your premium subscription.</>
+            ) : (
+              <>
+                You have temporary premium access for{" "}
+                <Badge variant="outline" className="ml-1 font-semibold">
+                  {user?.premiumDaysRemaining} day{user?.premiumDaysRemaining !== 1 ? "s" : ""} remaining
+                </Badge>
+              </>
+            )}
+          </CardDescription>
+        </CardHeader>
+      </Card>
+
+      <Tabs defaultValue="share" className="space-y-8">
+        <TabsList className="grid w-full grid-cols-1 md:grid-cols-3">
+          <TabsTrigger value="share" className="flex items-center">
+            <Share2 className="h-4 w-4 mr-2" />
+            Share Analytics
+          </TabsTrigger>
+          <TabsTrigger value="overview" disabled className="flex items-center">
+            <BarChart2 className="h-4 w-4 mr-2" />
+            Overview (Coming Soon)
+          </TabsTrigger>
+          <TabsTrigger value="campaigns" disabled className="flex items-center">
+            <Crown className="h-4 w-4 mr-2" />
+            Campaigns (Coming Soon)
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="sharing" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Share Methods Distribution</CardTitle>
-              <CardDescription>How your invoices are being shared across different platforms</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {shareMethodData && shareMethodData.length > 0 ? (
-                <div className="h-[350px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={getPieData()}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={true}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={100}
-                        fill={DEFAULT_COLOR}
-                        dataKey="value"
-                      >
-                        {getPieData().map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => [`${value} shares`, 'Count']} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <div className="py-8 text-center">
-                  <p className="text-muted-foreground">No share method data available</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+        <TabsContent value="share" className="space-y-8">
+          <ShareAnalyticsDashboard />
+        </TabsContent>
 
+        <TabsContent value="overview">
           <Card>
             <CardHeader>
-              <CardTitle>Share Methods Breakdown</CardTitle>
-              <CardDescription>Detailed breakdown of sharing methods</CardDescription>
+              <CardTitle>Overview Analytics</CardTitle>
+              <CardDescription>
+                Comprehensive analytics for your invoices and payments
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              {shareMethodData && shareMethodData.length > 0 ? (
-                <div className="grid gap-4">
-                  {shareMethodData.map((item, index) => (
-                    <div key={item.method} className="flex items-center justify-between p-2 border-b">
-                      <div className="flex items-center">
-                        <div 
-                          className="w-3 h-3 rounded-full mr-3" 
-                          style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
-                        />
-                        <span className="font-medium">{formatMethodName(item.method)}</span>
-                      </div>
-                      <div className="text-muted-foreground">
-                        {item.count} {item.count === 1 ? 'share' : 'shares'}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="py-8 text-center">
-                  <p className="text-muted-foreground">No share method data available</p>
-                </div>
-              )}
+            <CardContent className="h-96 flex items-center justify-center">
+              <div className="text-center">
+                <p className="text-muted-foreground">
+                  Coming soon! More detailed analytics are being developed.
+                </p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="views" className="space-y-4">
+        <TabsContent value="campaigns">
           <Card>
             <CardHeader>
-              <CardTitle>Invoice View Counts</CardTitle>
-              <CardDescription>Most viewed invoices</CardDescription>
+              <CardTitle>Campaign Analytics</CardTitle>
+              <CardDescription>
+                Track the performance of your marketing campaigns
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              {viewsData && viewsData.length > 0 ? (
-                <div className="h-[350px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={getBarData()}
-                      margin={{
-                        top: 10,
-                        right: 30,
-                        left: 0,
-                        bottom: 5,
-                      }}
-                    >
-                      <XAxis dataKey="invoiceId" />
-                      <YAxis />
-                      <Tooltip formatter={(value) => [`${value} views`, 'Views']} />
-                      <Bar dataKey="views" fill={DEFAULT_COLOR} radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <div className="py-8 text-center">
-                  <p className="text-muted-foreground">No view count data available</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Invoice View Details</CardTitle>
-              <CardDescription>Detailed view counts per invoice</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {viewsData && viewsData.length > 0 ? (
-                <div className="grid gap-4">
-                  {viewsData.map((item) => (
-                    <div key={item.invoiceId} className="flex items-center justify-between p-2 border-b">
-                      <div className="flex items-center">
-                        <span className="font-medium">Invoice #{item.invoiceId}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <span className="text-muted-foreground mr-4">
-                          {item.views} {item.views === 1 ? 'view' : 'views'}
-                        </span>
-                        <Button size="sm" variant="outline" asChild>
-                          <Link to={`/invoices/${item.invoiceId}`}>
-                            <ExternalLink className="h-4 w-4 mr-1" />
-                            View
-                          </Link>
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="py-8 text-center">
-                  <p className="text-muted-foreground">No view count data available</p>
-                </div>
-              )}
+            <CardContent className="h-96 flex items-center justify-center">
+              <div className="text-center">
+                <p className="text-muted-foreground">
+                  Coming soon! Campaign analytics will be available in a future update.
+                </p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
