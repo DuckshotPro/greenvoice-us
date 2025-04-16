@@ -33,6 +33,11 @@ export async function setupVite(app: Express, server: Server) {
         server,
       },
       middlewareMode: true,
+      host: '0.0.0.0',
+      cors: true,
+      port: 5000,
+      strictPort: true,
+      allowedHosts: 'all',
     },
     appType: "custom",
   });
