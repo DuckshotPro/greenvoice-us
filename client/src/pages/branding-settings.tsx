@@ -127,15 +127,36 @@ export default function BrandingSettingsPage() {
     
     setIsGeneratingLogo(true);
     try {
-      const logoBlob = await generateLogo(logoDescription);
-      const logoUrl = await blobToDataUrl(logoBlob);
-      setPreviewLogoUrl(logoUrl);
-    } catch (error) {
-      toast({
-        title: "Error generating logo",
-        description: "Could not generate a logo. Please try again.",
-        variant: "destructive",
+      // Use prompt directly (our updated API expects a prompt parameter)
+      const logoUrl = await generateLogo(logoDescription, { 
+        style: "minimalist",
+        size: "512x512"
       });
+      setPreviewLogoUrl(logoUrl);
+      
+      // Update settings with the new logo URL
+      if (settings) {
+        setSettings({
+          ...settings,
+          logoUrl: logoUrl,
+          showLogo: true
+        });
+      }
+    } catch (error: any) {
+      // Check if it's a premium feature error
+      if (error.message?.includes("Premium feature")) {
+        toast({
+          title: "Premium Feature",
+          description: error.message || "Logo generation requires premium access. Watch an ad to gain temporary access.",
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "Error generating logo",
+          description: error.message || "Could not generate a logo. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsGeneratingLogo(false);
     }
@@ -162,15 +183,38 @@ export default function BrandingSettingsPage() {
     
     setIsGeneratingPattern(true);
     try {
-      const patternBlob = await generatePattern(patternColors, patternStyle);
-      const patternUrl = await blobToDataUrl(patternBlob);
-      setPreviewPatternUrl(patternUrl);
-    } catch (error) {
-      toast({
-        title: "Error generating pattern",
-        description: "Could not generate a pattern. Please try again.",
-        variant: "destructive",
+      // Combine colors and style into a prompt
+      const prompt = `${patternColors} pattern with ${patternStyle} style`;
+      // Our updated API returns the data URL directly, not a Blob
+      const patternUrl = await generatePattern(prompt, {
+        style: patternStyle,
+        seamless: true,
+        size: "768x768"
       });
+      setPreviewPatternUrl(patternUrl);
+      
+      // Update settings with the new pattern URL
+      if (settings) {
+        setSettings({
+          ...settings,
+          patternUrl: patternUrl
+        });
+      }
+    } catch (error: any) {
+      // Check if it's a premium feature error
+      if (error.message?.includes("Premium feature")) {
+        toast({
+          title: "Premium Feature",
+          description: error.message || "Pattern generation requires premium access. Watch an ad to gain temporary access.",
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "Error generating pattern",
+          description: error.message || "Could not generate a pattern. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsGeneratingPattern(false);
     }
@@ -375,9 +419,9 @@ export default function BrandingSettingsPage() {
                         Invoice Template
                       </Label>
                       <Select 
-                        value={settings.customTemplate || "default"} 
+                        value={settings.customTemplateId || "default"} 
                         onValueChange={(value) => 
-                          setSettings({ ...settings, customTemplate: value })
+                          setSettings({ ...settings, customTemplateId: value })
                         }
                       >
                         <SelectTrigger className="w-full">
