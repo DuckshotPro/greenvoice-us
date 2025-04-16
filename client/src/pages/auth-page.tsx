@@ -8,6 +8,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
 import {
   Tabs,
@@ -22,16 +23,21 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Separator } from '@/components/ui/separator';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { FileText, FileCheck, Bell, Calendar, Mail } from 'lucide-react';
+import { FileText, FileCheck, Calendar, Mail, Github, Facebook, AlignJustify } from 'lucide-react';
+import { SiFacebook, SiGoogle, SiGithub } from 'react-icons/si';
 
 const loginSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
+  rememberMe: z.boolean().optional(),
 });
 
 const registerSchema = z.object({
@@ -61,6 +67,7 @@ export default function AuthPage() {
     defaultValues: {
       username: '',
       password: '',
+      rememberMe: false,
     },
   });
 
@@ -133,6 +140,28 @@ export default function AuthPage() {
                           </FormItem>
                         )}
                       />
+                      <FormField
+                        control={loginForm.control}
+                        name="rememberMe"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 my-4">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel className="font-normal text-sm">
+                                Remember me
+                              </FormLabel>
+                              <FormDescription className="text-xs">
+                                Stay signed in on this device
+                              </FormDescription>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
                       <Button 
                         type="submit" 
                         className="w-full"
@@ -140,6 +169,56 @@ export default function AuthPage() {
                       >
                         {loginMutation.isPending ? 'Signing in...' : 'Sign in'}
                       </Button>
+                      
+                      <div className="relative my-4">
+                        <div className="absolute inset-0 flex items-center">
+                          <Separator className="w-full" />
+                        </div>
+                        <div className="relative flex justify-center">
+                          <span className="bg-card px-2 text-muted-foreground text-xs">OR SIGN IN WITH</span>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-2">
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          className="flex items-center justify-center gap-2"
+                          onClick={() => {
+                            // To be implemented with Google OAuth
+                            console.log("Google login");
+                          }}
+                        >
+                          <SiGoogle className="h-4 w-4 text-red-500" />
+                          <span className="sr-only md:not-sr-only md:text-xs md:font-normal">Google</span>
+                        </Button>
+                        
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          className="flex items-center justify-center gap-2"
+                          onClick={() => {
+                            // To be implemented with Facebook OAuth
+                            console.log("Facebook login");
+                          }}
+                        >
+                          <SiFacebook className="h-4 w-4 text-blue-600" />
+                          <span className="sr-only md:not-sr-only md:text-xs md:font-normal">Facebook</span>
+                        </Button>
+                        
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          className="flex items-center justify-center gap-2"
+                          onClick={() => {
+                            // To be implemented with GitHub OAuth
+                            console.log("GitHub login");
+                          }}
+                        >
+                          <SiGithub className="h-4 w-4" />
+                          <span className="sr-only md:not-sr-only md:text-xs md:font-normal">GitHub</span>
+                        </Button>
+                      </div>
                     </form>
                   </Form>
                 </TabsContent>
@@ -205,6 +284,56 @@ export default function AuthPage() {
                       >
                         {registerMutation.isPending ? 'Creating account...' : 'Create account'}
                       </Button>
+                      
+                      <div className="relative my-4">
+                        <div className="absolute inset-0 flex items-center">
+                          <Separator className="w-full" />
+                        </div>
+                        <div className="relative flex justify-center">
+                          <span className="bg-card px-2 text-muted-foreground text-xs">OR SIGN UP WITH</span>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-2">
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          className="flex items-center justify-center gap-2"
+                          onClick={() => {
+                            // To be implemented with Google OAuth
+                            console.log("Google signup");
+                          }}
+                        >
+                          <SiGoogle className="h-4 w-4 text-red-500" />
+                          <span className="sr-only md:not-sr-only md:text-xs md:font-normal">Google</span>
+                        </Button>
+                        
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          className="flex items-center justify-center gap-2"
+                          onClick={() => {
+                            // To be implemented with Facebook OAuth
+                            console.log("Facebook signup");
+                          }}
+                        >
+                          <SiFacebook className="h-4 w-4 text-blue-600" />
+                          <span className="sr-only md:not-sr-only md:text-xs md:font-normal">Facebook</span>
+                        </Button>
+                        
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          className="flex items-center justify-center gap-2"
+                          onClick={() => {
+                            // To be implemented with GitHub OAuth
+                            console.log("GitHub signup");
+                          }}
+                        >
+                          <SiGithub className="h-4 w-4" />
+                          <span className="sr-only md:not-sr-only md:text-xs md:font-normal">GitHub</span>
+                        </Button>
+                      </div>
                     </form>
                   </Form>
                 </TabsContent>
