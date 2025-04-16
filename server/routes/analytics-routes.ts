@@ -227,7 +227,7 @@ router.get(
         .where(
           and(
             eq(shareAnalytics.eventType, "view"),
-            req.user.isAdmin ? undefined : eq(shareAnalytics.userId, req.user.id),
+            req.user?.isAdmin ? undefined : eq(shareAnalytics.userId, req.user?.id || 0),
             startDate ? gte(shareAnalytics.timestamp, new Date(startDate)) : undefined,
             endDate ? sql`${shareAnalytics.timestamp} <= ${new Date(endDate)}` : undefined
           )
@@ -282,7 +282,7 @@ router.get(
           and(
             eq(shareAnalytics.invoiceId, parseInt(invoiceId)),
             eq(shareAnalytics.eventType, "share"),
-            req.user.isAdmin ? undefined : eq(shareAnalytics.userId, req.user.id)
+            req.user?.isAdmin ? undefined : eq(shareAnalytics.userId, req.user?.id || 0)
           )
         )
         .groupBy(shareAnalytics.shareMethod);
