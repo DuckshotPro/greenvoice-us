@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -19,10 +19,85 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
-import { Check, AlertCircle, Clock, Play, Crown } from 'lucide-react';
+import { Check, AlertCircle, Clock, Play, Crown, CreditCard } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { apiRequest } from '@/lib/queryClient';
+
+// Initialize Stripe with public key
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY as string);
+
+// Payment checkout form component with Google Pay support
+function CheckoutForm({ onSuccess }: { onSuccess: () => void }) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!stripe || !elements) {
+      return;
+    }
+
+    setLoading(true);
+    setErrorMessage(null);
+
+    const { error, paymentIntent } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: window.location.href,
+      },
+      redirect: 'if_required',
+    });
+
+    if (error) {
+      setErrorMessage(error.message || 'An error occurred with your payment');
+      toast({
+        variant: "destructive",
+        title: "Payment failed",
+        description: error.message || 'An error occurred with your payment',
+      });
+    } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+      toast({
+        title: "Payment succeeded",
+        description: "Your premium subscription is now active!",
+      });
+      onSuccess();
+    }
+
+    setLoading(false);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <PaymentElement 
+        options={{
+          paymentMethodOrder: ['google_pay', 'card'],
+          wallets: {
+            googlePay: 'auto',
+            applePay: 'never'
+          }
+        }} 
+      />
+      {errorMessage && (
+        <div className="text-red-500 text-sm">{errorMessage}</div>
+      )}
+      <Button 
+        disabled={!stripe || loading} 
+        type="submit" 
+        className="w-full"
+      >
+        {loading ? 'Processing...' : 'Pay Now'}
+      </Button>
+    </form>
+  );
+}
 
 export default function PremiumPage() {
   const { user, isPremium, watchAdMutation } = useAuth();
@@ -31,12 +106,56 @@ export default function PremiumPage() {
   const [watchingAd, setWatchingAd] = useState(false);
   const [adProgress, setAdProgress] = useState(0);
   const [adCompleted, setAdCompleted] = useState(false);
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [paymentLoading, setPaymentLoading] = useState(false);
 
   // Calculate premium status and days remaining
   const premiumDaysRemaining = user?.premiumDaysRemaining || 0;
   const formattedExpiryDate = user?.subscriptionExpiry 
     ? new Date(user.subscriptionExpiry).toLocaleDateString() 
     : null;
+    
+  // Initialize Stripe payment
+  const handleStartPayment = async () => {
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Please sign in",
+        description: "You need to be signed in to upgrade to premium",
+      });
+      return;
+    }
+    
+    setPaymentLoading(true);
+    
+    try {
+      const response = await apiRequest("POST", "/api/create-payment-intent", {
+        amount: 1200, // $12.00
+        currency: "usd",
+        paymentMethod: "card"
+      });
+      
+      const data = await response.json();
+      setClientSecret(data.clientSecret);
+      setPaymentDialogOpen(true);
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Payment setup failed",
+        description: "Could not initialize payment. Please try again.",
+      });
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+  
+  const handlePaymentSuccess = () => {
+    setPaymentDialogOpen(false);
+    setClientSecret(null);
+    // Refresh user data to update premium status
+    window.location.reload();
+  };
 
   // Premium plan features
   const freePlanFeatures = [
@@ -173,8 +292,12 @@ export default function PremiumPage() {
               </ul>
             </CardContent>
             <CardFooter>
-              <Button className="w-full" disabled={isPremium}>
-                {isPremium ? 'Current Plan' : 'Upgrade Now'}
+              <Button 
+                className="w-full" 
+                disabled={isPremium || paymentLoading}
+                onClick={handleStartPayment}
+              >
+                {isPremium ? 'Current Plan' : paymentLoading ? 'Loading...' : 'Upgrade Now'}
               </Button>
             </CardFooter>
           </Card>
@@ -309,6 +432,49 @@ export default function PremiumPage() {
                   </Button>
                 </DialogClose>
               )}
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Payment Dialog with Stripe and Google Pay */}
+        <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Complete Your Purchase</DialogTitle>
+              <DialogDescription>
+                Pay with credit card or Google Pay to upgrade to Premium.
+              </DialogDescription>
+            </DialogHeader>
+            
+            {clientSecret ? (
+              <Elements 
+                stripe={stripePromise} 
+                options={{
+                  clientSecret,
+                  appearance: {
+                    theme: 'stripe',
+                    variables: {
+                      colorPrimary: '#0066CC',
+                    },
+                  },
+                  paymentMethodCreation: 'manual',
+                  paymentMethodOrder: ['google_pay', 'card'],
+                }}
+              >
+                <CheckoutForm onSuccess={handlePaymentSuccess} />
+              </Elements>
+            ) : (
+              <div className="flex items-center justify-center py-10">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+              </div>
+            )}
+            
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="outline" disabled={paymentLoading}>
+                  Cancel
+                </Button>
+              </DialogClose>
             </DialogFooter>
           </DialogContent>
         </Dialog>
