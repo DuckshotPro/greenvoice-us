@@ -83,7 +83,7 @@ function CheckoutForm({ onSuccess }: { onSuccess: () => void }) {
             billingDetails: {
               email: user?.email || '',
             }
-          },
+          }
         }} 
       />
       {errorMessage && (
@@ -443,7 +443,7 @@ export default function PremiumPage() {
             <DialogHeader>
               <DialogTitle>Complete Your Purchase</DialogTitle>
               <DialogDescription>
-                Pay with credit card or Google Pay to upgrade to Premium.
+                Pay with credit card to upgrade to Premium.
               </DialogDescription>
             </DialogHeader>
             

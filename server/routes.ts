@@ -103,7 +103,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
         currency: currency,
-        payment_method_types: ['card', 'google_pay'],
+        payment_method_types: ['card'], // Only use 'card' as Google Pay requires additional setup
         metadata: {
           userId: req.user?.id.toString() || '',
           userEmail: req.user?.email || '',
