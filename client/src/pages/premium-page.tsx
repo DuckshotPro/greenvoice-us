@@ -133,8 +133,7 @@ export default function PremiumPage() {
     try {
       const response = await apiRequest("POST", "/api/create-payment-intent", {
         amount: 1200, // $12.00
-        currency: "usd",
-        paymentMethod: "card"
+        currency: "usd"
       });
       
       const data = await response.json();
@@ -357,7 +356,7 @@ export default function PremiumPage() {
         
         {/* Ad watching dialog */}
         <Dialog open={adDialogOpen} onOpenChange={setAdDialogOpen}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md" aria-describedby="ad-dialog-description">
             <DialogHeader>
               <DialogTitle>
                 {!watchingAd && !adCompleted 
@@ -366,7 +365,7 @@ export default function PremiumPage() {
                     ? 'Ad Playing...' 
                     : 'Ad Completed!'}
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription id="ad-dialog-description">
                 {!watchingAd && !adCompleted 
                   ? 'Watch a 30-second ad to get 24 hours of premium access.' 
                   : watchingAd 
@@ -437,12 +436,12 @@ export default function PremiumPage() {
           </DialogContent>
         </Dialog>
         
-        {/* Payment Dialog with Stripe and Google Pay */}
+        {/* Payment Dialog with Stripe */}
         <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md" aria-describedby="payment-dialog-description">
             <DialogHeader>
               <DialogTitle>Complete Your Purchase</DialogTitle>
-              <DialogDescription>
+              <DialogDescription id="payment-dialog-description">
                 Pay with credit card to upgrade to Premium.
               </DialogDescription>
             </DialogHeader>
