@@ -25,6 +25,9 @@ export const users = pgTable("users", {
   registeredAt: timestamp("registered_at").defaultNow(),
   verifiedAt: timestamp("verified_at"),
   isAdmin: boolean("is_admin").default(false),
+  brandingSettings: text("branding_settings"), // Stored as JSON string
+  logoUrl: text("logo_url"), // URL to user's uploaded or generated logo
+  customTemplateId: text("custom_template_id"), // ID of preferred invoice template
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
