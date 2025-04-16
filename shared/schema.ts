@@ -295,35 +295,63 @@ export const insertAdRewardSchema = createInsertSchema(adRewards).omit({
   viewDate: true,
 });
 
-// Share analytics tracking
+// Enhanced share analytics tracking with event types
 export const shareAnalytics = pgTable("share_analytics", {
   id: serial("id").primaryKey(),
   invoiceId: integer("invoice_id").notNull(),
-  userId: integer("user_id").notNull(),
+  userId: integer("user_id"), // Can be null for anonymous views
   shareMethod: text("share_method").notNull(), // email, twitter, facebook, linkedin, whatsapp, telegram, sms, link, pdf, image
-  recipientEmail: text("recipient_email"), // Only for email sharing
-  shareTimestamp: timestamp("share_timestamp").defaultNow(),
-  // For tracking when shared links are viewed
-  lastViewedAt: timestamp("last_viewed_at"),
-  viewCount: integer("view_count").default(0),
-  // Optional referrer for tracking where views came from
-  referrer: text("referrer"),
-  // Client info
-  userAgent: text("user_agent"),
-  ipAddress: text("ip_address"),
-  // Additional metadata
-  metadata: jsonb("metadata"),
+  eventType: text("event_type").notNull().default("share"), // share, view
+  timestamp: timestamp("timestamp").defaultNow(),
+  // Additional metadata as JSON - can include recipient info, client info, etc.
+  metadata: jsonb("metadata").default({}),
+});
+
+// UTM parameter tracking for marketing campaign analysis
+export const utmTracking = pgTable("utm_tracking", {
+  id: serial("id").primaryKey(),
+  invoiceId: integer("invoice_id").notNull(),
+  utmSource: text("utm_source"), // Identifies which site sent the traffic
+  utmMedium: text("utm_medium"), // Identifies marketing medium (cpc, social, email)
+  utmCampaign: text("utm_campaign"), // Identifies specific campaign
+  utmContent: text("utm_content"), // Identifies what specifically was clicked
+  utmTerm: text("utm_term"), // Identifies search terms
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
+// Share metrics summary for faster queries
+export const shareMetrics = pgTable("share_metrics", {
+  id: serial("id").primaryKey(),
+  invoiceId: integer("invoice_id").notNull(),
+  userId: integer("user_id").notNull(),
+  totalShares: integer("total_shares").default(0),
+  totalViews: integer("total_views").default(0),
+  // Share method counts as JSON
+  shareMethodCounts: jsonb("share_method_counts").default({}),
+  // Date tracking
+  firstShareDate: timestamp("first_share_date"),
+  lastShareDate: timestamp("last_share_date"),
+  firstViewDate: timestamp("first_view_date"),
+  lastViewDate: timestamp("last_view_date"),
+  // Daily metrics in JSON format
+  dailyViewCounts: jsonb("daily_view_counts").default({}),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const insertShareAnalyticsSchema = createInsertSchema(shareAnalytics).omit({
   id: true,
-  shareTimestamp: true,
-  lastViewedAt: true,
-  viewCount: true,
+  timestamp: true,
+});
+
+export const insertUtmTrackingSchema = createInsertSchema(utmTracking).omit({
+  id: true,
+  timestamp: true,
 });
 
 export type ShareAnalytics = typeof shareAnalytics.$inferSelect;
 export type InsertShareAnalytics = z.infer<typeof insertShareAnalyticsSchema>;
+export type UtmTracking = typeof utmTracking.$inferSelect;
+export type InsertUtmTracking = z.infer<typeof insertUtmTrackingSchema>;
 
 // Subscription related types
 export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
