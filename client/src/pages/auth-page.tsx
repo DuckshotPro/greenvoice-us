@@ -33,6 +33,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { FileText, FileCheck, Calendar, Mail, Github, Facebook, AlignJustify } from 'lucide-react';
 import { SiFacebook, SiGoogle, SiGithub } from 'react-icons/si';
+import { useToast } from '@/hooks/use-toast';
 
 const loginSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
@@ -53,6 +54,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState('login');
   const { user, loginMutation, registerMutation } = useAuth();
+  const { toast } = useToast();
   const [, navigate] = useLocation();
 
   // Redirect if already logged in
@@ -82,11 +84,29 @@ export default function AuthPage() {
   });
 
   const onLoginSubmit = (data: LoginFormValues) => {
-    loginMutation.mutate(data);
+    // Pass the rememberMe value to the login mutation
+    loginMutation.mutate({
+      username: data.username,
+      password: data.password,
+      rememberMe: data.rememberMe || false
+    });
   };
 
   const onRegisterSubmit = (data: RegisterFormValues) => {
     registerMutation.mutate(data);
+  };
+
+  // Handle social login/signup
+  const handleSocialLogin = (provider: string) => {
+    // In a real implementation, this would redirect to OAuth provider
+    console.log(`${provider} login requested`);
+    
+    // For now, show a toast notification
+    toast({
+      title: "Social Login",
+      description: `${provider} login will be implemented soon.`,
+      variant: "default",
+    });
   };
 
   return (
@@ -184,10 +204,7 @@ export default function AuthPage() {
                           type="button" 
                           variant="outline"
                           className="flex items-center justify-center gap-2"
-                          onClick={() => {
-                            // To be implemented with Google OAuth
-                            console.log("Google login");
-                          }}
+                          onClick={() => handleSocialLogin("Google")}
                         >
                           <SiGoogle className="h-4 w-4 text-red-500" />
                           <span className="sr-only md:not-sr-only md:text-xs md:font-normal">Google</span>
@@ -197,10 +214,7 @@ export default function AuthPage() {
                           type="button" 
                           variant="outline"
                           className="flex items-center justify-center gap-2"
-                          onClick={() => {
-                            // To be implemented with Facebook OAuth
-                            console.log("Facebook login");
-                          }}
+                          onClick={() => handleSocialLogin("Facebook")}
                         >
                           <SiFacebook className="h-4 w-4 text-blue-600" />
                           <span className="sr-only md:not-sr-only md:text-xs md:font-normal">Facebook</span>
@@ -210,10 +224,7 @@ export default function AuthPage() {
                           type="button" 
                           variant="outline"
                           className="flex items-center justify-center gap-2"
-                          onClick={() => {
-                            // To be implemented with GitHub OAuth
-                            console.log("GitHub login");
-                          }}
+                          onClick={() => handleSocialLogin("GitHub")}
                         >
                           <SiGithub className="h-4 w-4" />
                           <span className="sr-only md:not-sr-only md:text-xs md:font-normal">GitHub</span>
@@ -299,10 +310,7 @@ export default function AuthPage() {
                           type="button" 
                           variant="outline"
                           className="flex items-center justify-center gap-2"
-                          onClick={() => {
-                            // To be implemented with Google OAuth
-                            console.log("Google signup");
-                          }}
+                          onClick={() => handleSocialLogin("Google")}
                         >
                           <SiGoogle className="h-4 w-4 text-red-500" />
                           <span className="sr-only md:not-sr-only md:text-xs md:font-normal">Google</span>
@@ -312,10 +320,7 @@ export default function AuthPage() {
                           type="button" 
                           variant="outline"
                           className="flex items-center justify-center gap-2"
-                          onClick={() => {
-                            // To be implemented with Facebook OAuth
-                            console.log("Facebook signup");
-                          }}
+                          onClick={() => handleSocialLogin("Facebook")}
                         >
                           <SiFacebook className="h-4 w-4 text-blue-600" />
                           <span className="sr-only md:not-sr-only md:text-xs md:font-normal">Facebook</span>
@@ -325,10 +330,7 @@ export default function AuthPage() {
                           type="button" 
                           variant="outline"
                           className="flex items-center justify-center gap-2"
-                          onClick={() => {
-                            // To be implemented with GitHub OAuth
-                            console.log("GitHub signup");
-                          }}
+                          onClick={() => handleSocialLogin("GitHub")}
                         >
                           <SiGithub className="h-4 w-4" />
                           <span className="sr-only md:not-sr-only md:text-xs md:font-normal">GitHub</span>
