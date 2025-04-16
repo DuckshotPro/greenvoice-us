@@ -7,11 +7,17 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import ShareViewTracker from "@/components/analytics/share-view-tracker";
 import { Loader2, Printer, ChevronLeft, Download } from "lucide-react";
-import { generatePdf } from "@/lib/pdf-generator";
+import generatePdf from "@/lib/pdf-generator";
 import { formatCurrency } from "@/lib/utils";
 
+interface ExtendedLineItem extends LineItem {
+  details?: string;
+}
+
 interface InvoiceWithItems extends Invoice {
-  items: LineItem[];
+  items: ExtendedLineItem[];
+  discount?: number;
+  status: string; // Ensure status is required, not optional
 }
 
 /**
