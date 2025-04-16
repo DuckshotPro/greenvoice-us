@@ -44,7 +44,7 @@ waitForPort = 5000
 [[workflows.workflow]]
 name = "Reorganize server directories"
 author = 41040400
-mode = "sequential"
+mode = "parallel"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
