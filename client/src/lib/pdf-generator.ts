@@ -3,8 +3,13 @@ import autoTable from "jspdf-autotable";
 import { Invoice, LineItem } from "@shared/schema";
 import { formatCurrency } from "./utils";
 
+interface ExtendedLineItem extends LineItem {
+  details?: string;
+}
+
 interface InvoiceWithItems extends Invoice {
-  items: LineItem[];
+  items: ExtendedLineItem[];
+  discount?: number;
 }
 
 /**
