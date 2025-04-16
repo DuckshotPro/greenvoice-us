@@ -40,3 +40,64 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Reorganize server directories"
+author = 41040400
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "mkdir -p server/controllers"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "mkdir -p server/models"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "mkdir -p server/routes"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "mkdir -p server/middleware"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "mkdir -p server/services"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "mkdir -p server/utils"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "mv server/auth.ts server/middleware/auth.ts"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "mv server/db.ts server/models/db.ts"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "mv server/invoice-processor.ts server/services/invoice-processor.ts"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "mv server/lib/error-logger.ts server/utils/error-logger.ts"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "mv server/lib/discount-calculator.ts server/utils/discount-calculator.ts"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "mv server/scheduler.ts server/controllers/scheduler.ts"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "mv server/routes.ts server/routes/routes.ts"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "mv server/storage.ts server/models/storage.ts"
