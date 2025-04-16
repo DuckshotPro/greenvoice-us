@@ -25,8 +25,9 @@ import nodemailer from "nodemailer";
 import { InvoiceProcessor } from "./services/invoice-processor";
 import { ErrorLogger, LogLevel, logError, logInfo, logWarning } from "./lib/error-logger";
 import { log } from "./utils/vite";
-import { setupAuth } from "./middleware/auth";
-import { validateBody, validateQuery, validateParams, validateIdParam } from "./middleware/validation";
+import { setupAuth, requireAuth, requireAdmin } from "./middleware/auth";
+import { validateBody, validateQuery, validateParams } from "./middleware/validation";
+import { validateIdParam } from "./middleware/validation-schemas";
 import { 
   idParamSchema, 
   emailRequestSchema, 
@@ -46,33 +47,7 @@ import {
   trackUtmSchema
 } from "./middleware/validation-schemas-analytics";
 
-// Security middleware to verify admin access
-/**
- * Security middleware to verify admin access
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object
- * @param {NextFunction} next - Express next middleware function
- */
-const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
-  // In a production app, this would check if the authenticated user has admin role
-  // For this prototype, we'll use a simple API key approach
-  const apiKey = req.headers['x-admin-api-key'];
-
-  if (!apiKey || apiKey !== process.env.ADMIN_API_KEY) {
-    logWarning(`Unauthorized access attempt to admin endpoint: ${req.path}`, 'SecurityMiddleware', {
-      path: req.path,
-      ip: req.ip,
-      userAgent: req.get('User-Agent')
-    });
-    return res.status(403).json({ message: "Unauthorized access to admin endpoint" });
-  }
-
-  logInfo(`Admin access granted to endpoint: ${req.path}`, 'SecurityMiddleware', {
-    path: req.path
-  });
-
-  next();
-};
+// Admin and Auth middleware are now imported from './middleware/auth'
 
 // Mock transporter for email functionality
 /**
@@ -101,20 +76,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Set up authentication routes
   setupAuth(app);
+  
+  // Register analytics routes
+  app.use("/api/analytics", analyticsRoutes);
 
-  // Middleware to ensure user is authenticated
-  /**
- * Middleware to ensure user is authenticated
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object
- * @param {NextFunction} next - Express next middleware function
- */
-const requireAuth = (req: Request, res: Response, next: NextFunction) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Authentication required" });
-    }
-    next();
-  };
+  // Auth middleware is now imported from './middleware/auth'
 
   // Get all invoices
   app.get("/api/invoices", requireAuth, validateQuery(paginationSchema), async (req: Request, res: Response) => {
@@ -923,129 +889,9 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
   });
 
   // Track a share event (called from the client)
-  app.post("/api/analytics/track-share", requireAuth, validateBody(trackShareSchema), async (req: Request, res: Response) => {
-    try {
-      if (!req.user || !req.user.id) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-
-      const { invoiceId, shareMethod, recipientEmail, metadata } = req.body;
-
-      // Verify invoice belongs to user
-      const invoice = await storage.getInvoice(invoiceId);
-      if (!invoice || invoice.userId !== req.user.id) {
-        return res.status(403).json({ message: "Not authorized to track shares for this invoice" });
-      }
-
-      // Track the share event
-      const analytics = await storage.trackShareAnalytics({
-        invoiceId,
-        userId: req.user.id,
-        shareMethod,
-        recipientEmail: recipientEmail || null,
-        referrer: req.headers.referer as string || null,
-        userAgent: req.headers['user-agent'] as string || null,
-        ipAddress: req.ip || req.socket.remoteAddress || null,
-        metadata: metadata || null
-      });
-
-      res.status(201).json({ message: "Share tracked successfully", shareId: analytics.id });
-    } catch (error) {
-      console.error("Error tracking share:", error);
-      logError("Error tracking share analytics", "AnalyticsController", { error, invoiceId: req.body.invoiceId });
-      res.status(500).json({ message: "Failed to track share" });
-    }
-  });
+  // Analytics routes moved to dedicated file (./routes/analytics-routes.ts)
   
-  // Record a view of a shared invoice
-  app.post("/api/analytics/record-view", validateBody(recordViewSchema), async (req: Request, res: Response) => {
-    try {
-      const { invoiceId, shareMethod } = req.body;
-      
-      // Get IP and user agent for tracking
-      const userAgent = req.headers['user-agent'] as string || undefined;
-      const ipAddress = req.ip || req.socket.remoteAddress || undefined;
-      const referrer = req.headers.referer as string || undefined;
-      
-      // Record the view
-      const result = await storage.recordShareView(
-        invoiceId,
-        shareMethod,
-        referrer,
-        userAgent,
-        ipAddress
-      );
-      
-      if (!result) {
-        return res.status(404).json({
-          message: "No matching share found to record view"
-        });
-      }
-      
-      logInfo(`Share view recorded for invoice ${invoiceId}`, "AnalyticsController", {
-        invoiceId,
-        shareMethod,
-        viewCount: result.viewCount
-      });
-      
-      res.status(200).json({ 
-        message: "View recorded", 
-        viewCount: result.viewCount 
-      });
-    } catch (error) {
-      console.error("Error recording share view:", error);
-      logError("Error recording share view", "AnalyticsController", { error, invoiceId: req.body.invoiceId });
-      res.status(500).json({ message: "Failed to record view" });
-    }
-  });
-  
-  // Track UTM parameters for marketing campaign analysis
-  app.post("/api/analytics/track-utm", validateBody(trackUtmSchema), async (req: Request, res: Response) => {
-    try {
-      const { invoiceId, shareMethod, utmSource, utmMedium, utmCampaign } = req.body;
-      
-      // Skip if no UTM parameters
-      if (!utmSource && !utmMedium && !utmCampaign) {
-        return res.status(200).json({ 
-          message: "No UTM parameters to track" 
-        });
-      }
-      
-      // Store the UTM data in the metadata field
-      const metadata = {
-        utm_source: utmSource,
-        utm_medium: utmMedium,
-        utm_campaign: utmCampaign,
-        tracked_at: new Date().toISOString()
-      };
-      
-      // Record as a special type of view with UTM data
-      const result = await storage.recordShareView(
-        invoiceId,
-        shareMethod,
-        req.headers.referer as string || undefined,
-        req.headers['user-agent'] as string || undefined,
-        req.ip || req.socket.remoteAddress || undefined,
-        metadata
-      );
-      
-      logInfo(`UTM parameters tracked for invoice ${invoiceId}`, "AnalyticsController", {
-        invoiceId,
-        shareMethod,
-        utmSource,
-        utmMedium,
-        utmCampaign
-      });
-      
-      res.status(200).json({ 
-        message: "UTM parameters tracked successfully" 
-      });
-    } catch (error) {
-      console.error("Error tracking UTM parameters:", error);
-      logError("Error tracking UTM parameters", "AnalyticsController", { error, invoiceId: req.body.invoiceId });
-      res.status(500).json({ message: "Failed to track UTM parameters" });
-    }
-  });
+  // Analytics routes moved to dedicated file (./routes/analytics-routes.ts)
 
   // Test public endpoint for database and analytics tables
   app.get("/api/test/database-status", async (req: Request, res: Response) => {
