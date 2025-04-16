@@ -1,6 +1,6 @@
-import { storage } from "./storage";
+import { storage } from "../models/storage";
 import { Invoice, ScheduledInvoice, RecurringTemplate } from "@shared/schema";
-import { logInfo, logError, logDbError } from "./lib/error-logger";
+import { logInfo, logError, logDbError } from "../lib/error-logger";
 
 /**
  * InvoiceProcessor handles operations related to scheduled invoices and recurring templates

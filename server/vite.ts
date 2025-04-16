@@ -11,6 +11,11 @@ import { nanoid } from "nanoid";
 
 const viteLogger = createLogger();
 
+/**
+ * Logs messages with a timestamp and source.
+ * @param {string} message - Message to be logged.
+ * @param {string} [source="express"] - The source of the log message.
+ */
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
@@ -22,6 +27,11 @@ export function log(message: string, source = "express") {
   console.log(`${formattedTime} [${source}] ${message}`);
 }
 
+/**
+ * Sets up Vite server with middleware for Hot Module Replacement.
+ * @param {Express} app - An instance of the Express application.
+ * @param {Server} server - The HTTP server instance.
+ */
 export async function setupVite(app: Express, server: Server) {
   const serverOptions = {
     middlewareMode: true,
@@ -70,6 +80,11 @@ export async function setupVite(app: Express, server: Server) {
   });
 }
 
+/**
+ * Serves static files from the build directory.
+ * Throws an error if the build directory is not found.
+ * @param {Express} app - An instance of the Express application.
+ */
 export function serveStatic(app: Express) {
   const distPath = path.resolve(__dirname, "public");
 
