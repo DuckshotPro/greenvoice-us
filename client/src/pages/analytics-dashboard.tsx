@@ -3,10 +3,15 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Loader2, ExternalLink } from 'lucide-react';
+import { Loader2, ExternalLink, CalendarIcon } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Link } from 'wouter';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { format } from 'date-fns';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { Calendar } from '@/components/ui/calendar';
 
 // Define types for our analytics data
 interface ShareMethodAnalytics {
@@ -51,16 +56,38 @@ const formatMethodName = (method: string): string => {
 
 const AnalyticsDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('sharing');
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [groupBy, setGroupBy] = useState<string>("none");
+  
+  // Build query parameters
+  const getQueryParams = () => {
+    const params = new URLSearchParams();
+    
+    if (startDate) {
+      params.append('startDate', startDate.toISOString());
+    }
+    
+    if (endDate) {
+      params.append('endDate', endDate.toISOString());
+    }
+    
+    if (groupBy && groupBy !== "none") {
+      params.append('groupBy', groupBy);
+    }
+    
+    return params.toString();
+  };
 
-  // Fetch share method analytics
+  // Fetch share method analytics with filters
   const { data: shareMethodData, isLoading: isLoadingMethods, error: methodsError } = useQuery<ShareMethodAnalytics[]>({
-    queryKey: ['/api/analytics/by-method'],
+    queryKey: ['/api/analytics/by-method', getQueryParams()],
     staleTime: 60000, // 1 minute
   });
 
-  // Fetch view count analytics
+  // Fetch view count analytics with filters
   const { data: viewsData, isLoading: isLoadingViews, error: viewsError } = useQuery<ShareViewAnalytics[]>({
-    queryKey: ['/api/analytics/views'],
+    queryKey: ['/api/analytics/views', getQueryParams()],
     staleTime: 60000, // 1 minute
   });
 
@@ -135,8 +162,90 @@ const AnalyticsDashboard: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h1>
-        <p className="text-muted-foreground mt-1">Track how your invoices are being shared and viewed</p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h1>
+            <p className="text-muted-foreground mt-1">Track how your invoices are being shared and viewed</p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0">
+            {/* Start Date */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "justify-start text-left font-normal w-full sm:w-[200px]",
+                    !startDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {startDate ? format(startDate, "PPP") : "Start Date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={startDate}
+                  onSelect={setStartDate}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            
+            {/* End Date */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "justify-start text-left font-normal w-full sm:w-[200px]",
+                    !endDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {endDate ? format(endDate, "PPP") : "End Date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={endDate}
+                  onSelect={setEndDate}
+                  initialFocus
+                  disabled={(date) => startDate ? date < startDate : false}
+                />
+              </PopoverContent>
+            </Popover>
+            
+            {/* Group By */}
+            <Select value={groupBy} onValueChange={setGroupBy}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Group By" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No Grouping</SelectItem>
+                <SelectItem value="day">By Day</SelectItem>
+                <SelectItem value="week">By Week</SelectItem>
+                <SelectItem value="month">By Month</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            {/* Reset Filters Button */}
+            <Button 
+              variant="outline" 
+              className="w-full sm:w-auto"
+              onClick={() => {
+                setStartDate(undefined);
+                setEndDate(undefined);
+                setGroupBy("none");
+              }}
+              disabled={!startDate && !endDate && groupBy === "none"}
+            >
+              Reset Filters
+            </Button>
+          </div>
+        </div>
       </div>
 
       <Tabs defaultValue="sharing" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
