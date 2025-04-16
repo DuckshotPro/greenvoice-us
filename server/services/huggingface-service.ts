@@ -1,95 +1,116 @@
 import { HfInference } from '@huggingface/inference';
 
-// Initialize the Hugging Face inference client with API key from environment
+// Check if API key is available
+if (!process.env.HUGGINGFACE_API_KEY) {
+  console.warn('Warning: HUGGINGFACE_API_KEY not set. Image generation features will not work.');
+}
+
 const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
 
-interface TextToImageParams {
-  prompt: string;
-  negativePrompt?: string;
-  width?: number;
-  height?: number;
-  steps?: number;
-  seed?: number;
-  guidanceScale?: number;
+// The default model for image generation
+const DEFAULT_MODEL = 'stabilityai/stable-diffusion-2';
+
+/**
+ * Generates a logo image using Hugging Face's text-to-image models
+ * @param prompt The text prompt describing the logo to generate
+ * @param options Additional options for generation
+ */
+export async function generateLogo(prompt: string, options: { 
+  model?: string, 
+  size?: string,
+  style?: string
+} = {}) {
+  try {
+    const model = options.model || DEFAULT_MODEL;
+    const size = options.size || '512x512';
+    const [width, height] = size.split('x').map(Number);
+    
+    // Enhance the prompt with style guidance
+    let enhancedPrompt = prompt;
+    if (options.style) {
+      enhancedPrompt += `, ${options.style} style`;
+    }
+    
+    // Add logo-specific guidance to the prompt
+    enhancedPrompt += ', professional logo, vector style, high contrast, minimalist, clean lines';
+    
+    // Generate the image
+    const result = await hf.textToImage({
+      model,
+      inputs: enhancedPrompt,
+      parameters: {
+        negative_prompt: 'blurry, low quality, pixelated, rough edges, text, words, letters',
+        width,
+        height,
+      }
+    });
+    
+    // Convert the blob to base64
+    const buffer = await result.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString('base64');
+    
+    return {
+      base64,
+      model,
+      prompt: enhancedPrompt
+    };
+  } catch (error: any) {
+    console.error('Error generating logo with Hugging Face:', error);
+    throw new Error('Failed to generate logo image: ' + (error.message || 'Unknown error'));
+  }
 }
 
 /**
- * Server-side image generation service using Hugging Face
+ * Generates a pattern or background image using Hugging Face's text-to-image models
+ * @param prompt The text prompt describing the pattern to generate
+ * @param options Additional options for generation
  */
-export class HuggingFaceService {
-  /**
-   * Generate an image from text prompt
-   * @param params - Text to image parameters
-   * @returns Promise with the generated image as a blob
-   */
-  async generateImage(params: TextToImageParams): Promise<Blob> {
-    try {
-      // Set default parameters
-      const defaultParams = {
-        negativePrompt: "low quality, blurry, distorted, poor resolution",
-        width: 512,
-        height: 512,
-        steps: 25,
-        seed: Math.floor(Math.random() * 1000000),
-        guidanceScale: 7.5,
-      };
-
-      const mergedParams = { ...defaultParams, ...params };
-
-      const response = await hf.textToImage({
-        model: "stabilityai/stable-diffusion-2",
-        inputs: mergedParams.prompt,
-        parameters: {
-          negative_prompt: mergedParams.negativePrompt,
-          width: mergedParams.width,
-          height: mergedParams.height,
-          num_inference_steps: mergedParams.steps,
-          guidance_scale: mergedParams.guidanceScale,
-          seed: mergedParams.seed,
-        }
-      });
-
-      return response;
-    } catch (error) {
-      console.error('Error generating image with Hugging Face:', error);
-      throw error;
+export async function generatePattern(prompt: string, options: {
+  model?: string,
+  size?: string,
+  style?: string,
+  seamless?: boolean
+} = {}) {
+  try {
+    const model = options.model || DEFAULT_MODEL;
+    const size = options.size || '768x768';
+    const [width, height] = size.split('x').map(Number);
+    const seamless = options.seamless !== false; // Default to true
+    
+    // Enhance the prompt with style guidance
+    let enhancedPrompt = prompt;
+    if (options.style) {
+      enhancedPrompt += `, ${options.style} style`;
     }
-  }
-
-  /**
-   * Generate a logo based on company description
-   * @param description - Company/brand description
-   * @returns Promise with the generated logo as a blob
-   */
-  async generateLogo(description: string): Promise<Blob> {
-    const enhancedPrompt = `professional logo design, ${description}, minimalist, vector art, business logo, clean lines, high quality, transparent background`;
     
-    return this.generateImage({
-      prompt: enhancedPrompt,
-      width: 512,
-      height: 512,
-      steps: 30,
-      guidanceScale: 8.0,
-    });
-  }
-
-  /**
-   * Generate a branded pattern or background
-   * @param brandColors - Description of brand colors
-   * @param style - Pattern style (abstract, geometric, etc.)
-   * @returns Promise with the generated pattern as a blob
-   */
-  async generatePattern(brandColors: string, style: string): Promise<Blob> {
-    const prompt = `${style} pattern in ${brandColors}, subtle, professional, high quality, seamless texture, for invoice background`;
+    // Add pattern-specific guidance to the prompt
+    if (seamless) {
+      enhancedPrompt += ', seamless pattern, tileable texture, repeating design';
+    }
+    enhancedPrompt += ', background pattern, subtle, professional';
     
-    return this.generateImage({
-      prompt,
-      width: 768,
-      height: 512,
-      steps: 25,
+    // Generate the image
+    const result = await hf.textToImage({
+      model,
+      inputs: enhancedPrompt,
+      parameters: {
+        negative_prompt: 'blurry, low quality, pixelated, text, words, letters',
+        width,
+        height,
+      }
     });
+    
+    // Convert the blob to base64
+    const buffer = await result.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString('base64');
+    
+    return {
+      base64,
+      model,
+      prompt: enhancedPrompt
+    };
+  } catch (error: any) {
+    console.error('Error generating pattern with Hugging Face:', error);
+    throw new Error('Failed to generate pattern image: ' + (error.message || 'Unknown error'));
   }
 }
-
-// Export a singleton instance of the service
-export const huggingFaceService = new HuggingFaceService();
