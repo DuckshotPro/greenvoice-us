@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -19,14 +19,13 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
-import { Check, AlertCircle, Clock, Play, Crown, CreditCard } from 'lucide-react';
+import { Check, AlertCircle, Clock, Play, Crown } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { apiRequest } from '@/lib/queryClient';
-import { useMutation } from '@tanstack/react-query';
 
 // Initialize Stripe with public key
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY as string);
@@ -38,6 +37,7 @@ function CheckoutForm({ onSuccess }: { onSuccess: () => void }) {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -77,13 +77,13 @@ function CheckoutForm({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <PaymentElement 
-        options={{
-          paymentMethodOrder: ['google_pay', 'card'],
-          wallets: {
-            googlePay: 'auto',
-            applePay: 'never'
-          }
+      <PaymentElement options={{
+          business: {name: 'InvoiceFlow'},
+          defaultValues: {
+            billingDetails: {
+              email: user?.email || '',
+            }
+          },
         }} 
       />
       {errorMessage && (
@@ -457,9 +457,7 @@ export default function PremiumPage() {
                     variables: {
                       colorPrimary: '#0066CC',
                     },
-                  },
-                  paymentMethodCreation: 'manual',
-                  paymentMethodOrder: ['google_pay', 'card'],
+                  }
                 }}
               >
                 <CheckoutForm onSuccess={handlePaymentSuccess} />
