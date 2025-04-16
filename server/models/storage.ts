@@ -12,7 +12,7 @@ import {
   type InvoiceWithItems, type RecurringTemplateWithItems
 } from "@shared/schema";
 import { nanoid } from "nanoid";
-import { db } from "./db";
+import { db, pool } from "../models/db";
 import { eq, and, gte, lt, desc, asc } from "drizzle-orm";
 
 // Storage interface
@@ -623,7 +623,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(shareAnalytics.shareTimestamp));
   }
   
-  async getShareAnalyticsByMethod(userId: number): Promise<{ method: string, count: number }[]> {
+  async getShareAnalyticsByMethod(userId: number, options?: { startDate?: Date, endDate?: Date, groupBy?: string }): Promise<{ method: string, count: number }[]> {
     // First get all invoices for this user
     const userInvoices = await this.getAllInvoices(userId);
     const invoiceIds = userInvoices.map(invoice => invoice.id);
@@ -632,14 +632,42 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
     
+    // Build the WHERE clause with optional date filters
+    let whereClause = `"invoice_id" IN (${invoiceIds.join(',')})`;
+    const params: any[] = [];
+    
+    if (options?.startDate) {
+      whereClause += ` AND "created_at" >= $${params.length + 1}`;
+      params.push(options.startDate);
+    }
+    
+    if (options?.endDate) {
+      whereClause += ` AND "created_at" <= $${params.length + 1}`;
+      params.push(options.endDate);
+    }
+    
+    // Determine grouping based on options.groupBy
+    let groupByClause = `"share_method"`;
+    if (options?.groupBy && options.groupBy !== 'method' && options.groupBy !== 'none') {
+      if (options.groupBy === 'day') {
+        groupByClause = `DATE_TRUNC('day', "created_at"), "share_method"`;
+      } else if (options.groupBy === 'week') {
+        groupByClause = `DATE_TRUNC('week', "created_at"), "share_method"`;
+      } else if (options.groupBy === 'month') {
+        groupByClause = `DATE_TRUNC('month', "created_at"), "share_method"`;
+      }
+    }
+    
     // Custom SQL query to group by method and count
-    const result = await db.execute(
-      `SELECT "share_method" as method, COUNT(*) as count 
-       FROM "share_analytics" 
-       WHERE "invoice_id" IN (${invoiceIds.join(',')}) 
-       GROUP BY "share_method" 
-       ORDER BY count DESC`
-    );
+    let query = `
+      SELECT "share_method" as method, COUNT(*) as count 
+      FROM "share_analytics" 
+      WHERE ${whereClause} 
+      GROUP BY ${groupByClause} 
+      ORDER BY count DESC
+    `;
+    
+    const result = await pool.query(query, params);
     
     // Handle the result format
     const rows = result as unknown as { rows: Array<{ method: string, count: string }> };
@@ -650,7 +678,7 @@ export class DatabaseStorage implements IStorage {
     }));
   }
   
-  async getShareViewAnalytics(userId: number): Promise<{ invoiceId: number, views: number }[]> {
+  async getShareViewAnalytics(userId: number, options?: { startDate?: Date, endDate?: Date, groupBy?: string }): Promise<{ invoiceId: number, views: number, date?: Date }[]> {
     // First get all invoices for this user
     const userInvoices = await this.getAllInvoices(userId);
     const invoiceIds = userInvoices.map(invoice => invoice.id);
@@ -659,21 +687,55 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
     
+    // Build the WHERE clause with optional date filters
+    let whereClause = `"invoice_id" IN (${invoiceIds.join(',')})`;
+    const params: any[] = [];
+    
+    if (options?.startDate) {
+      whereClause += ` AND "created_at" >= $${params.length + 1}`;
+      params.push(options.startDate);
+    }
+    
+    if (options?.endDate) {
+      whereClause += ` AND "created_at" <= $${params.length + 1}`;
+      params.push(options.endDate);
+    }
+    
+    // Determine grouping based on options.groupBy
+    let groupByClause = `"invoice_id"`;
+    let selectClause = `"invoice_id" as "invoiceId", SUM("view_count") as views`;
+    
+    if (options?.groupBy && options.groupBy !== 'none') {
+      if (options.groupBy === 'day') {
+        groupByClause = `DATE_TRUNC('day', "created_at"), "invoice_id"`;
+        selectClause = `"invoice_id" as "invoiceId", DATE_TRUNC('day', "created_at") as date, SUM("view_count") as views`;
+      } else if (options.groupBy === 'week') {
+        groupByClause = `DATE_TRUNC('week', "created_at"), "invoice_id"`;
+        selectClause = `"invoice_id" as "invoiceId", DATE_TRUNC('week', "created_at") as date, SUM("view_count") as views`;
+      } else if (options.groupBy === 'month') {
+        groupByClause = `DATE_TRUNC('month', "created_at"), "invoice_id"`;
+        selectClause = `"invoice_id" as "invoiceId", DATE_TRUNC('month', "created_at") as date, SUM("view_count") as views`;
+      }
+    }
+    
     // Custom SQL query to sum views by invoice
-    const result = await db.execute(
-      `SELECT "invoice_id" as "invoiceId", SUM("view_count") as views 
-       FROM "share_analytics" 
-       WHERE "invoice_id" IN (${invoiceIds.join(',')}) 
-       GROUP BY "invoice_id" 
-       ORDER BY views DESC`
-    );
+    let query = `
+      SELECT ${selectClause}
+      FROM "share_analytics" 
+      WHERE ${whereClause} 
+      GROUP BY ${groupByClause} 
+      ORDER BY views DESC
+    `;
+    
+    const result = await pool.query(query, params);
     
     // Handle the result format
-    const rows = result as unknown as { rows: Array<{ invoiceId: string, views: string }> };
+    const rows = result as unknown as { rows: Array<{ invoiceId: string, views: string, date?: string }> };
     
     return (rows.rows || []).map((row: any) => ({
       invoiceId: parseInt(row.invoiceId),
-      views: parseInt(row.views)
+      views: parseInt(row.views),
+      ...(row.date && { date: new Date(row.date) })
     }));
   }
 }

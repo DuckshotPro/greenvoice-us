@@ -12,7 +12,7 @@ import {
   type InvoiceWithItems, type RecurringTemplateWithItems
 } from "@shared/schema";
 import { nanoid } from "nanoid";
-import { db } from "./db";
+import { db, pool } from "./db";
 import { eq, and, gte, lt, desc, asc } from "drizzle-orm";
 
 // Storage interface
@@ -667,10 +667,10 @@ export class DatabaseStorage implements IStorage {
       ORDER BY count DESC
     `;
     
-    const result = await db.execute(query, params);
+    const result = await pool.query(query, params);
     
     // Handle the result format
-    const rows = result as unknown as { rows: Array<{ method: string, count: string }> };
+    const rows = result;
     
     return (rows.rows || []).map((row: any) => ({
       method: row.method,
@@ -727,10 +727,10 @@ export class DatabaseStorage implements IStorage {
       ORDER BY views DESC
     `;
     
-    const result = await db.execute(query, params);
+    const result = await pool.query(query, params);
     
     // Handle the result format
-    const rows = result as unknown as { rows: Array<{ invoiceId: string, views: string, date?: string }> };
+    const rows = result;
     
     return (rows.rows || []).map((row: any) => ({
       invoiceId: parseInt(row.invoiceId),

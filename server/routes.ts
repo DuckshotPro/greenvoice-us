@@ -822,7 +822,7 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
   // ANALYTICS ENDPOINTS
 
   // Get share analytics for a specific invoice
-  app.get("/api/analytics/shares/:invoiceId", requireAuth, validateIdParam, async (req: Request, res: Response) => {
+  app.get("/api/analytics/shares/:invoiceId", requireAuth, validateIdParam, validateQuery(analyticsQuerySchema), async (req: Request, res: Response) => {
     try {
       const invoiceId = parseInt(req.params.invoiceId);
 
@@ -880,7 +880,7 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
         ...(groupBy && { groupBy: groupBy as string })
       };
       
-      const analytics = await storage.getShareAnalyticsByMethod(req.user.id, options as any);
+      const analytics = await storage.getShareAnalyticsByMethod(req.user.id, options);
 
       res.json(analytics);
     } catch (error) {
@@ -909,7 +909,7 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
         ...(groupBy && { groupBy: groupBy as string })
       };
       
-      const analytics = await storage.getShareViewAnalytics(req.user.id, options as any);
+      const analytics = await storage.getShareViewAnalytics(req.user.id, options);
 
       res.json(analytics);
     } catch (error) {
