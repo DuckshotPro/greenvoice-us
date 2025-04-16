@@ -420,17 +420,36 @@ export default function BrandingSettingsPage() {
                       </Label>
                       <Select 
                         value={settings.customTemplateId || "default"} 
-                        onValueChange={(value) => 
-                          setSettings({ ...settings, customTemplateId: value })
-                        }
+                        onValueChange={(value) => {
+                          // Check if this is a premium template and user doesn't have premium
+                          const selectedTemplate = getAvailableTemplates().find(t => t.id === value);
+                          if (selectedTemplate?.premium && !hasPremium) {
+                            toast({
+                              title: "Premium Template",
+                              description: "This template requires premium access. Visit the premium page to upgrade.",
+                              variant: "default",
+                            });
+                            return;
+                          }
+                          setSettings({ ...settings, customTemplateId: value });
+                        }}
                       >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select a template" />
                         </SelectTrigger>
                         <SelectContent>
                           {getAvailableTemplates().map((template) => (
-                            <SelectItem key={template.id} value={template.id}>
-                              {template.name}{template.premium && " (Premium)"}
+                            <SelectItem 
+                              key={template.id} 
+                              value={template.id}
+                              disabled={template.premium && !hasPremium}
+                            >
+                              {template.name}
+                              {template.premium && 
+                                <span className="ml-1 text-yellow-500 font-medium">
+                                  (Premium)
+                                </span>
+                              }
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -503,7 +522,7 @@ export default function BrandingSettingsPage() {
                         />
                         <Button 
                           onClick={handleGenerateLogo} 
-                          disabled={isGeneratingLogo || !logoDescription || !hasPremium}
+                          disabled={isGeneratingLogo || !logoDescription}
                           className="w-full"
                         >
                           {isGeneratingLogo ? (
@@ -575,7 +594,7 @@ export default function BrandingSettingsPage() {
                       
                       <Button 
                         onClick={handleGeneratePattern} 
-                        disabled={isGeneratingPattern || !patternColors || !patternStyle || !hasPremium}
+                        disabled={isGeneratingPattern || !patternColors || !patternStyle}
                         className="w-full"
                       >
                         {isGeneratingPattern ? (
