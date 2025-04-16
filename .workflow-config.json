@@ -1,0 +1,12 @@
+{
+  "workflows": [
+    {
+      "name": "Start application",
+      "command": "npm run dev"
+    },
+    {
+      "name": "Start production mode",
+      "command": "npm run build && NODE_ENV=production node dist/index.js"
+    }
+  ]
+}

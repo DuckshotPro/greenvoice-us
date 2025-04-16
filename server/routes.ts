@@ -1,6 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./models/storage";
+import { pool } from "./models/db";
 import rateLimit from 'express-rate-limit';
 
 // Define rate limit settings
@@ -949,6 +950,100 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
     } catch (error) {
       console.error("Error tracking share:", error);
       res.status(500).json({ message: "Failed to track share" });
+    }
+  });
+
+  // Test public endpoint for database and analytics tables
+  app.get("/api/test/database-status", async (req: Request, res: Response) => {
+    try {
+      // Test database connection
+      const dbStatus = {
+        connected: true,
+        tables: {
+          users: false,
+          invoices: false,
+          share_analytics: false,
+          subscription_plans: false,
+          subscription_transactions: false,
+          ad_rewards: false,
+          coupons: false
+        },
+        counts: {},
+        schemas: []
+      };
+
+      try {
+        // Check if the database connection works by querying for tables
+        const tableQuery = `
+          SELECT table_name 
+          FROM information_schema.tables 
+          WHERE table_schema = 'public'
+          ORDER BY table_name;
+        `;
+        
+        const result = await pool.query(tableQuery);
+        const tables = result.rows.map(row => row.table_name);
+        dbStatus.schemas = tables;
+        
+        // Mark tables as found
+        if (tables.includes('users')) {
+          dbStatus.tables.users = true;
+          const countResult = await pool.query('SELECT COUNT(*) as count FROM users');
+          dbStatus.counts['users'] = parseInt(countResult.rows[0].count);
+        }
+        
+        if (tables.includes('invoices')) {
+          dbStatus.tables.invoices = true;
+          const countResult = await pool.query('SELECT COUNT(*) as count FROM invoices');
+          dbStatus.counts['invoices'] = parseInt(countResult.rows[0].count);
+        }
+        
+        if (tables.includes('share_analytics')) {
+          dbStatus.tables.share_analytics = true;
+          const countResult = await pool.query('SELECT COUNT(*) as count FROM share_analytics');
+          dbStatus.counts['share_analytics'] = parseInt(countResult.rows[0].count);
+        }
+        
+        if (tables.includes('subscription_plans')) {
+          dbStatus.tables.subscription_plans = true;
+          const countResult = await pool.query('SELECT COUNT(*) as count FROM subscription_plans');
+          dbStatus.counts['subscription_plans'] = parseInt(countResult.rows[0].count);
+        }
+        
+        if (tables.includes('subscription_transactions')) {
+          dbStatus.tables.subscription_transactions = true;
+          const countResult = await pool.query('SELECT COUNT(*) as count FROM subscription_transactions');
+          dbStatus.counts['subscription_transactions'] = parseInt(countResult.rows[0].count);
+        }
+        
+        if (tables.includes('ad_rewards')) {
+          dbStatus.tables.ad_rewards = true;
+          const countResult = await pool.query('SELECT COUNT(*) as count FROM ad_rewards');
+          dbStatus.counts['ad_rewards'] = parseInt(countResult.rows[0].count);
+        }
+        
+        if (tables.includes('coupons')) {
+          dbStatus.tables.coupons = true;
+          const countResult = await pool.query('SELECT COUNT(*) as count FROM coupons');
+          dbStatus.counts['coupons'] = parseInt(countResult.rows[0].count);
+        }
+      } catch (error) {
+        console.error("Error checking database tables:", error);
+      }
+
+      res.json({
+        success: true,
+        message: 'Database status check',
+        time: new Date().toISOString(),
+        status: dbStatus
+      });
+    } catch (error) {
+      console.error("Error checking database status:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Error checking database status",
+        error: error.message instanceof Error ? error.message : String(error)
+      });
     }
   });
 

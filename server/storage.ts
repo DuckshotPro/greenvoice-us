@@ -88,6 +88,12 @@ export interface IStorage {
   getShareAnalyticsByMethod(userId: number, options?: { startDate?: Date, endDate?: Date, groupBy?: string }): Promise<{ method: string, count: number }[]>;
   // Get view analytics for shared invoices
   getShareViewAnalytics(userId: number, options?: { startDate?: Date, endDate?: Date, groupBy?: string }): Promise<{ invoiceId: number, views: number }[]>;
+  
+  // Count methods for testing database health
+  getUserCount(): Promise<number>;
+  getInvoiceCount(): Promise<number>;
+  getShareAnalyticsCount(): Promise<number>;
+  getSubscriptionPlansCount(): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -737,6 +743,27 @@ export class DatabaseStorage implements IStorage {
       views: parseInt(row.views),
       ...(row.date && { date: row.date })
     }));
+  }
+
+  // Count methods for database health checks
+  async getUserCount(): Promise<number> {
+    const result = await pool.query('SELECT COUNT(*) as count FROM users');
+    return parseInt(result.rows[0].count);
+  }
+
+  async getInvoiceCount(): Promise<number> {
+    const result = await pool.query('SELECT COUNT(*) as count FROM invoices');
+    return parseInt(result.rows[0].count);
+  }
+
+  async getShareAnalyticsCount(): Promise<number> {
+    const result = await pool.query('SELECT COUNT(*) as count FROM share_analytics');
+    return parseInt(result.rows[0].count);
+  }
+
+  async getSubscriptionPlansCount(): Promise<number> {
+    const result = await pool.query('SELECT COUNT(*) as count FROM subscription_plans');
+    return parseInt(result.rows[0].count);
   }
 }
 

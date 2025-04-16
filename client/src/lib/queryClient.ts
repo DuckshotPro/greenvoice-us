@@ -12,9 +12,19 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const res = await fetch(url, {
+  // Add timestamp to bypass cache and prevent CORS preflight caching
+  const bustCache = `${url.includes('?') ? '&' : '?'}_t=${Date.now()}`;
+  const fullUrl = `${url}${bustCache}`;
+  
+  const res = await fetch(fullUrl, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers: {
+      ...(data ? { "Content-Type": "application/json" } : {}),
+      // Add headers to help with CORS and prevent OPTIONS preflight caching
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    },
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
@@ -31,10 +41,19 @@ export const getQueryFn: <T>(options: {
   async ({ queryKey }) => {
     const path = queryKey[0] as string;
     const queryParams = queryKey.length > 1 ? queryKey[1] as string : '';
-    const url = queryParams ? `${path}?${queryParams}` : path;
+    let url = queryParams ? `${path}?${queryParams}` : path;
     
-    const res = await fetch(url, {
+    // Add timestamp to bypass cache and prevent CORS preflight caching
+    const bustCache = `${url.includes('?') ? '&' : '?'}_t=${Date.now()}`;
+    const fullUrl = `${url}${bustCache}`;
+    
+    const res = await fetch(fullUrl, {
       credentials: "include",
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
