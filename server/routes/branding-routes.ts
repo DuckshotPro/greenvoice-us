@@ -1,177 +1,186 @@
-import { Router } from 'express';
+import express, { Request, Response } from 'express';
 import { z } from 'zod';
-import { huggingFaceService } from '../services/huggingface-service';
-import { requireAuth } from '../middleware/auth';
-import { validateBody } from '../middleware/validation';
+import { generateLogo, generatePattern } from '../services/huggingface-service';
 import { storage } from '../storage';
-import { logError } from '../lib/error-logger';
+import { validateBody } from '../middleware/validation';
+import { requireAuth } from '../middleware/auth';
+import { logError, logInfo } from '../utils/logger';
 
-const router = Router();
+// Add type augmentation for the user object on the request
+declare global {
+  namespace Express {
+    interface User {
+      id: number;
+      username: string;
+      subscriptionPlan: string;
+      premiumDaysRemaining?: number;
+      brandingSettings?: string;
+      logoUrl?: string;
+    }
+  }
+}
+
+const router = express.Router();
 
 // Schema for logo generation request
-const logoGenerationSchema = z.object({
-  description: z.string().min(5).max(500),
+const logoRequestSchema = z.object({
+  prompt: z.string().min(3).max(1000),
+  model: z.string().optional(),
+  size: z.string().optional(),
+  style: z.string().optional(),
 });
 
 // Schema for pattern generation request
-const patternGenerationSchema = z.object({
-  brandColors: z.string().min(3).max(200),
-  style: z.string().min(3).max(100),
+const patternRequestSchema = z.object({
+  prompt: z.string().min(3).max(1000),
+  model: z.string().optional(),
+  size: z.string().optional(),
+  style: z.string().optional(),
+  seamless: z.boolean().optional(),
 });
 
-// Schema for branding settings
+// Schema for saving branding settings
 const brandingSettingsSchema = z.object({
-  primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
-  secondaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
-  accentColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
-  fontFamily: z.string().min(3).max(50),
-  logoUrl: z.string().url().optional().nullable(),
-  customTemplate: z.string().optional(),
+  primaryColor: z.string().optional(),
+  secondaryColor: z.string().optional(),
+  accentColor: z.string().optional(),
+  fontFamily: z.string().optional(),
+  logoUrl: z.string().optional(),
+  patternUrl: z.string().optional(),
+  customHeader: z.string().optional(),
+  customFooter: z.string().optional(),
+  showLogo: z.boolean().optional(),
+  showPattern: z.boolean().optional(),
 });
 
-/**
- * Generate logo based on description
- * POST /api/branding/generate-logo
- * Authorization: Required
- */
-router.post('/generate-logo', requireAuth, validateBody(logoGenerationSchema), async (req, res) => {
+// Generate a logo
+router.post('/generate-logo', requireAuth, validateBody(logoRequestSchema), async (req: Request, res: Response) => {
   try {
-    const { description } = req.body;
+    // Check if user has premium access for logo generation
+    const user = req.user!; // We know user exists because of requireAuth middleware
+    const hasPremium = 
+      user.subscriptionPlan !== 'free' || 
+      (user.premiumDaysRemaining && user.premiumDaysRemaining > 0);
     
-    // Ensure the user has premium permissions
-    const user = req.user;
-    // Check if user has premium subscription or temporary premium days
-    if (user?.subscriptionPlan !== 'premium' && (user?.premiumDaysRemaining || 0) <= 0) {
-      return res.status(403).json({ message: 'Premium feature: Logo generation requires premium access' });
+    if (!hasPremium) {
+      return res.status(403).json({ 
+        message: 'Premium feature: Logo generation requires a premium subscription or premium days',
+        premiumRequired: true
+      });
     }
+
+    const { prompt, model, size, style } = req.body;
+    const result = await generateLogo(prompt, { model, size, style });
     
-    // Generate the logo
-    const logo = await huggingFaceService.generateLogo(description);
+    logInfo(`Logo generated successfully for user ${user.id}`, 'BrandingService', {
+      userId: user.id,
+      model: result.model
+    });
     
-    // Convert the response to a Buffer for transmission
-    const arrayBuffer = await logo.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    
-    // Send the image data with proper content type
-    res.set('Content-Type', 'image/png');
-    res.send(buffer);
+    res.json({
+      success: true,
+      result: {
+        imageData: `data:image/png;base64,${result.base64}`,
+        model: result.model,
+        prompt: result.prompt
+      }
+    });
   } catch (error: any) {
-    logError('Error generating logo', 'BrandingRoutes', { error });
+    logError('Error generating logo', 'BrandingService', { error });
     res.status(500).json({ message: 'Failed to generate logo', error: error.message });
   }
 });
 
-/**
- * Generate pattern based on brand colors and style
- * POST /api/branding/generate-pattern
- * Authorization: Required
- */
-router.post('/generate-pattern', requireAuth, validateBody(patternGenerationSchema), async (req, res) => {
+// Generate a pattern
+router.post('/generate-pattern', requireAuth, validateBody(patternRequestSchema), async (req: Request, res: Response) => {
   try {
-    const { brandColors, style } = req.body;
-    
-    // Ensure the user has premium permissions
+    // Check if user has premium access for pattern generation
     const user = req.user;
-    // Check if user has premium subscription or temporary premium days
-    if (user?.subscriptionPlan !== 'premium' && (user?.premiumDaysRemaining || 0) <= 0) {
-      return res.status(403).json({ message: 'Premium feature: Pattern generation requires premium access' });
+    const hasPremium = 
+      user.subscriptionPlan !== 'free' || 
+      (user.premiumDaysRemaining && user.premiumDaysRemaining > 0);
+    
+    if (!hasPremium) {
+      return res.status(403).json({ 
+        message: 'Premium feature: Pattern generation requires a premium subscription or premium days',
+        premiumRequired: true
+      });
     }
+
+    const { prompt, model, size, style, seamless } = req.body;
+    const result = await generatePattern(prompt, { model, size, style, seamless });
     
-    // Generate the pattern
-    const pattern = await huggingFaceService.generatePattern(brandColors, style);
+    logInfo(`Pattern generated successfully for user ${user.id}`, 'BrandingService', {
+      userId: user.id,
+      model: result.model
+    });
     
-    // Convert the response to a Buffer for transmission
-    const arrayBuffer = await pattern.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    
-    // Send the image data with proper content type
-    res.set('Content-Type', 'image/png');
-    res.send(buffer);
-  } catch (error: any) {
-    logError('Error generating pattern', 'BrandingRoutes', { error });
+    res.json({
+      success: true,
+      result: {
+        imageData: `data:image/png;base64,${result.base64}`,
+        model: result.model,
+        prompt: result.prompt
+      }
+    });
+  } catch (error) {
+    logError('Error generating pattern', 'BrandingService', { error });
     res.status(500).json({ message: 'Failed to generate pattern', error: error.message });
   }
 });
 
-/**
- * Save user's branding settings
- * POST /api/branding/settings
- * Authorization: Required
- */
-router.post('/settings', requireAuth, validateBody(brandingSettingsSchema), async (req, res) => {
+// Save branding settings
+router.post('/settings', requireAuth, validateBody(brandingSettingsSchema), async (req: Request, res: Response) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
+    const user = req.user;
+    const settings = req.body;
     
-    const userId = req.user.id;
-    const brandingSettings = req.body;
+    // Store settings as JSON string
+    const brandingSettings = JSON.stringify(settings);
     
-    // Update the user's branding settings in the database
-    const updatedUser = await storage.updateUser(userId, {
-      brandingSettings: JSON.stringify(brandingSettings)
+    // Update user with new branding settings
+    const updatedUser = await storage.updateUser(user.id, {
+      brandingSettings,
+      logoUrl: settings.logoUrl || user.logoUrl
     });
     
     if (!updatedUser) {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    res.status(200).json({ 
-      message: 'Branding settings saved successfully',
-      brandingSettings
+    logInfo(`Branding settings updated for user ${user.id}`, 'BrandingService', {
+      userId: user.id
     });
-  } catch (error: any) {
-    logError('Error saving branding settings', 'BrandingRoutes', { error });
+    
+    res.json({
+      success: true,
+      message: 'Branding settings saved successfully',
+      settings: JSON.parse(updatedUser.brandingSettings || '{}')
+    });
+  } catch (error) {
+    logError('Error saving branding settings', 'BrandingService', { error });
     res.status(500).json({ message: 'Failed to save branding settings', error: error.message });
   }
 });
 
-/**
- * Get user's branding settings
- * GET /api/branding/settings
- * Authorization: Required
- */
-router.get('/settings', requireAuth, async (req, res) => {
+// Get current branding settings
+router.get('/settings', requireAuth, async (req: Request, res: Response) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
+    const user = req.user;
     
-    const userId = req.user.id;
+    // Parse the stored JSON string
+    const settings = user.brandingSettings ? JSON.parse(user.brandingSettings) : {};
     
-    // Get the user with their branding settings
-    const user = await storage.getUser(userId);
-    
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    
-    // Parse the branding settings if they exist
-    let brandingSettings = null;
-    if (user.brandingSettings) {
-      try {
-        brandingSettings = JSON.parse(user.brandingSettings);
-      } catch (e: any) {
-        logError('Error parsing branding settings', 'BrandingRoutes', { error: e });
+    res.json({
+      success: true,
+      settings: {
+        ...settings,
+        logoUrl: user.logoUrl || settings.logoUrl
       }
-    }
-    
-    // Return default settings if none exist
-    if (!brandingSettings) {
-      brandingSettings = {
-        primaryColor: '#3366FF',
-        secondaryColor: '#00CCFF',
-        accentColor: '#FF6B6B',
-        fontFamily: 'Inter',
-        logoUrl: null,
-        customTemplate: 'default'
-      };
-    }
-    
-    res.status(200).json(brandingSettings);
-  } catch (error: any) {
-    logError('Error getting branding settings', 'BrandingRoutes', { error });
-    res.status(500).json({ message: 'Failed to get branding settings', error: error.message });
+    });
+  } catch (error) {
+    logError('Error retrieving branding settings', 'BrandingService', { error });
+    res.status(500).json({ message: 'Failed to retrieve branding settings', error: error.message });
   }
 });
 
