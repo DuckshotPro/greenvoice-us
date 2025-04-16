@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
-import { Bell, LogIn, Crown } from 'lucide-react';
+import { LogIn, Crown } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,7 +26,7 @@ const Header = () => {
   // Navigation links
   const navLinks = [
     { href: '/create-invoice', label: 'Create Invoice' },
-    { href: '/templates', label: 'Templates' },
+    // Removed non-functional templates link
     { href: '/history', label: 'History' },
     { href: '/analytics', label: 'Analytics' },
     { href: '/branding', label: 'Branding' },
@@ -85,11 +85,6 @@ const Header = () => {
             
             {user ? (
               <>
-                <Button variant="ghost" size="icon" className="mr-1">
-                  <Bell className="h-5 w-5 text-gray-400" />
-                  <span className="sr-only">Notifications</span>
-                </Button>
-                
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full bg-primary text-white">
