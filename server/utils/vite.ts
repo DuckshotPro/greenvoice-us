@@ -26,24 +26,38 @@ export function log(message: string, source = "express") {
  * @param {Server} server - The HTTP server instance.
  */
 export async function setupVite(app: Express, server: Server) {
-  // create vite server in middleware mode
+  // create vite server in middleware mode with more permissive settings
   const vite = await createViteServer({
+    ...viteConfig,
+    configFile: false, // Don't load from the file again
     server: {
       hmr: {
         server,
+        clientPort: 443, // Important for Replit
       },
-      middlewareMode: true,
-      host: '0.0.0.0',
+      middlewareMode: true, 
+      host: true, // Listen on all addresses
       cors: true,
       port: 5000,
       strictPort: true,
-      allowedHosts: 'all',
+      allowedHosts: true, // Allow all hosts, particularly important for Replit
     },
     appType: "custom",
   });
   app.use(vite.middlewares);
-  app.use("*", async (_, res) => {
-    res.sendFile(path.resolve("client/index.html"));
+  app.use("*", async (req, res, next) => {
+    const url = req.originalUrl;
+    
+    try {
+      // Read and transform the index.html with Vite
+      let template = fs.readFileSync(path.resolve(__dirname, "../../client/index.html"), "utf-8");
+      const html = await vite.transformIndexHtml(url, template);
+      res.status(200).set({ "Content-Type": "text/html" }).end(html);
+    } catch (error) {
+      // Let Vite fix stack traces for better debugging
+      vite.ssrFixStacktrace(error as Error);
+      next(error);
+    }
   });
 }
 

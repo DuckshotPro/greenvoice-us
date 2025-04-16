@@ -3,7 +3,8 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./utils/vite";
 import { scheduler } from "./services/scheduler";
 import { ErrorLogger, LogLevel, LogCategory, logInfo, logError } from "./lib/error-logger";
-import customFrontendRouter from "./custom-frontend";
+// Custom frontend router no longer needed
+// import customFrontendRouter from "./custom-frontend";
 import dotenv from "dotenv";
 
 // Load environment variables from .env file
@@ -135,9 +136,9 @@ app.use((req, res, next) => {
     });
   });
   
-  // Register our custom frontend router that doesn't rely on Vite's configuration
-  app.use(customFrontendRouter);
-  logInfo('Custom frontend router registered', 'ServerStartup');
+  // Don't use the custom frontend router as we now have a working React app
+  // app.use(customFrontendRouter);
+  logInfo('Using standard Vite frontend router', 'ServerStartup');
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
