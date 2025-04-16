@@ -20,6 +20,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      {/* Route for handling redirects from the home page */}
       <Route path="/auth" component={AuthPage} />
       <Route path="/premium" component={PremiumPage} />
       <ProtectedRoute path="/create-invoice" component={CreateInvoice} />

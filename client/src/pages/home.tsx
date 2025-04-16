@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/use-auth';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import { Button } from '@/components/ui/button';
@@ -9,10 +10,13 @@ import { Invoice } from '@/types/invoice';
 import { PlusCircle, FileText, Share, ArrowRight } from 'lucide-react';
 
 const Home = () => {
-  // Fetch recent invoices
+  const { user } = useAuth();
+  
+  // Fetch recent invoices only if user is logged in
   const { data: invoices, isLoading, error } = useQuery<Invoice[]>({
     queryKey: ['/api/invoices'],
     staleTime: 60000, // 1 minute
+    enabled: !!user, // Only run query if user is authenticated
   });
 
   return (
@@ -31,17 +35,35 @@ const Home = () => {
             </p>
             <div className="mt-10 max-w-sm mx-auto sm:max-w-none sm:flex sm:justify-center">
               <div className="space-y-4 sm:space-y-0 sm:mx-auto sm:inline-grid sm:grid-cols-2 sm:gap-5">
+                {user ? (
+                  <Button 
+                    asChild
+                    className="flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-accent hover:bg-accent/90 sm:px-8"
+                  >
+                    <Link href="/create-invoice">
+                      Create Invoice
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button 
+                    asChild
+                    className="flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-accent hover:bg-accent/90 sm:px-8"
+                  >
+                    <Link href="/auth">
+                      Sign In
+                    </Link>
+                  </Button>
+                )}
                 <Button 
-                  asChild
-                  className="flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-accent hover:bg-accent/90 sm:px-8"
+                  variant="outline"
+                  className="flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md text-primary bg-white hover:bg-gray-50 sm:px-8"
+                  onClick={() => {
+                    const element = document.getElementById('features');
+                    element?.scrollIntoView({ behavior: 'smooth' });
+                  }}
                 >
-                  <Link href="/create-invoice">
-                    Create Invoice
-                  </Link>
-                </Button>
-                <a href="#features" className="flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md text-primary bg-white hover:bg-gray-50 sm:px-8">
                   Learn More
-                </a>
+                </Button>
               </div>
             </div>
           </div>
@@ -114,8 +136,8 @@ const Home = () => {
                   asChild
                   className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary/90"
                 >
-                  <Link href="/create-invoice">
-                    Get Started <ArrowRight className="ml-2 h-4 w-4" />
+                  <Link href={user ? "/create-invoice" : "/auth"}>
+                    {user ? "Get Started" : "Sign In"} <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
               </div>
