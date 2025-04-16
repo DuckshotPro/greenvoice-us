@@ -38,6 +38,7 @@ import {
   adViewSchema,
   statusParamSchema
 } from "./middleware/validation-schemas";
+import { analyticsRoutes } from "./routes/analytics-routes";
 import {
   trackShareSchema,
   analyticsQuerySchema,
