@@ -1,6 +1,7 @@
+import { Request, Response, NextFunction, Express } from "express";
+import { logWarning, logInfo } from "../utils/logger";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import { Express } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
@@ -137,4 +138,73 @@ export function setupAuth(app: Express) {
     const { password, ...userWithoutPassword } = req.user as SelectUser;
     res.json(userWithoutPassword);
   });
+  
+  logInfo("Authentication setup complete", "AuthMiddleware");
 }
+
+/**
+ * Middleware to require authentication for protected routes
+ * @param req Express request object
+ * @param res Express response object
+ * @param next Express next function
+ */
+export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.isAuthenticated()) {
+    logWarning(
+      `Unauthorized access attempt to protected route: ${req.path}`,
+      'AuthMiddleware',
+      {
+        path: req.path,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      }
+    );
+    
+    return res.status(401).json({ message: "Authentication required" });
+  }
+  
+  next();
+};
+
+/**
+ * Middleware to require admin role for protected admin routes
+ * @param req Express request object
+ * @param res Express response object
+ * @param next Express next function
+ */
+export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
+  // First check if user is authenticated
+  if (!req.isAuthenticated()) {
+    logWarning(
+      `Unauthorized access attempt to admin route: ${req.path}`,
+      'AuthMiddleware',
+      {
+        path: req.path,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      }
+    );
+    
+    return res.status(401).json({ message: "Authentication required" });
+  }
+  
+  // Then check if user is an admin
+  // In a production app, you would check the user's role
+  // For this prototype, we check for an isAdmin property or an API key
+  const apiKey = req.headers['x-admin-api-key'];
+  if ((!req.user.isAdmin) && (!apiKey || apiKey !== process.env.ADMIN_API_KEY)) {
+    logWarning(
+      `Unauthorized admin access attempt: ${req.path}`,
+      'AuthMiddleware',
+      {
+        path: req.path,
+        userId: req.user.id,
+        userAgent: req.get('User-Agent')
+      }
+    );
+    
+    return res.status(403).json({ message: "Unauthorized access to admin endpoint" });
+  }
+  
+  next();
+};

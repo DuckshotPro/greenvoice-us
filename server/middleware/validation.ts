@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
-import { AnyZodObject, ZodError, ZodSchema } from 'zod';
-import { logWarning } from '../lib/error-logger';
+import { Request, Response, NextFunction } from "express";
+import { ZodSchema, ZodError } from "zod";
+import { logWarning } from "../utils/logger";
 
 /**
  * Creates a middleware function that validates request body against a Zod schema
@@ -16,7 +16,7 @@ export const validateBody = (schema: ZodSchema) => {
       if (error instanceof ZodError) {
         // Log the validation error
         logWarning(
-          `Request validation failed for ${req.path}`,
+          `Body validation failed for ${req.path}`,
           'ValidationMiddleware',
           {
             path: req.path,
@@ -28,7 +28,7 @@ export const validateBody = (schema: ZodSchema) => {
         
         // Return a structured error response
         return res.status(400).json({
-          message: 'Invalid request data',
+          message: 'Invalid request body',
           errors: error.errors.map(err => ({
             field: err.path.join('.'),
             message: err.message
@@ -114,23 +114,4 @@ export const validateParams = (schema: ZodSchema) => {
       next(error);
     }
   };
-};
-
-/**
- * Validates a numeric ID parameter
- * Common middleware for routes with :id parameters
- */
-export const validateIdParam = (req: Request, res: Response, next: NextFunction) => {
-  const id = parseInt(req.params.id);
-  
-  if (isNaN(id) || id <= 0) {
-    return res.status(400).json({
-      message: 'Invalid ID parameter',
-      errors: [{ field: 'id', message: 'ID must be a positive number' }]
-    });
-  }
-  
-  // Add the parsed ID to the request for convenience
-  req.params.id = id.toString();
-  next();
 };
