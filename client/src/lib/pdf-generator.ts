@@ -1,312 +1,235 @@
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-import type { Invoice } from '../types/invoice';
-import { formatCurrency, formatDate } from '../types/invoice';
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+import { Invoice, LineItem } from "@shared/schema";
+import { formatCurrency } from "./utils";
 
-// Add types to jsPDF for autoTable
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF;
-  }
+interface InvoiceWithItems extends Invoice {
+  items: LineItem[];
 }
 
-const createBasePDF = (invoice: Invoice): jsPDF => {
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4'
-  });
+/**
+ * Generates a PDF from an invoice object
+ * @param invoice - The invoice data with line items
+ * @returns The generated PDF document
+ */
+export function generatePdf(invoice: InvoiceWithItems): jsPDF {
+  // Create a new PDF document
+  const doc = new jsPDF();
 
-  // Set document properties
-  doc.setProperties({
-    title: `Invoice-${invoice.invoiceNumber || 'N/A'}`,
-    author: invoice.senderName || 'InvoiceFlow',
-    subject: `Invoice for ${invoice.clientName || 'Client'}`,
-    keywords: 'invoice, bill',
-    creator: 'InvoiceFlow'
-  });
+  // Set up document
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 20;
+  let yPos = margin;
 
-  // Set up fonts
-  doc.setFont('helvetica');
-
-  return doc;
-};
-
-const addHeader = (doc: jsPDF, invoice: Invoice) => {
-  // Title
+  // Add logo (if available)
+  // This is a placeholder - you would need to provide a logo URL
+  // doc.addImage(logoUrl, 'PNG', margin, yPos, 50, 15);
+  
+  // Add invoice header
   doc.setFontSize(24);
-  doc.text('INVOICE', doc.internal.pageSize.width / 2, 20, { align: 'center' });
-
-  // Invoice details
+  doc.setTextColor(41, 67, 192); // Primary color
+  doc.text("INVOICE", pageWidth - margin - doc.getTextWidth("INVOICE"), yPos + 10);
+  
+  yPos += 20;
+  
+  // Add invoice number and dates
   doc.setFontSize(12);
-  doc.text(`Invoice Number: ${invoice.invoiceNumber || 'N/A'}`, 20, 40);
-  doc.text(`Date: ${formatDate(invoice.issueDate)}`, 20, 50);
-  doc.text(`Due Date: ${formatDate(invoice.dueDate)}`, 20, 60);
-};
-
-const addPartyDetails = (doc: jsPDF, invoice: Invoice) => {
-  // From section - Sender details
-  doc.setFontSize(14);
   doc.setTextColor(60, 60, 60);
-  doc.text('From:', 20, 80);
-
+  doc.text(`Invoice #: ${invoice.invoiceNumber}`, margin, yPos);
+  
+  doc.setFontSize(10);
+  yPos += 8;
+  doc.text(`Issue Date: ${invoice.issueDate}`, margin, yPos);
+  yPos += 6;
+  doc.text(`Due Date: ${invoice.dueDate}`, margin, yPos);
+  
+  yPos += 15;
+  
+  // Add status
   doc.setFontSize(12);
-  doc.setTextColor(80, 80, 80);
-  doc.text(invoice.senderName || 'Sender', 20, 90);
-
-  let fromY = 100;
-
-  // Add sender email if available
-  if (invoice.senderEmail) {
-    doc.text(invoice.senderEmail, 20, fromY);
-    fromY += 6;
+  if (invoice.status === "paid") {
+    doc.setTextColor(46, 124, 46); // Green
+    doc.text("PAID", pageWidth - margin - doc.getTextWidth("PAID"), yPos);
+  } else if (invoice.status === "overdue") {
+    doc.setTextColor(180, 50, 50); // Red
+    doc.text("OVERDUE", pageWidth - margin - doc.getTextWidth("OVERDUE"), yPos);
+  } else {
+    doc.text(
+      invoice.status?.toUpperCase() || "PENDING", 
+      pageWidth - margin - doc.getTextWidth(invoice.status?.toUpperCase() || "PENDING"), 
+      yPos
+    );
   }
-
-  // Add sender phone if available
+  
+  yPos += 20;
+  
+  // Add billing info - From/To
+  const colWidth = (pageWidth - 2 * margin) / 2;
+  
+  // From section
+  doc.setFontSize(11);
+  doc.setTextColor(100, 100, 100);
+  doc.text("From:", margin, yPos);
+  
+  doc.setTextColor(60, 60, 60);
+  doc.setFontSize(10);
+  yPos += 7;
+  doc.text(invoice.senderName, margin, yPos);
+  
+  // Handle multiline address
+  const senderAddressLines = invoice.senderAddress?.split("\n") || [];
+  for (const line of senderAddressLines) {
+    yPos += 5;
+    doc.text(line, margin, yPos);
+  }
+  
+  yPos += 5;
+  doc.text(invoice.senderEmail || "", margin, yPos);
+  
   if (invoice.senderPhone) {
-    doc.text(invoice.senderPhone, 20, fromY);
+    yPos += 5;
+    doc.text(invoice.senderPhone, margin, yPos);
   }
-
-  // Add sender address if available
-  if (invoice.senderAddress) {
-    const addressLines = invoice.senderAddress.split('\n');
-    let addressY = invoice.senderPhone ? fromY + 6 : fromY;
-
-    addressLines.forEach(line => {
-      if (line.trim()) {
-        doc.text(line, 20, addressY);
-        addressY += 6;
-      }
-    });
-  }
-
-  // To section - Client details
-  doc.setFontSize(14);
+  
+  // Reset yPos for the "To" section
+  yPos -= (12 + 5 * (senderAddressLines.length + (invoice.senderPhone ? 1 : 0)));
+  
+  // To section
+  doc.setFontSize(11);
+  doc.setTextColor(100, 100, 100);
+  doc.text("To:", margin + colWidth, yPos);
+  
   doc.setTextColor(60, 60, 60);
-  doc.text('To:', 120, 80);
-
-  doc.setFontSize(12);
-  doc.setTextColor(80, 80, 80);
-  doc.text(invoice.clientName || 'Client', 120, 90);
-
-  let toY = 100;
-
-  // Add client email if available
+  doc.setFontSize(10);
+  yPos += 7;
+  doc.text(invoice.clientName, margin + colWidth, yPos);
+  
+  // Handle multiline address
+  const clientAddressLines = invoice.clientAddress?.split("\n") || [];
+  for (const line of clientAddressLines) {
+    yPos += 5;
+    doc.text(line, margin + colWidth, yPos);
+  }
+  
+  yPos += 5;
   if (invoice.clientEmail) {
-    doc.text(invoice.clientEmail, 120, toY);
-    toY += 6;
+    doc.text(invoice.clientEmail, margin + colWidth, yPos);
   }
-
-  // Add client address if available
-  if (invoice.clientAddress) {
-    const addressLines = invoice.clientAddress.split('\n');
-
-    addressLines.forEach(line => {
-      if (line.trim()) {
-        doc.text(line, 120, toY);
-        toY += 6;
-      }
-    });
-  }
-};
-
-const addItemsTable = (doc: jsPDF, invoice: Invoice) => {
-  const items = Array.isArray(invoice.items) ? invoice.items : [];
-  const tableColumn = ['Description', 'Qty', 'Rate', 'Amount'];
-  const tableRows = items.map(item => [
-    item.description || '',
-    (item.quantity || 0).toString(),
-    formatCurrency(item.rate || 0, invoice.currency),
-    formatCurrency(item.amount || 0, invoice.currency)
-  ]);
-
-  // Calculate appropriate startY based on previous content
-  // This ensures the table doesn't overlap with the sender/client details
-  const startY = Math.max(
-    // Make sure we start after the party details
-    // We need extra space if addresses are multi-line
-    invoice.senderAddress?.split('\n').length > 2 ||
-      invoice.clientAddress?.split('\n').length > 2 ? 130 : 120
-  );
-
-  doc.autoTable({
-    head: [tableColumn],
-    body: tableRows.length ? tableRows : [['No items', '', '', '']],
-    startY,
-    theme: 'grid',
-    styles: {
-      fontSize: 10,
-      cellPadding: 3
-    },
+  
+  // Move down to the greater of the two sections
+  const fromLines = 2 + senderAddressLines.length + (invoice.senderPhone ? 1 : 0) + 1;
+  const toLines = 2 + clientAddressLines.length + (invoice.clientEmail ? 1 : 0);
+  const maxLines = Math.max(fromLines, toLines);
+  
+  yPos = margin + 20 + 15 + 20 + 7 + (5 * (maxLines - 1));
+  yPos += 20; // Add some space before the table
+  
+  // Add line items table
+  autoTable(doc, {
+    startY: yPos,
+    head: [["Description", "Quantity", "Rate", "Amount"]],
+    body: invoice.items.map(item => [
+      item.description,
+      item.quantity.toString(),
+      formatCurrency(item.rate, invoice.currency),
+      formatCurrency(item.amount, invoice.currency)
+    ]),
+    theme: "grid",
     headStyles: {
-      fillColor: [70, 70, 70],
-      textColor: [255, 255, 255]
+      fillColor: [230, 230, 240],
+      textColor: [60, 60, 60],
+      fontStyle: "bold"
     },
     columnStyles: {
-      0: { cellWidth: 'auto' },    // Description (auto width)
-      1: { cellWidth: 20 },        // Quantity
-      2: { cellWidth: 30 },        // Rate
-      3: { cellWidth: 30 }         // Amount
+      0: { cellWidth: "auto" },
+      1: { cellWidth: 40, halign: "right" },
+      2: { cellWidth: 50, halign: "right" },
+      3: { cellWidth: 50, halign: "right" }
+    },
+    styles: {
+      fontSize: 9,
+      cellPadding: 4
     }
   });
-};
-
-const addSummary = (doc: jsPDF, invoice: Invoice) => {
-  const finalY = (doc as any).lastAutoTable.finalY + 20;
-
-  // Summary section
-  doc.setFontSize(14);
-  doc.setTextColor(60, 60, 60);
-  doc.text('Summary:', 130, finalY);
-
-  // Summary details
-  doc.setFontSize(12);
+  
+  // Get the Y position after the table
+  yPos = (doc as any).lastAutoTable.finalY + 15;
+  
+  // Add totals
+  const totalsX = pageWidth - margin - 80;
+  
+  doc.setFontSize(10);
   doc.setTextColor(80, 80, 80);
-  doc.text(`Subtotal: ${formatCurrency(invoice.subtotal || 0, invoice.currency)}`, 130, finalY + 10);
-  doc.text(`Tax (${invoice.taxRate || 0}%): ${formatCurrency(invoice.taxAmount || 0, invoice.currency)}`, 130, finalY + 20);
-
-  // Make the total stand out
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(60, 60, 60);
-  doc.text(`Total: ${formatCurrency(invoice.total || 0, invoice.currency)}`, 130, finalY + 35);
-
-  // Reset font
-  doc.setFont('helvetica', 'normal');
-
+  
+  doc.text("Subtotal:", totalsX, yPos);
+  doc.text(formatCurrency(invoice.subtotal, invoice.currency), pageWidth - margin, yPos, { align: "right" });
+  
+  yPos += 7;
+  doc.text(`Tax (${invoice.taxRate}%):`, totalsX, yPos);
+  doc.text(formatCurrency(invoice.taxAmount, invoice.currency), pageWidth - margin, yPos, { align: "right" });
+  
+  // Add discount if present
+  if (invoice.discount && invoice.discount > 0) {
+    yPos += 7;
+    doc.setTextColor(46, 124, 46); // Green for discount
+    doc.text("Discount:", totalsX, yPos);
+    doc.text(`-${formatCurrency(invoice.discount, invoice.currency)}`, pageWidth - margin, yPos, { align: "right" });
+    doc.setTextColor(80, 80, 80); // Reset color
+  }
+  
+  yPos += 10;
+  
+  // Add total
+  doc.setFontSize(12);
+  doc.setTextColor(41, 67, 192); // Primary color
+  doc.text("Total:", totalsX, yPos);
+  doc.text(formatCurrency(invoice.total, invoice.currency), pageWidth - margin, yPos, { align: "right" });
+  
   // Add notes if present
   if (invoice.notes) {
-    doc.setFontSize(12);
+    yPos += 25;
+    
+    doc.setFontSize(11);
     doc.setTextColor(80, 80, 80);
-    doc.text('Notes:', 20, finalY + 10);
-    doc.setFontSize(10);
-    doc.text(invoice.notes, 20, finalY + 20, { maxWidth: 100 });
+    doc.text("Notes:", margin, yPos);
+    
+    yPos += 7;
+    
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    
+    // Split notes into lines that fit within the page width
+    const notesWidth = pageWidth - 2 * margin;
+    const notesLines = doc.splitTextToSize(invoice.notes, notesWidth);
+    
+    for (const line of notesLines) {
+      doc.text(line, margin, yPos);
+      yPos += 5;
+      
+      // Check if we need a new page
+      if (yPos > pageHeight - margin) {
+        doc.addPage();
+        yPos = margin;
+      }
+    }
   }
-
-  // Add footer
-  doc.setFontSize(10);
+  
+  // Add footer with powered by text
+  const footerText = `Generated by InvoiceFlow on ${new Date().toLocaleDateString()}`;
+  doc.setFontSize(8);
   doc.setTextColor(150, 150, 150);
   doc.text(
-    'Invoice generated by InvoiceFlow',
-    doc.internal.pageSize.width / 2,
-    doc.internal.pageSize.height - 10,
-    { align: 'center' }
+    footerText,
+    pageWidth / 2,
+    pageHeight - 10,
+    { align: "center" }
   );
-};
+  
+  // Save the PDF with the invoice number as the filename
+  doc.save(`Invoice-${invoice.invoiceNumber}.pdf`);
+  
+  return doc;
+}
 
-export const generatePDF = (invoice: Invoice): string => {
-  try {
-    if (!invoice) {
-      throw new Error('Invoice data is required');
-    }
-
-    if (!Array.isArray(invoice.items) || invoice.items.length === 0) {
-      throw new Error('Invoice must have at least one item');
-    }
-    
-    const requiredFields = [
-      'invoiceNumber',
-      'senderName',
-      'senderEmail',
-      'senderAddress',
-      'clientName',
-      'clientEmail',
-      'clientAddress'
-    ];
-    
-    const missingFields = requiredFields.filter(field => !invoice[field]);
-    if (missingFields.length > 0) {
-      throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
-    }
-    
-    const doc = createBasePDF(invoice);
-    addHeader(doc, invoice);
-    addPartyDetails(doc, invoice);
-    addItemsTable(doc, invoice);
-    addSummary(doc, invoice);
-
-    return doc.output('datauristring');
-  } catch (error) {
-    console.error('Error generating PDF:', error);
-    throw new Error('PDF generation failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
-  }
-};
-
-export const downloadPDF = (invoice: Invoice): void => {
-  try {
-    const doc = new jsPDF();
-
-    // Add header
-    doc.setFontSize(20);
-    doc.text('INVOICE', 105, 20, { align: 'center' });
-    doc.setFontSize(10);
-    doc.text(`Invoice #: ${invoice.invoiceNumber}`, 20, 35);
-    doc.text(`Date: ${formatDate(invoice.issueDate)}`, 20, 42);
-    doc.text(`Due: ${formatDate(invoice.dueDate)}`, 20, 49);
-
-    // Add sender info
-    doc.setFontSize(12);
-    doc.text('From:', 20, 65);
-    doc.setFontSize(10);
-    doc.text(invoice.senderName, 20, 72);
-    doc.text(invoice.senderEmail, 20, 79);
-    const senderAddressLines = invoice.senderAddress.split('\n');
-    senderAddressLines.forEach((line, index) => doc.text(line, 20, 86 + index * 7));
-
-
-    // Add client info
-    doc.setFontSize(12);
-    doc.text('Bill To:', 120, 65);
-    doc.setFontSize(10);
-    doc.text(invoice.clientName, 120, 72);
-    doc.text(invoice.clientEmail, 120, 79);
-    const clientAddressLines = invoice.clientAddress.split('\n');
-    clientAddressLines.forEach((line, index) => doc.text(line, 120, 86 + index * 7));
-
-    // Add items table
-    const tableTop = 120;
-    doc.line(20, tableTop, 190, tableTop);
-    doc.setFontSize(10);
-    doc.text('Description', 20, tableTop + 7);
-    doc.text('Qty', 120, tableTop + 7);
-    doc.text('Rate', 140, tableTop + 7);
-    doc.text('Amount', 170, tableTop + 7);
-
-    let currentY = tableTop + 15;
-    invoice.items.forEach(item => {
-      doc.text(item.description, 20, currentY);
-      doc.text(item.quantity.toString(), 120, currentY);
-      doc.text(formatCurrency(item.rate, invoice.currency), 140, currentY);
-      doc.text(formatCurrency(item.amount, invoice.currency), 170, currentY);
-      currentY += 8;
-    });
-
-    // Add totals
-    currentY += 10;
-    doc.line(20, currentY, 190, currentY);
-    currentY += 7;
-    doc.text('Subtotal:', 140, currentY);
-    doc.text(formatCurrency(invoice.subtotal, invoice.currency), 170, currentY);
-    currentY += 7;
-    doc.text('Tax:', 140, currentY);
-    doc.text(formatCurrency(invoice.taxAmount, invoice.currency), 170, currentY);
-    currentY += 7;
-    doc.text('Total:', 140, currentY);
-    doc.text(formatCurrency(invoice.total, invoice.currency), 170, currentY);
-
-    // Add notes
-    if (invoice.notes) {
-      currentY += 20;
-      doc.setFontSize(11);
-      doc.text('Notes:', 20, currentY);
-      doc.setFontSize(10);
-      doc.text(invoice.notes, 20, currentY + 7);
-    }
-
-    // Save the PDF
-    doc.save(`Invoice-${invoice.invoiceNumber}.pdf`);
-  } catch (error) {
-    console.error('Error generating PDF:', error);
-    throw new Error('Failed to generate PDF');
-  }
-};
+export default generatePdf;
