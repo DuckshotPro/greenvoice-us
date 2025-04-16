@@ -5,7 +5,7 @@ import { shareAnalytics, utmTracking } from "@shared/schema";
 import { z } from "zod";
 import { validateBody, validateQuery } from "../middleware/validation";
 import { requireAuth } from "../middleware/auth";
-import { logger } from "../utils/logger";
+import { logInfo, logError } from "../lib/error-logger";
 
 // Create router for analytics endpoints
 const router = Router();
@@ -66,7 +66,7 @@ router.post("/record-view", validateBody(recordViewSchema), async (req: Request,
       })
       .returning();
 
-    logger.info("Analytics: Invoice view recorded", {
+    logInfo("Analytics: Invoice view recorded", "AnalyticsController", {
       invoiceId,
       shareMethod,
       userId,
@@ -74,7 +74,7 @@ router.post("/record-view", validateBody(recordViewSchema), async (req: Request,
 
     return res.status(200).json(result);
   } catch (error) {
-    logger.error("Error recording view", { error });
+    logError("Error recording view", "AnalyticsController", { error });
     return res.status(500).json({ error: "Failed to record view" });
   }
 });
@@ -101,7 +101,7 @@ router.post("/track-utm", validateBody(trackUtmSchema), async (req: Request, res
       })
       .returning();
 
-    logger.info("Analytics: UTM parameters recorded", {
+    logInfo("Analytics: UTM parameters recorded", "AnalyticsController", {
       invoiceId,
       utmSource,
       utmMedium,
@@ -110,7 +110,7 @@ router.post("/track-utm", validateBody(trackUtmSchema), async (req: Request, res
 
     return res.status(200).json(result);
   } catch (error) {
-    logger.error("Error tracking UTM parameters", { error });
+    logError("Error tracking UTM parameters", { error });
     return res.status(500).json({ error: "Failed to track UTM parameters" });
   }
 });
@@ -139,7 +139,7 @@ router.post("/track-share", requireAuth, validateBody(trackShareSchema), async (
       })
       .returning();
 
-    logger.info("Analytics: Invoice share recorded", {
+    logInfo("Analytics: Invoice share recorded", {
       invoiceId,
       shareMethod,
       userId: req.user.id,
@@ -147,7 +147,7 @@ router.post("/track-share", requireAuth, validateBody(trackShareSchema), async (
 
     return res.status(200).json(result);
   } catch (error) {
-    logger.error("Error tracking share", { error });
+    logError("Error tracking share", { error });
     return res.status(500).json({ error: "Failed to track share" });
   }
 });
@@ -200,7 +200,7 @@ router.get(
 
       return res.status(200).json(result);
     } catch (error) {
-      logger.error("Error fetching share methods analytics", { error });
+      logError("Error fetching share methods analytics", { error });
       return res.status(500).json({ error: "Failed to fetch share methods analytics" });
     }
   }
@@ -254,7 +254,7 @@ router.get(
 
       return res.status(200).json(result);
     } catch (error) {
-      logger.error("Error fetching share views analytics", { error });
+      logError("Error fetching share views analytics", { error });
       return res.status(500).json({ error: "Failed to fetch share views analytics" });
     }
   }
@@ -316,7 +316,7 @@ router.get(
         utmSources,
       });
     } catch (error) {
-      logger.error("Error fetching invoice share analytics", { error, invoiceId: req.params.invoiceId });
+      logError("Error fetching invoice share analytics", { error, invoiceId: req.params.invoiceId });
       return res.status(500).json({ error: "Failed to fetch invoice share analytics" });
     }
   }
