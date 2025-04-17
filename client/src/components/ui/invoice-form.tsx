@@ -444,7 +444,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                       <FormItem>
                         <FormLabel>Client Address</FormLabel>
                         <FormControl>
-                          <Textarea rows={3} {...field} />
+                          <Textarea rows={3} {...field} onFocus={handleTextareaFocus} />
                         </FormControl>
                       </FormItem>
                     )}
