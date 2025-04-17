@@ -307,7 +307,13 @@ export const shareAnalytics = pgTable("share_analytics", {
   userId: integer("user_id"), // Can be null for anonymous views
   shareMethod: text("share_method").notNull(), // email, twitter, facebook, linkedin, whatsapp, telegram, sms, link, pdf, image
   eventType: text("event_type").notNull().default("share"), // share, view
-  timestamp: timestamp("timestamp").defaultNow(),
+  share_timestamp: timestamp("share_timestamp").defaultNow(),
+  last_viewed_at: timestamp("last_viewed_at"),
+  view_count: integer("view_count").default(0),
+  referrer: text("referrer"),
+  user_agent: text("user_agent"),
+  ip_address: text("ip_address"),
+  recipient_email: text("recipient_email"),
   // Additional metadata as JSON - can include recipient info, client info, etc.
   metadata: jsonb("metadata").default({}),
 });

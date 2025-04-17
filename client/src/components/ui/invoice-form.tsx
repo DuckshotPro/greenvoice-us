@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Card, 
   CardContent 
@@ -13,6 +13,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+
+// Create a utility function to handle auto-selection of text on focus
+const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+  e.target.select();
+};
 import {
   Select,
   SelectContent,
@@ -341,7 +346,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                       <FormItem>
                         <FormLabel>Business/Full Name</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} onFocus={(e) => e.target.select()} />
                         </FormControl>
                       </FormItem>
                     )}
@@ -354,7 +359,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                       <FormItem>
                         <FormLabel>Email Address</FormLabel>
                         <FormControl>
-                          <Input type="email" {...field} />
+                          <Input type="email" {...field} onFocus={(e) => e.target.select()} />
                         </FormControl>
                       </FormItem>
                     )}
@@ -380,7 +385,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                       <FormItem>
                         <FormLabel>Phone Number</FormLabel>
                         <FormControl>
-                          <Input type="tel" {...field} />
+                          <Input type="tel" {...field} onFocus={handleInputFocus} />
                         </FormControl>
                       </FormItem>
                     )}
@@ -401,7 +406,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                       <FormItem>
                         <FormLabel>Client Name</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} onFocus={handleInputFocus} />
                         </FormControl>
                       </FormItem>
                     )}
@@ -414,7 +419,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                       <FormItem>
                         <FormLabel>Client Email</FormLabel>
                         <FormControl>
-                          <Input type="email" {...field} />
+                          <Input type="email" {...field} onFocus={handleInputFocus} />
                         </FormControl>
                       </FormItem>
                     )}
@@ -463,7 +468,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                           <FormControl>
                             <Input 
                               {...field} 
-                              onFocus={(e) => e.target.select()}
+                              onFocus={handleInputFocus}
                             />
                           </FormControl>
                         </FormItem>

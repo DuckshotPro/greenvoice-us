@@ -46,16 +46,28 @@ export function ShareOptions({ invoice, isLoading = false, onClose }: ShareOptio
   // Track the share event
   const trackShare = async (method: string, email?: string) => {
     try {
-      await apiRequest("POST", "/api/analytics/track-share", {
-        invoiceId: invoice.id,
-        shareMethod: method,
-        recipientEmail: email || null,
-        metadata: {
-          shared_at: new Date().toISOString(),
-          invoice_number: invoice.invoiceNumber,
-          client_name: invoice.clientName,
-          amount: invoice.total
-        }
+      // Use fetch directly with no-cors to prevent page reloads
+      fetch("/api/analytics/track-share", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          invoiceId: invoice.id,
+          shareMethod: method,
+          recipientEmail: email || null,
+          metadata: {
+            shared_at: new Date().toISOString(),
+            invoice_number: invoice.invoiceNumber,
+            client_name: invoice.clientName,
+            amount: invoice.total
+          }
+        }),
+        // Add credentials to ensure cookies are sent
+        credentials: "same-origin"
+      }).catch(e => {
+        // Silently handle errors to prevent disrupting the user experience
+        console.error("Analytics tracking error:", e);
       });
     } catch (error) {
       console.error("Error tracking share:", error);
