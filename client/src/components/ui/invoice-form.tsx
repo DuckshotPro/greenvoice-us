@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { 
   Card, 
   CardContent 
@@ -564,20 +563,42 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
               <CardContent className="p-4 sm:p-6">
                 <div className="flex justify-between items-center">
                   <h4 className="text-base font-medium text-gray-900">Line Items</h4>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addItem}
-                    className="text-primary bg-primary/10 hover:bg-primary/20 border-transparent"
-                  >
-                    <Plus className="mr-1 h-4 w-4" /> Add Item
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={addItem}
+                          className="text-primary bg-primary/10 hover:bg-primary/20 border-transparent"
+                        >
+                          <Plus className="mr-1 h-4 w-4" /> Add Item
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Add a new line item to your invoice</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
 
                 {/* Line items */}
-                {items.map((item, index) => (
-                  <div key={index} className="mt-4 border border-gray-200 rounded-md p-3">
+                <AnimatePresence mode="popLayout">
+                  {items.map((item, index) => (
+                    <motion.div 
+                      key={index}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ 
+                        duration: 0.3, 
+                        delay: index * 0.05,
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 24
+                      }}
+                      className="mt-4 border border-gray-200 rounded-md p-3 hover:border-primary/50 transition-colors">
                     <div className="grid grid-cols-12 gap-3">
                       <div className="col-span-12 sm:col-span-5">
                         <label className="block text-xs font-medium text-gray-700">Description</label>
@@ -643,20 +664,30 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                         </div>
                       </div>
                       <div className="col-span-1 flex items-end justify-end">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeItem(index)}
-                          className="text-gray-400 hover:text-gray-500"
-                          disabled={items.length === 1}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeItem(index)}
+                                className="text-gray-400 hover:text-gray-500"
+                                disabled={items.length === 1}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="left">
+                              <p>{items.length === 1 ? "You must have at least one item" : "Remove this item"}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  </motion.div>
+                  ))}
+                </AnimatePresence>
 
                 {/* Totals */}
                 <div className="mt-4 space-y-2 px-3 py-4 bg-gray-50 rounded-md">
