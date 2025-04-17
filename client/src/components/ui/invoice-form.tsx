@@ -337,7 +337,15 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
     // Notify parent of form changes
     const currentValues = form.getValues();
     onFormChange({ ...currentValues, items });
+    
+    // Apply consistent focus behavior to all date inputs
+    updateAllFocusHandlers();
   }, []);
+  
+  // Call updateAllFocusHandlers whenever the component updates (to handle dynamic renders)
+  useEffect(() => {
+    updateAllFocusHandlers();
+  });
 
   return (
     <Form {...form}>
