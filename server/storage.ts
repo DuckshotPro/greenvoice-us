@@ -209,29 +209,49 @@ export class DatabaseStorage implements IStorage {
     // Extract items and scheduling date from the request
     const { items, scheduledSendDate, ...invoiceData } = invoiceWithItems;
     
-    // Create the invoice first
-    const invoice = await this.createInvoice(invoiceData as InsertInvoice);
-    
-    // Create all the line items
-    if (items && items.length > 0) {
-      for (const item of items) {
-        await this.createLineItem({
+    // Use a database transaction to ensure all operations are atomic
+    return await db.transaction(async (tx) => {
+      // Create the shareable link outside the transaction
+      const shareableLink = nanoid(10);
+      
+      // Create the invoice within the transaction
+      const [invoice] = await tx.insert(invoices).values({
+        ...invoiceData as InsertInvoice,
+        shareableLink,
+        currency: (invoiceData as InsertInvoice).currency || "USD"
+      }).returning();
+      
+      // Batch insert all line items in a single query if items exist
+      if (items && items.length > 0) {
+        // Prepare all line items with the invoice ID
+        const lineItemsToInsert = items.map(item => ({
           ...item,
           invoiceId: invoice.id
-        });
+        }));
+        
+        // Batch insert all line items at once
+        await tx.insert(lineItems).values(lineItemsToInsert);
       }
-    }
-    
-    // If a scheduled date was provided, schedule the invoice
-    if (scheduledSendDate) {
-      const scheduleDate = new Date(scheduledSendDate);
-      await this.scheduleInvoice(invoice.id, scheduleDate);
       
-      // Update invoice status to scheduled
-      await this.updateInvoiceStatus(invoice.id, 'scheduled');
-    }
-    
-    return invoice;
+      // Handle scheduling if needed
+      if (scheduledSendDate) {
+        const scheduleDate = new Date(scheduledSendDate);
+        
+        // Create scheduled invoice record
+        await tx.insert(scheduledInvoices).values({
+          invoiceId: invoice.id,
+          sendDate: scheduleDate,
+          status: 'pending'
+        });
+        
+        // Update invoice status to scheduled
+        await tx.update(invoices)
+          .set({ status: 'scheduled' })
+          .where(eq(invoices.id, invoice.id));
+      }
+      
+      return invoice;
+    });
   }
 
   async updateInvoice(id: number, invoiceUpdate: Partial<InsertInvoice>): Promise<Invoice | undefined> {
@@ -364,20 +384,25 @@ export class DatabaseStorage implements IStorage {
     // Extract items from the request
     const { items, ...templateData } = templateWithItems;
     
-    // Create the template first
-    const template = await this.createRecurringTemplate(templateData);
-    
-    // Create all the template line items
-    if (items && items.length > 0) {
-      for (const item of items) {
-        await this.createTemplateLineItem({
+    // Use a database transaction to ensure all operations are atomic
+    return await db.transaction(async (tx) => {
+      // Create the template first
+      const [template] = await tx.insert(recurringTemplates).values(templateData).returning();
+      
+      // Batch insert all template line items in a single query if items exist
+      if (items && items.length > 0) {
+        // Prepare all line items with the template ID
+        const lineItemsToInsert = items.map(item => ({
           ...item,
           templateId: template.id
-        });
+        }));
+        
+        // Batch insert all line items at once
+        await tx.insert(templateLineItems).values(lineItemsToInsert);
       }
-    }
-    
-    return template;
+      
+      return template;
+    });
   }
   
   async updateRecurringTemplate(id: number, templateUpdate: Partial<InsertRecurringTemplate>): Promise<RecurringTemplate | undefined> {
@@ -536,50 +561,59 @@ export class DatabaseStorage implements IStorage {
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 30);
     
-    // Create the invoice
-    const [invoice] = await db.insert(invoices).values({
-      userId: template.userId,
-      invoiceNumber,
-      issueDate: date.toISOString().split('T')[0],
-      dueDate: dueDate.toISOString().split('T')[0],
-      currency: template.currency,
+    // Use a database transaction to ensure all operations are atomic
+    return await db.transaction(async (tx) => {
+      // Create the shareable link
+      const shareableLink = nanoid(10);
       
-      // Copy sender details from template
-      senderName: template.senderName,
-      senderEmail: template.senderEmail,
-      senderAddress: template.senderAddress,
-      senderPhone: template.senderPhone,
+      // Create the invoice
+      const [invoice] = await tx.insert(invoices).values({
+        userId: template.userId,
+        invoiceNumber,
+        issueDate: date.toISOString().split('T')[0],
+        dueDate: dueDate.toISOString().split('T')[0],
+        currency: template.currency,
+        
+        // Copy sender details from template
+        senderName: template.senderName,
+        senderEmail: template.senderEmail,
+        senderAddress: template.senderAddress,
+        senderPhone: template.senderPhone,
+        
+        // Copy client details from template
+        clientName: template.clientName,
+        clientEmail: template.clientEmail,
+        clientAddress: template.clientAddress,
+        
+        // Financial details
+        subtotal,
+        taxRate: template.taxRate,
+        taxAmount,
+        total,
+        
+        // Additional info
+        notes: template.notes,
+        status: 'draft',
+        recurringTemplateId: template.id,
+        shareableLink
+      }).returning();
       
-      // Copy client details from template
-      clientName: template.clientName,
-      clientEmail: template.clientEmail,
-      clientAddress: template.clientAddress,
+      // Batch insert all line items in a single query
+      if (templateItems.length > 0) {
+        const lineItemsToInsert = templateItems.map(templateItem => ({
+          invoiceId: invoice.id,
+          description: templateItem.description,
+          quantity: templateItem.quantity,
+          rate: templateItem.rate,
+          amount: templateItem.amount
+        }));
+        
+        // Batch insert all line items at once
+        await tx.insert(lineItems).values(lineItemsToInsert);
+      }
       
-      // Financial details
-      subtotal,
-      taxRate: template.taxRate,
-      taxAmount,
-      total,
-      
-      // Additional info
-      notes: template.notes,
-      status: 'draft',
-      recurringTemplateId: template.id,
-      shareableLink: nanoid(10)
-    }).returning();
-    
-    // Create line items
-    for (const templateItem of templateItems) {
-      await db.insert(lineItems).values({
-        invoiceId: invoice.id,
-        description: templateItem.description,
-        quantity: templateItem.quantity,
-        rate: templateItem.rate,
-        amount: templateItem.amount
-      });
-    }
-    
-    return invoice;
+      return invoice;
+    });
   }
   
   // Share analytics methods
