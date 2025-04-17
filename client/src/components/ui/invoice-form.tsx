@@ -30,6 +30,16 @@ const handleNumberFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     e.target.select();
   }
 };
+
+// Update any inline focus handlers to use our standardized handlers
+const updateAllFocusHandlers = () => {
+  // Get all date inputs
+  const dateInputs = document.querySelectorAll('input[type="date"]');
+  dateInputs.forEach(input => {
+    // Remove existing handlers and add our standardized one
+    input.onfocus = (e) => (e.target as HTMLInputElement).select();
+  });
+};
 import {
   Select,
   SelectContent,
@@ -580,7 +590,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                           className="mt-1 w-full cursor-text"
                           value={item.description}
                           onChange={(e) => updateItem(index, 'description', e.target.value)}
-                          onFocus={(e) => e.target.select()}
+                          onFocus={handleInputFocus}
                           readOnly={false}
                         />
                       </div>
@@ -783,7 +793,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                       <FormItem>
                         <FormLabel>Notes/Terms</FormLabel>
                         <FormControl>
-                          <Textarea rows={2} {...field} />
+                          <Textarea rows={2} {...field} onFocus={handleTextareaFocus} />
                         </FormControl>
                       </FormItem>
                     )}
