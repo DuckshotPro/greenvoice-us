@@ -76,9 +76,9 @@ interface InvoiceFormProps {
 }
 
 const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
-  // Initial line items
+  // Initial line items with helpful example item for new users
   const [items, setItems] = useState<LineItem[]>([
-    { description: '', quantity: 1, rate: 0, amount: 0 }
+    { description: 'Professional services', quantity: 1, rate: 100, amount: 100 }
   ]);
 
   // Generate a new invoice number with current date prefix
@@ -212,9 +212,9 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
     onFormChange({ ...currentValues, items: newItems });
   };
 
-  // Add new item
+  // Add new item with sensible defaults for better UX
   const addItem = () => {
-    setItems([...items, { description: '', quantity: 1, rate: 0, amount: 0 }]);
+    setItems([...items, { description: '', quantity: 1, rate: 50, amount: 50 }]);
   };
 
   // Remove item
@@ -296,21 +296,20 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
     return () => subscription.unsubscribe();
   }, [form, items, onFormChange]);
 
-  // Set initial values on mount
+  // Set initial values on mount and calculate totals from pre-populated items
   useEffect(() => {
-    if (defaultValues && defaultValues.subtotal !== undefined) {
-      const { subtotal, discountTotal, taxAmount, total } = calculateTotals(items, form.getValues('taxRate'));
+    // Calculate initial totals from our pre-filled items
+    const { subtotal, discountTotal, taxAmount, total } = calculateTotals(items, form.getValues('taxRate'));
 
-      // Update form values
-      form.setValue('subtotal', subtotal);
-      form.setValue('discountTotal', discountTotal);
-      form.setValue('taxAmount', taxAmount);
-      form.setValue('total', total);
+    // Update form values
+    form.setValue('subtotal', subtotal);
+    form.setValue('discountTotal', discountTotal);
+    form.setValue('taxAmount', taxAmount);
+    form.setValue('total', total);
 
-      // Notify parent of form changes
-      const currentValues = form.getValues();
-      onFormChange({ ...currentValues, items });
-    }
+    // Notify parent of form changes
+    const currentValues = form.getValues();
+    onFormChange({ ...currentValues, items });
   }, []);
 
   return (
@@ -448,7 +447,19 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                       name="invoiceNumber"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Invoice #</FormLabel>
+                          <div className="flex items-center space-x-1">
+                            <FormLabel>Invoice #</FormLabel>
+                            <div className="group relative inline-block">
+                              <span className="cursor-help text-primary-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                              </span>
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-2 bg-gray-800 text-white text-xs rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity z-10">
+                                Format: INV-YYYYMM-###. Pre-filled with current year/month.
+                              </div>
+                            </div>
+                          </div>
                           <FormControl>
                             <Input 
                               {...field} 
