@@ -62,7 +62,7 @@ router.post("/record-view", validateBody(recordViewSchema), async (req: Request,
         shareMethod,
         eventType: "view",
         metadata: metadata || {},
-        timestamp: new Date(),
+        share_timestamp: new Date(),
       })
       .returning();
 
@@ -135,7 +135,7 @@ router.post("/track-share", requireAuth, validateBody(trackShareSchema), async (
           ...metadata,
           recipientEmail: recipientEmail || null,
         },
-        timestamp: new Date(),
+        share_timestamp: new Date(),
       })
       .returning();
 
