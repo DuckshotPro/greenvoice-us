@@ -14,9 +14,16 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 
-// Create a utility function to handle auto-selection of text on focus
+// Create utility functions to handle auto-selection of text on focus
 const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
   e.target.select();
+};
+
+// Specialized handlers for number inputs that only select when the value is zero
+const handleNumberFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+  if (parseFloat(e.target.value) === 0) {
+    e.target.select();
+  }
 };
 import {
   Select,
