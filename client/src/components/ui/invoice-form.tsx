@@ -13,33 +13,12 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-
-// Create utility functions to handle auto-selection of text on focus
-const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-  e.target.select();
-};
-
-// Handler for text area focus
-const handleTextareaFocus = (e: React.FocusEvent<HTMLTextAreaElement>) => {
-  e.target.select();
-};
-
-// Specialized handlers for number inputs that only select when the value is zero
-const handleNumberFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-  if (parseFloat(e.target.value) === 0) {
-    e.target.select();
-  }
-};
-
-// Update any inline focus handlers to use our standardized handlers
-const updateAllFocusHandlers = () => {
-  // Get all date inputs
-  const dateInputs = document.querySelectorAll('input[type="date"]');
-  dateInputs.forEach(input => {
-    // Remove existing handlers and add our standardized one
-    input.onfocus = (e) => (e.target as HTMLInputElement).select();
-  });
-};
+import { 
+  handleInputFocus, 
+  handleTextareaFocus, 
+  handleNumberFocus, 
+  updateAllFocusHandlers 
+} from '@/lib/focus-handlers';
 import {
   Select,
   SelectContent,
