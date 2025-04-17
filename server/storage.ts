@@ -629,38 +629,32 @@ export class DatabaseStorage implements IStorage {
     userAgent?: string,
     ipAddress?: string
   ): Promise<ShareAnalytics | undefined> {
-    // Find the most recent share record for this invoice and method
-    const [existingShare] = await db.select()
-      .from(shareAnalytics)
-      .where(and(
-        eq(shareAnalytics.invoiceId, invoiceId),
-        eq(shareAnalytics.shareMethod, shareMethod)
-      ))
-      .orderBy(desc(shareAnalytics.shareTimestamp))
-      .limit(1);
+    try {
+      // Instead of updating an existing share, create a new record with event_type="view"
+      const [viewRecord] = await db.insert(shareAnalytics).values({
+        invoiceId,
+        shareMethod,
+        eventType: "view",
+        // Store referrer and other tracking data in metadata
+        metadata: {
+          referrer: referrer || null,
+          userAgent: userAgent || null,
+          ipAddress: ipAddress || null
+        }
+      }).returning();
       
-    if (!existingShare) return undefined;
-    
-    // Update the view count and last viewed timestamp
-    const [updatedShare] = await db.update(shareAnalytics)
-      .set({ 
-        viewCount: (existingShare.viewCount || 0) + 1,
-        lastViewedAt: new Date(),
-        referrer: referrer || existingShare.referrer,
-        userAgent: userAgent || existingShare.userAgent,
-        ipAddress: ipAddress || existingShare.ipAddress
-      })
-      .where(eq(shareAnalytics.id, existingShare.id))
-      .returning();
-      
-    return updatedShare;
+      return viewRecord;
+    } catch (error) {
+      console.error("Error recording share view:", error);
+      return undefined;
+    }
   }
   
   async getShareAnalytics(invoiceId: number): Promise<ShareAnalytics[]> {
     return db.select()
       .from(shareAnalytics)
       .where(eq(shareAnalytics.invoiceId, invoiceId))
-      .orderBy(desc(shareAnalytics.shareTimestamp));
+      .orderBy(desc(shareAnalytics.timestamp));
   }
   
   async getShareAnalyticsByMethod(userId: number, options?: { startDate?: Date, endDate?: Date, groupBy?: string }): Promise<{ method: string, count: number }[]> {
