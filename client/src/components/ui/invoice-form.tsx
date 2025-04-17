@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { 
   Card, 
   CardContent 
@@ -29,8 +30,15 @@ import {
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, HelpCircle, Info } from 'lucide-react';
 import { type Invoice, CURRENCY_OPTIONS, formatCurrency } from '@/types/invoice';
+import { 
+  AnimatedButton, 
+  AnimatedSection, 
+  AnimatedListItem, 
+  HelpTooltip 
+} from '@/components/ui/animated-components';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface LineItem {
   description: string;
