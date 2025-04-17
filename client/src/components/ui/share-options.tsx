@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { handleInputFocus, handleTextareaFocus } from "@/lib/focus-handlers";
 import { Clipboard, Copy, Link, Mail, MessageCircle, Share2, Facebook, Linkedin, Twitter, Check } from "lucide-react";
 
 interface ShareOptionsProps {
@@ -215,6 +216,7 @@ export function ShareOptions({ invoice, isLoading = false, onClose }: ShareOptio
                   value={getShareableUrl("link")}
                   readOnly
                   className="flex-1"
+                  onFocus={handleInputFocus}
                 />
                 <Button 
                   onClick={copyLinkToClipboard} 
@@ -245,6 +247,7 @@ export function ShareOptions({ invoice, isLoading = false, onClose }: ShareOptio
                 placeholder="client@example.com"
                 value={recipientEmail}
                 onChange={(e) => setRecipientEmail(e.target.value)}
+                onFocus={handleInputFocus}
                 disabled={isLoading || sendingEmail}
               />
             </div>
@@ -254,6 +257,7 @@ export function ShareOptions({ invoice, isLoading = false, onClose }: ShareOptio
                 id="emailSubject"
                 value={emailSubject}
                 onChange={(e) => setEmailSubject(e.target.value)}
+                onFocus={handleInputFocus}
                 disabled={isLoading || sendingEmail}
               />
             </div>
@@ -264,6 +268,7 @@ export function ShareOptions({ invoice, isLoading = false, onClose }: ShareOptio
                 rows={3}
                 value={emailMessage}
                 onChange={(e) => setEmailMessage(e.target.value)}
+                onFocus={handleTextareaFocus}
                 disabled={isLoading || sendingEmail}
               />
             </div>
