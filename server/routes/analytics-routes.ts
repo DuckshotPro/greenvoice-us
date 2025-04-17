@@ -174,8 +174,8 @@ router.get(
           and(
             eq(shareAnalytics.eventType, "share"),
             req.user?.isAdmin ? undefined : eq(shareAnalytics.userId, req.user?.id || 0),
-            startDate ? gte(shareAnalytics.timestamp, new Date(startDate)) : undefined,
-            endDate ? sql`${shareAnalytics.timestamp} <= ${new Date(endDate)}` : undefined
+            startDate ? gte(shareAnalytics.share_timestamp, new Date(startDate)) : undefined,
+            endDate ? sql`${shareAnalytics.share_timestamp} <= ${new Date(endDate)}` : undefined
           )
         );
 
@@ -184,16 +184,16 @@ router.get(
         query = query.groupBy(shareAnalytics.shareMethod);
       } else if (groupBy === "day") {
         query = query
-          .groupBy(sql`DATE(${shareAnalytics.timestamp})`, shareAnalytics.shareMethod)
-          .orderBy(desc(sql`DATE(${shareAnalytics.timestamp})`));
+          .groupBy(sql`DATE(${shareAnalytics.share_timestamp})`, shareAnalytics.shareMethod)
+          .orderBy(desc(sql`DATE(${shareAnalytics.share_timestamp})`));
       } else if (groupBy === "week") {
         query = query
-          .groupBy(sql`EXTRACT(WEEK FROM ${shareAnalytics.timestamp})`, shareAnalytics.shareMethod)
-          .orderBy(desc(sql`EXTRACT(WEEK FROM ${shareAnalytics.timestamp})`));
+          .groupBy(sql`EXTRACT(WEEK FROM ${shareAnalytics.share_timestamp})`, shareAnalytics.shareMethod)
+          .orderBy(desc(sql`EXTRACT(WEEK FROM ${shareAnalytics.share_timestamp})`));
       } else if (groupBy === "month") {
         query = query
-          .groupBy(sql`EXTRACT(MONTH FROM ${shareAnalytics.timestamp})`, shareAnalytics.shareMethod)
-          .orderBy(desc(sql`EXTRACT(MONTH FROM ${shareAnalytics.timestamp})`));
+          .groupBy(sql`EXTRACT(MONTH FROM ${shareAnalytics.share_timestamp})`, shareAnalytics.shareMethod)
+          .orderBy(desc(sql`EXTRACT(MONTH FROM ${shareAnalytics.share_timestamp})`));
       }
 
       const result = await query;
@@ -228,8 +228,8 @@ router.get(
           and(
             eq(shareAnalytics.eventType, "view"),
             req.user?.isAdmin ? undefined : eq(shareAnalytics.userId, req.user?.id || 0),
-            startDate ? gte(shareAnalytics.timestamp, new Date(startDate)) : undefined,
-            endDate ? sql`${shareAnalytics.timestamp} <= ${new Date(endDate)}` : undefined
+            startDate ? gte(shareAnalytics.share_timestamp, new Date(startDate)) : undefined,
+            endDate ? sql`${shareAnalytics.share_timestamp} <= ${new Date(endDate)}` : undefined
           )
         );
 
@@ -238,16 +238,16 @@ router.get(
         query = query.groupBy(shareAnalytics.invoiceId);
       } else if (groupBy === "day") {
         query = query
-          .groupBy(sql`DATE(${shareAnalytics.timestamp})`, shareAnalytics.invoiceId)
-          .orderBy(desc(sql`DATE(${shareAnalytics.timestamp})`));
+          .groupBy(sql`DATE(${shareAnalytics.share_timestamp})`, shareAnalytics.invoiceId)
+          .orderBy(desc(sql`DATE(${shareAnalytics.share_timestamp})`));
       } else if (groupBy === "week") {
         query = query
-          .groupBy(sql`EXTRACT(WEEK FROM ${shareAnalytics.timestamp})`, shareAnalytics.invoiceId)
-          .orderBy(desc(sql`EXTRACT(WEEK FROM ${shareAnalytics.timestamp})`));
+          .groupBy(sql`EXTRACT(WEEK FROM ${shareAnalytics.share_timestamp})`, shareAnalytics.invoiceId)
+          .orderBy(desc(sql`EXTRACT(WEEK FROM ${shareAnalytics.share_timestamp})`));
       } else if (groupBy === "month") {
         query = query
-          .groupBy(sql`EXTRACT(MONTH FROM ${shareAnalytics.timestamp})`, shareAnalytics.invoiceId)
-          .orderBy(desc(sql`EXTRACT(MONTH FROM ${shareAnalytics.timestamp})`));
+          .groupBy(sql`EXTRACT(MONTH FROM ${shareAnalytics.share_timestamp})`, shareAnalytics.invoiceId)
+          .orderBy(desc(sql`EXTRACT(MONTH FROM ${shareAnalytics.share_timestamp})`));
       }
 
       const result = await query;
