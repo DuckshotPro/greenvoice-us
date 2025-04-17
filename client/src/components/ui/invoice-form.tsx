@@ -353,7 +353,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                       <FormItem>
                         <FormLabel>Business/Full Name</FormLabel>
                         <FormControl>
-                          <Input {...field} onFocus={(e) => e.target.select()} />
+                          <Input {...field} onFocus={handleInputFocus} />
                         </FormControl>
                       </FormItem>
                     )}
@@ -366,7 +366,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                       <FormItem>
                         <FormLabel>Email Address</FormLabel>
                         <FormControl>
-                          <Input type="email" {...field} onFocus={(e) => e.target.select()} />
+                          <Input type="email" {...field} onFocus={handleInputFocus} />
                         </FormControl>
                       </FormItem>
                     )}

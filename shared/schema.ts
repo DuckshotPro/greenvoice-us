@@ -351,7 +351,9 @@ export const shareMetrics = pgTable("share_metrics", {
 
 export const insertShareAnalyticsSchema = createInsertSchema(shareAnalytics).omit({
   id: true,
-  timestamp: true,
+  share_timestamp: true,
+  last_viewed_at: true,
+  view_count: true,
 });
 
 export const insertUtmTrackingSchema = createInsertSchema(utmTracking).omit({
