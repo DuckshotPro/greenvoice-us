@@ -19,6 +19,11 @@ const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
   e.target.select();
 };
 
+// Handler for text area focus
+const handleTextareaFocus = (e: React.FocusEvent<HTMLTextAreaElement>) => {
+  e.target.select();
+};
+
 // Specialized handlers for number inputs that only select when the value is zero
 const handleNumberFocus = (e: React.FocusEvent<HTMLInputElement>) => {
   if (parseFloat(e.target.value) === 0) {
@@ -379,7 +384,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                       <FormItem>
                         <FormLabel>Address</FormLabel>
                         <FormControl>
-                          <Textarea rows={3} {...field} />
+                          <Textarea rows={3} {...field} onFocus={handleTextareaFocus} />
                         </FormControl>
                       </FormItem>
                     )}
