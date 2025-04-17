@@ -81,6 +81,14 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
     { description: '', quantity: 1, rate: 0, amount: 0 }
   ]);
 
+  // Generate a new invoice number with current date prefix
+  const generateInvoiceNumber = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    return `INV-${year}${month}-001`;
+  };
+
   // Setup form with schema validation
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
@@ -92,7 +100,7 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
       clientName: 'Acme Corporation',
       clientEmail: 'billing@acmecorp.com',
       clientAddress: '456 Client Avenue\nNew York, NY 10001\nUnited States',
-      invoiceNumber: 'INV-001',
+      invoiceNumber: generateInvoiceNumber(),
       issueDate: new Date().toISOString().split('T')[0],
       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       currency: 'USD',
@@ -311,8 +319,16 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
         <div className="px-4 sm:px-0">
           <h3 className="text-lg font-medium leading-6 text-gray-900">Create Invoice</h3>
           <p className="mt-1 text-sm text-gray-600">
-            Enter your details below to generate a professional invoice.
+            Welcome! Enter your details below to generate a professional invoice. We've pre-filled the date fields and invoice number for you.
           </p>
+          <div className="mt-2 flex items-center">
+            <div className="inline-flex items-center px-2 py-1 rounded-md bg-primary-50 text-primary-600 text-xs font-medium">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Pro Tip: All numeric fields will auto-select when clicked for faster editing</span>
+            </div>
+          </div>
           <div className="mt-6 space-y-6">
             {/* Your Details */}
             <Card className="shadow-sm">
