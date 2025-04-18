@@ -544,15 +544,20 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button 
-                            type="button" 
-                            onClick={addItem} 
-                            size="sm" 
-                            className="h-8 gap-1"
+                          <motion.div
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                           >
+                            <Button 
+                              type="button" 
+                              onClick={addItem} 
+                              size="sm" 
+                              className="h-8 gap-1"
+                            >
                             <Plus className="h-3.5 w-3.5" />
                             <span>Add Item</span>
                           </Button>
+                          </motion.div>
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>Add a new line item to your invoice</p>
@@ -647,16 +652,21 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => removeItem(index)}
-                                  className="text-gray-400 hover:text-gray-500"
-                                  disabled={items.length === 1}
+                                <motion.div
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.9 }}
                                 >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => removeItem(index)}
+                                    className="text-gray-400 hover:text-gray-500"
+                                    disabled={items.length === 1}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </motion.div>
                               </TooltipTrigger>
                               <TooltipContent side="left">
                                 <p>{items.length === 1 ? "You must have at least one item" : "Remove this item"}</p>
