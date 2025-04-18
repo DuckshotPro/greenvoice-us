@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Card, 
   CardContent 
@@ -561,10 +562,23 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                   </div>
 
                   {/* Line items */}
-                  {items.map((item, index) => (
-                    <div 
-                      key={index}
-                      className="mt-4 border border-gray-200 rounded-md p-3 hover:border-primary/50 transition-colors">
+                  <AnimatePresence initial={false}>
+                    {items.map((item, index) => {
+                      return (
+                        <motion.div 
+                          key={index}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          transition={{ 
+                            duration: 0.3, 
+                            delay: index * 0.05,
+                            type: "spring",
+                            stiffness: 300,
+                            damping: 24
+                          }}
+                          className="mt-4 border border-gray-200 rounded-md p-3 hover:border-primary/50 transition-colors"
+                        >
                       <div className="grid grid-cols-12 gap-3">
                         <div className="col-span-12 sm:col-span-5">
                           <label className="block text-xs font-medium text-gray-700">Description</label>
@@ -651,8 +665,10 @@ const InvoiceForm = ({ defaultValues, onFormChange }: InvoiceFormProps) => {
                           </TooltipProvider>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                        </motion.div>
+                      )
+                    })}
+                  </AnimatePresence>
 
                   {/* Totals */}
                   <div className="mt-4 space-y-2 px-3 py-4 bg-gray-50 rounded-md">
