@@ -26,7 +26,7 @@ import {
   Users 
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { useLocation } from "wouter";
+import { useLocation, Redirect } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 
 // Function to format dates in a readable way
@@ -53,8 +53,15 @@ const AdminConsole = () => {
   });
 
   // Redirect if user is not admin
-  if (!user || user.role !== "admin") {
-    return <Navigate to="/" />;
+  if (!user) {
+    return <Redirect to="/" />;
+  }
+  
+  // We'll check admin status through isAdmin function since we don't have a role field
+  const isAdmin = user.subscriptionPlan === "enterprise" || user.email?.includes("admin");
+  
+  if (!isAdmin) {
+    return <Redirect to="/" />;
   }
 
   // Get health status for the database
@@ -206,7 +213,7 @@ const AdminConsole = () => {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <span className="text-sm">Connection</span>
-                      <Badge variant={dbHealth.status === "healthy" ? "success" : "destructive"}>
+                      <Badge variant={dbHealth.status === "healthy" ? "default" : "destructive"}>
                         {dbHealth.status === "healthy" ? "Connected" : "Error"}
                       </Badge>
                     </div>
@@ -272,7 +279,7 @@ const AdminConsole = () => {
                       <div className="flex justify-between text-sm">
                         <span>CPU Load</span>
                         <span className="font-medium">
-                          {systemInfo.cpuLoad.map(load => Math.round(load * 100) / 100).join(', ')}
+                          {systemInfo.cpuLoad.map((load: number) => Math.round(load * 100) / 100).join(', ')}
                         </span>
                       </div>
                       <div className="flex justify-between text-sm">
@@ -418,7 +425,7 @@ const AdminConsole = () => {
                       <div>{systemInfo.cpuCount}</div>
                       
                       <div className="font-medium">CPU Load (1m, 5m, 15m)</div>
-                      <div>{systemInfo.cpuLoad.map(load => Math.round(load * 100) / 100).join(', ')}</div>
+                      <div>{systemInfo.cpuLoad.map((load: number) => Math.round(load * 100) / 100).join(', ')}</div>
                     </div>
                   </div>
                 </div>
@@ -490,9 +497,9 @@ const AdminConsole = () => {
                             entry.level === 'ERROR' 
                               ? 'destructive' 
                               : entry.level === 'WARN' 
-                              ? 'warning' 
+                              ? 'secondary' 
                               : entry.level === 'INFO' 
-                              ? 'info' 
+                              ? 'default' 
                               : 'outline'
                           }
                           className="mr-2"

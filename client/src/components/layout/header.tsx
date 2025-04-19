@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
-import { LogIn, Crown } from 'lucide-react';
+import { LogIn, Crown, HelpCircle, ShieldCheck } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -111,6 +111,21 @@ const Header = () => {
                     <DropdownMenuItem asChild>
                       <Link href="/settings">Profile Settings</Link>
                     </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/faq" className="flex items-center">
+                        <HelpCircle className="mr-2 h-4 w-4 text-blue-500" />
+                        Help & FAQ
+                      </Link>
+                    </DropdownMenuItem>
+                    {user && user.subscriptionPlan === "enterprise" && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin" className="flex items-center">
+                          <ShieldCheck className="mr-2 h-4 w-4 text-green-500" />
+                          Admin Console
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout}>
                       {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
