@@ -46,12 +46,16 @@ export function ProtectedRoute({
     );
   }
   
-  if (requireAdmin && user.role !== "admin") {
-    return (
-      <Route path={path}>
-        {() => <Redirect to="/" />}
-      </Route>
-    );
+  if (requireAdmin) {
+    // Check admin status through subscription plan or email
+    const isAdmin = user.subscriptionPlan === "enterprise" || user.email?.includes("admin");
+    if (!isAdmin) {
+      return (
+        <Route path={path}>
+          {() => <Redirect to="/" />}
+        </Route>
+      );
+    }
   }
 
   return (
