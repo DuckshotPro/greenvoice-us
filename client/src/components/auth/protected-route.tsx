@@ -6,12 +6,14 @@ interface ProtectedRouteProps {
   path: string;
   component: React.ComponentType<any>;
   requirePremium?: boolean;
+  requireAdmin?: boolean;
 }
 
 export function ProtectedRoute({
   path,
   component: Component,
   requirePremium = false,
+  requireAdmin = false,
 }: ProtectedRouteProps) {
   const { user, isLoading, isPremium } = useAuth();
   const [, setLocation] = useLocation();
@@ -40,6 +42,14 @@ export function ProtectedRoute({
     return (
       <Route path={path}>
         {() => <Redirect to="/premium" />}
+      </Route>
+    );
+  }
+  
+  if (requireAdmin && user.role !== "admin") {
+    return (
+      <Route path={path}>
+        {() => <Redirect to="/" />}
       </Route>
     );
   }

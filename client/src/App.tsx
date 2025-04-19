@@ -13,6 +13,8 @@ import SharedInvoiceView from "@/pages/shared-invoice-view";
 import BrandingSettings from "@/pages/branding-settings";
 import History from "@/pages/history";
 import Settings from "@/pages/settings";
+import FaqPage from "@/pages/faq-page";
+import AdminConsole from "@/pages/admin-console";
 import NotFound from "@/pages/not-found";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 
@@ -23,11 +25,13 @@ function Router() {
       {/* Route for handling redirects from the home page */}
       <Route path="/auth" component={AuthPage} />
       <Route path="/premium" component={PremiumPage} />
+      <Route path="/faq" component={FaqPage} />
       <ProtectedRoute path="/create-invoice" component={CreateInvoice} />
       <ProtectedRoute path="/analytics" component={AnalyticsDashboard} requirePremium />
       <ProtectedRoute path="/branding" component={BrandingSettings} />
       <ProtectedRoute path="/history" component={History} />
       <ProtectedRoute path="/settings" component={Settings} />
+      <ProtectedRoute path="/admin" component={AdminConsole} requireAdmin />
       {/* Public shareable invoice route */}
       <Route path="/share/:shareableLink" component={SharedInvoiceView} />
       <Route component={NotFound} />
