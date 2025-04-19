@@ -184,6 +184,28 @@ const Header = () => {
                     </Link>
                   )}
                   
+                  {/* FAQ Link */}
+                  <Link
+                    href="/faq"
+                    className="flex items-center px-3 py-2 rounded-md text-base font-medium text-blue-700 bg-blue-50"
+                    onClick={() => setIsSheetOpen(false)}
+                  >
+                    <HelpCircle className="mr-2 h-5 w-5 text-blue-500" />
+                    Help & FAQ
+                  </Link>
+                  
+                  {/* Admin Console Link - only for enterprise users */}
+                  {user && user.subscriptionPlan === "enterprise" && (
+                    <Link
+                      href="/admin"
+                      className="flex items-center px-3 py-2 rounded-md text-base font-medium text-green-700 bg-green-50"
+                      onClick={() => setIsSheetOpen(false)}
+                    >
+                      <ShieldCheck className="mr-2 h-5 w-5 text-green-500" />
+                      Admin Console
+                    </Link>
+                  )}
+                  
                   {/* Mobile logout */}
                   {user && (
                     <Button
