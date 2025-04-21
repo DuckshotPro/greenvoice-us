@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { handleInputFocus, handleTextareaFocus } from "@/lib/focus-handlers";
-import { Clipboard, Copy, Link, Mail, MessageCircle, Share2, Facebook, Linkedin, Twitter, Check } from "lucide-react";
+import { Clipboard, Copy, Link, Mail, MessageCircle, Share2, Facebook, Linkedin, Twitter, Check, FileText, Download, Instagram, Smartphone } from "lucide-react";
+import generatePdf from "@/lib/pdf-generator";
 
 interface ShareOptionsProps {
   invoice: Invoice;
@@ -191,7 +192,7 @@ export function ShareOptions({ invoice, isLoading = false, onClose }: ShareOptio
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="link" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="link">
               <Link className="mr-2 h-4 w-4" />
               Link
@@ -203,6 +204,10 @@ export function ShareOptions({ invoice, isLoading = false, onClose }: ShareOptio
             <TabsTrigger value="social">
               <MessageCircle className="mr-2 h-4 w-4" />
               Social
+            </TabsTrigger>
+            <TabsTrigger value="export">
+              <FileText className="mr-2 h-4 w-4" />
+              Export
             </TabsTrigger>
           </TabsList>
           
