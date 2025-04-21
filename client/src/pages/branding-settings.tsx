@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
-import { Loader2, Save, Image, PaintBucket, RefreshCw, CheckCircle } from "lucide-react";
+import { Loader2, Save, Image, PaintBucket, RefreshCw, CheckCircle, Upload, X } from "lucide-react";
 import { HexColorPicker } from "react-colorful";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs as TabsComponent, TabsList as TabsListComponent, TabsTrigger as TabsTriggerComponent, TabsContent as TabsContentComponent } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { useDropzone } from "react-dropzone";
 import { 
   BrandingSettings,
   getBrandingSettings, 
@@ -37,6 +38,7 @@ export default function BrandingSettingsPage() {
   const [previewLogoUrl, setPreviewLogoUrl] = useState<string>('');
   const [previewPatternUrl, setPreviewPatternUrl] = useState<string>('');
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   
   // Check if user has premium access
   const hasPremium = user?.subscriptionPlan === "premium" || (user?.premiumDaysRemaining && user.premiumDaysRemaining > 0);
@@ -219,6 +221,88 @@ export default function BrandingSettingsPage() {
       setIsGeneratingPattern(false);
     }
   };
+  
+  // Handle logo file upload
+  const onLogoUpload = useCallback(async (acceptedFiles: File[]) => {
+    if (acceptedFiles.length === 0) return;
+    
+    const file = acceptedFiles[0];
+    
+    // Check file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Logo image must be less than 2MB in size.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Check file type
+    if (!file.type.match('image/(jpeg|jpg|png|gif|svg+xml)')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file (JPEG, PNG, GIF, or SVG).",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsUploadingLogo(true);
+    
+    try {
+      // Convert file to data URL
+      const reader = new FileReader();
+      
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(new Error("Failed to read file"));
+        reader.readAsDataURL(file);
+      });
+      
+      // Set the logo URL
+      setPreviewLogoUrl(dataUrl);
+      
+      // Update settings with the new logo URL
+      if (settings) {
+        setSettings({
+          ...settings,
+          logoUrl: dataUrl,
+          showLogo: true
+        });
+      }
+      
+      toast({
+        title: "Logo uploaded",
+        description: "Your custom logo has been uploaded successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Upload failed",
+        description: "Could not upload the logo image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  }, [settings, toast]);
+  
+  // Configure dropzone
+  const {
+    getRootProps: getLogoDropzoneProps,
+    getInputProps: getLogoInputProps,
+    isDragActive: isLogoDragActive
+  } = useDropzone({
+    onDrop: onLogoUpload,
+    accept: {
+      'image/jpeg': [],
+      'image/png': [],
+      'image/gif': [],
+      'image/svg+xml': []
+    },
+    maxFiles: 1,
+    multiple: false
+  });
   
   if (isLoading) {
     return (
