@@ -593,57 +593,158 @@ export default function BrandingSettingsPage() {
                 
                 <TabsContent value="logo" className="py-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="logoDescription" className="mb-2 block font-medium">
-                        Logo Description
-                      </Label>
-                      <div className="space-y-4">
-                        <Input
-                          id="logoDescription"
-                          placeholder="e.g., minimalist tech logo with blue colors"
-                          value={logoDescription}
-                          onChange={(e) => setLogoDescription(e.target.value)}
-                        />
-                        <Button 
-                          onClick={handleGenerateLogo} 
-                          disabled={isGeneratingLogo || !logoDescription}
-                          className="w-full"
-                        >
-                          {isGeneratingLogo ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Generating...
-                            </>
-                          ) : (
-                            <>
-                              <Image className="mr-2 h-4 w-4" />
-                              Generate Logo
-                            </>
+                    <div className="space-y-6">
+                      {/* AI Logo Generation */}
+                      <div>
+                        <Label htmlFor="logoDescription" className="mb-2 block font-medium">
+                          AI Logo Generation {!hasPremium && <span className="text-sm text-muted-foreground">(Premium)</span>}
+                        </Label>
+                        <div className="space-y-4">
+                          <Input
+                            id="logoDescription"
+                            placeholder="e.g., minimalist tech logo with blue colors"
+                            value={logoDescription}
+                            onChange={(e) => setLogoDescription(e.target.value)}
+                          />
+                          <Button 
+                            onClick={handleGenerateLogo} 
+                            disabled={isGeneratingLogo || !logoDescription}
+                            className="w-full"
+                          >
+                            {isGeneratingLogo ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Generating...
+                              </>
+                            ) : (
+                              <>
+                                <Image className="mr-2 h-4 w-4" />
+                                Generate Logo
+                              </>
+                            )}
+                          </Button>
+                          
+                          {!hasPremium && (
+                            <p className="text-sm text-muted-foreground">
+                              Logo generation requires premium access. Watch an ad to gain temporary access.
+                            </p>
                           )}
-                        </Button>
-                        
-                        {!hasPremium && (
-                          <p className="text-sm text-muted-foreground">
-                            Logo generation requires premium access. Watch an ad to gain temporary access.
-                          </p>
-                        )}
+                        </div>
+                      </div>
+                      
+                      {/* Logo Upload */}
+                      <div>
+                        <Label className="mb-2 block font-medium">
+                          Upload Custom Logo
+                        </Label>
+                        <div 
+                          {...getLogoDropzoneProps()} 
+                          className={`border-2 border-dashed rounded-lg p-4 transition-colors cursor-pointer
+                            ${isLogoDragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/20 hover:border-primary/50 hover:bg-primary/5'}`}
+                        >
+                          <input {...getLogoInputProps()} />
+                          <div className="flex flex-col items-center justify-center text-center h-28">
+                            {isUploadingLogo ? (
+                              <>
+                                <Loader2 className="h-8 w-8 mb-2 animate-spin text-primary" />
+                                <p className="text-sm text-muted-foreground">Uploading...</p>
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="h-8 w-8 mb-2 text-muted-foreground" />
+                                <p className="text-sm text-muted-foreground">
+                                  Drag & drop or click to upload a logo
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Supports JPG, PNG, GIF, SVG (Max: 2MB)
+                                </p>
+                              </>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
                     
                     <div>
-                      <Label className="mb-2 block font-medium">Preview</Label>
-                      <div className="border rounded-md flex items-center justify-center bg-background h-40">
+                      <Label className="mb-2 block font-medium">Logo Preview</Label>
+                      <div className="border rounded-lg h-52 flex flex-col items-center justify-center overflow-hidden bg-gray-50 relative">
                         {previewLogoUrl ? (
-                          <img 
-                            src={previewLogoUrl} 
-                            alt="Generated Logo" 
-                            className="max-h-full max-w-full object-contain" 
-                          />
+                          <>
+                            <img 
+                              src={previewLogoUrl} 
+                              alt="Logo preview" 
+                              className="max-h-full max-w-full object-contain p-4"
+                            />
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="absolute top-2 right-2 h-6 w-6 rounded-full bg-white/80 hover:bg-white"
+                              onClick={() => {
+                                setPreviewLogoUrl("");
+                                if (settings) {
+                                  setSettings({
+                                    ...settings,
+                                    logoUrl: null,
+                                    showLogo: false
+                                  });
+                                }
+                              }}
+                            >
+                              <X className="h-3 w-3" />
+                              <span className="sr-only">Clear logo</span>
+                            </Button>
+                          </>
+                        ) : settings.logoUrl ? (
+                          <>
+                            <img 
+                              src={settings.logoUrl} 
+                              alt="Current logo" 
+                              className="max-h-full max-w-full object-contain p-4"
+                            />
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="absolute top-2 right-2 h-6 w-6 rounded-full bg-white/80 hover:bg-white"
+                              onClick={() => {
+                                if (settings) {
+                                  setSettings({
+                                    ...settings,
+                                    logoUrl: null,
+                                    showLogo: false
+                                  });
+                                }
+                              }}
+                            >
+                              <X className="h-3 w-3" />
+                              <span className="sr-only">Clear logo</span>
+                            </Button>
+                          </>
                         ) : (
-                          <p className="text-muted-foreground text-sm text-center px-4">
-                            Your generated logo will appear here
-                          </p>
+                          <div className="text-muted-foreground text-center p-4">
+                            <Image className="h-8 w-8 mx-auto mb-2 opacity-40" />
+                            <p>Generate a logo or upload your own</p>
+                            <p className="text-xs mt-2">Your logo will appear on your invoices</p>
+                          </div>
                         )}
+                      </div>
+                      <div className="mt-4">
+                        <Label htmlFor="showLogo" className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            id="showLogo"
+                            checked={settings?.showLogo}
+                            onChange={(e) => {
+                              if (settings) {
+                                setSettings({
+                                  ...settings,
+                                  showLogo: e.target.checked
+                                });
+                              }
+                            }}
+                            className="rounded border-gray-300 text-primary focus:ring-primary"
+                          />
+                          <span>Display logo on invoices</span>
+                        </Label>
                       </div>
                     </div>
                   </div>
