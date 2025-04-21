@@ -163,6 +163,24 @@ export function ShareOptions({ invoice, isLoading = false, onClose }: ShareOptio
       case "whatsapp":
         url = `https://wa.me/?text=${shareText}%20${shareUrl}`;
         break;
+      case "instagram":
+        // Instagram doesn't have a direct share URL, alert user to use the link or story
+        toast({
+          title: "Instagram Sharing",
+          description: "Copy the link to share in your Instagram story or post"
+        });
+        navigator.clipboard.writeText(getShareableUrl(platform));
+        trackShare(platform);
+        return;
+      case "telegram":
+        url = `https://t.me/share/url?url=${shareUrl}&text=${shareText}`;
+        break;
+      case "email":
+        url = `mailto:?subject=${shareText}&body=${shareText}%20${shareUrl}`;
+        break;
+      case "sms":
+        url = `sms:?body=${shareText}%20${shareUrl}`;
+        break;
       default:
         return;
     }
@@ -170,13 +188,40 @@ export function ShareOptions({ invoice, isLoading = false, onClose }: ShareOptio
     // Track the share
     trackShare(platform);
     
-    // Open in a new window
-    window.open(url, "_blank", "width=600,height=400");
+    // Open in a new window (except for mobile-specific options)
+    if (platform === "sms") {
+      window.location.href = url;
+    } else {
+      window.open(url, "_blank", "width=600,height=400");
+    }
     
     toast({
       title: "Shared!",
       description: `The invoice has been shared via ${platform.charAt(0).toUpperCase() + platform.slice(1)}.`
     });
+  };
+  
+  // Export to PDF
+  const exportToPdf = () => {
+    try {
+      // Use the generatePdf function from our imported module
+      generatePdf(invoice as any);
+      
+      // Track the export
+      trackShare("pdf_export");
+      
+      toast({
+        title: "PDF Generated!",
+        description: "Your invoice has been exported as a PDF file."
+      });
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      toast({
+        title: "Export Failed",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -318,10 +363,90 @@ export function ShareOptions({ invoice, isLoading = false, onClose }: ShareOptio
                 <MessageCircle className="h-5 w-5 text-[#25D366]" />
                 <span>WhatsApp</span>
               </Button>
+              <Button
+                className="flex items-center justify-center space-x-2"
+                variant="outline"
+                onClick={() => shareToSocial("instagram")}
+                disabled={isLoading}
+              >
+                <Instagram className="h-5 w-5 text-[#E1306C]" />
+                <span>Instagram</span>
+              </Button>
+              <Button
+                className="flex items-center justify-center space-x-2"
+                variant="outline"
+                onClick={() => shareToSocial("telegram")}
+                disabled={isLoading}
+              >
+                <MessageCircle className="h-5 w-5 text-[#0088cc]" />
+                <span>Telegram</span>
+              </Button>
+              <Button
+                className="flex items-center justify-center space-x-2"
+                variant="outline"
+                onClick={() => shareToSocial("sms")}
+                disabled={isLoading}
+              >
+                <Smartphone className="h-5 w-5 text-[#5BC236]" />
+                <span>SMS</span>
+              </Button>
+              <Button
+                className="flex items-center justify-center space-x-2"
+                variant="outline"
+                onClick={() => shareToSocial("email")}
+                disabled={isLoading}
+              >
+                <Mail className="h-5 w-5 text-[#D44638]" />
+                <span>Email Link</span>
+              </Button>
             </div>
             <p className="text-sm text-muted-foreground text-center mt-2">
-              Share this invoice directly to social media platforms
+              Share this invoice directly to social media and messaging platforms
             </p>
+          </TabsContent>
+          
+          {/* Export options */}
+          <TabsContent value="export" className="space-y-4">
+            <div className="mt-4">
+              <div className="grid grid-cols-1 gap-6">
+                <div className="border rounded-lg p-4 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <FileText className="h-8 w-8 text-primary mr-3" />
+                      <div>
+                        <h3 className="font-medium">PDF Document</h3>
+                        <p className="text-sm text-muted-foreground">Export invoice as a professional PDF document</p>
+                      </div>
+                    </div>
+                    <Button 
+                      onClick={exportToPdf}
+                      disabled={isLoading}
+                      className="ml-4"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Export
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Add more export options in the future */}
+                <div className="border border-dashed rounded-lg p-4 opacity-60">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <FileText className="h-8 w-8 text-muted-foreground mr-3" />
+                      <div>
+                        <h3 className="font-medium">More Export Options</h3>
+                        <p className="text-sm text-muted-foreground">Additional export formats coming soon</p>
+                      </div>
+                    </div>
+                    <Button disabled className="ml-4">
+                      <Download className="h-4 w-4 mr-2" />
+                      Coming Soon
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </CardContent>
@@ -337,6 +462,14 @@ export function ShareOptions({ invoice, isLoading = false, onClose }: ShareOptio
             disabled={!recipientEmail || isLoading || sendingEmail}
           >
             {sendingEmail ? "Sending..." : "Send Email"}
+          </Button>
+        ) : activeTab === "export" ? (
+          <Button
+            onClick={exportToPdf}
+            disabled={isLoading}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export PDF
           </Button>
         ) : (
           <Button
