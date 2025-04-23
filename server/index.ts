@@ -71,7 +71,9 @@ app.use((req, res, next) => {
           userAgent: req.headers['user-agent'],
           referer: req.headers.referer,
           origin: req.headers.origin
-        })
+        }),
+        // Add request body keys (not values) for better debugging
+        bodyKeys: req.body ? Object.keys(req.body) : []
       }
     );
   }
@@ -84,23 +86,55 @@ app.use((req, res, next) => {
   res.on("finish", () => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
+      // Enhanced performance logging with more context
       ErrorLogger.logPerformance(
         `${req.method} ${path}`,
         duration,
         {
           statusCode: res.statusCode,
           path,
-          method: req.method
+          method: req.method,
+          // Log slow responses with warning level
+          slow: duration > 500 ? true : undefined
         }
       );
+      
+      // Log failed requests (status >= 400)
+      if (res.statusCode >= 400) {
+        const level = res.statusCode >= 500 ? LogLevel.ERROR : LogLevel.WARNING;
+        ErrorLogger.logActivity(
+          level,
+          LogCategory.SYSTEM,
+          `Request error: ${req.method} ${path} returned ${res.statusCode}`,
+          'RequestLogger',
+          {
+            statusCode: res.statusCode,
+            path,
+            method: req.method,
+            duration,
+            query: req.query,
+            // Only include safe data
+            userId: req.user?.id
+          }
+        );
+      }
     }
   });
 
   next();
 });
 
+// Import error handling middleware
+import { errorHandler, notFoundHandler } from './middleware/error-handler';
+
 (async () => {
   const server = await registerRoutes(app);
+  
+  // Apply the 404 handler after all routes are registered
+  app.use(notFoundHandler);
+  
+  // Apply the global error handler last
+  app.use(errorHandler);
 
   app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
     // Get relevant request information
