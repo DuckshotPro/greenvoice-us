@@ -1,11 +1,11 @@
 import { Router, Request, Response } from "express";
-import { db } from "../db";
+import { db } from "../models/db";
 import { and, eq, desc, sql, gte, count } from "drizzle-orm";
 import { shareAnalytics, utmTracking } from "@shared/schema";
 import { z } from "zod";
 import { validateBody, validateQuery } from "../middleware/validation";
 import { requireAuth } from "../middleware/auth";
-import { logInfo, logError } from "../lib/error-logger";
+import { logInfo, logError } from "../utils/error-logger";
 
 // Create router for analytics endpoints
 const router = Router();

@@ -12,7 +12,7 @@ import {
   type InvoiceWithItems, type RecurringTemplateWithItems
 } from "@shared/schema";
 import { nanoid } from "nanoid";
-import { db, pool } from "../models/db";
+import { db, pool } from "./db";
 import { eq, and, gte, lt, desc, asc } from "drizzle-orm";
 
 // Storage interface
@@ -81,13 +81,19 @@ export interface IStorage {
   // Track when an invoice is shared
   trackShareAnalytics(shareData: InsertShareAnalytics): Promise<ShareAnalytics>;
   // Record a view when a shared invoice is viewed
-  recordShareView(invoiceId: number, shareMethod: string, referrer?: string, userAgent?: string, ipAddress?: string, metadata?: Record<string, any>): Promise<ShareAnalytics | undefined>;
+  recordShareView(invoiceId: number, shareMethod: string, referrer?: string, userAgent?: string, ipAddress?: string): Promise<ShareAnalytics | undefined>;
   // Get share analytics for a specific invoice
   getShareAnalytics(invoiceId: number): Promise<ShareAnalytics[]>;
   // Get share analytics grouped by method (for reporting)
-  getShareAnalyticsByMethod(userId: number): Promise<{ method: string, count: number }[]>;
+  getShareAnalyticsByMethod(userId: number, options?: { startDate?: Date, endDate?: Date, groupBy?: string }): Promise<{ method: string, count: number }[]>;
   // Get view analytics for shared invoices
-  getShareViewAnalytics(userId: number): Promise<{ invoiceId: number, views: number }[]>;
+  getShareViewAnalytics(userId: number, options?: { startDate?: Date, endDate?: Date, groupBy?: string }): Promise<{ invoiceId: number, views: number }[]>;
+  
+  // Count methods for testing database health
+  getUserCount(): Promise<number>;
+  getInvoiceCount(): Promise<number>;
+  getShareAnalyticsCount(): Promise<number>;
+  getSubscriptionPlansCount(): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -203,29 +209,49 @@ export class DatabaseStorage implements IStorage {
     // Extract items and scheduling date from the request
     const { items, scheduledSendDate, ...invoiceData } = invoiceWithItems;
     
-    // Create the invoice first
-    const invoice = await this.createInvoice(invoiceData as InsertInvoice);
-    
-    // Create all the line items
-    if (items && items.length > 0) {
-      for (const item of items) {
-        await this.createLineItem({
+    // Use a database transaction to ensure all operations are atomic
+    return await db.transaction(async (tx) => {
+      // Create the shareable link outside the transaction
+      const shareableLink = nanoid(10);
+      
+      // Create the invoice within the transaction
+      const [invoice] = await tx.insert(invoices).values({
+        ...invoiceData as InsertInvoice,
+        shareableLink,
+        currency: (invoiceData as InsertInvoice).currency || "USD"
+      }).returning();
+      
+      // Batch insert all line items in a single query if items exist
+      if (items && items.length > 0) {
+        // Prepare all line items with the invoice ID
+        const lineItemsToInsert = items.map(item => ({
           ...item,
           invoiceId: invoice.id
-        });
+        }));
+        
+        // Batch insert all line items at once
+        await tx.insert(lineItems).values(lineItemsToInsert);
       }
-    }
-    
-    // If a scheduled date was provided, schedule the invoice
-    if (scheduledSendDate) {
-      const scheduleDate = new Date(scheduledSendDate);
-      await this.scheduleInvoice(invoice.id, scheduleDate);
       
-      // Update invoice status to scheduled
-      await this.updateInvoiceStatus(invoice.id, 'scheduled');
-    }
-    
-    return invoice;
+      // Handle scheduling if needed
+      if (scheduledSendDate) {
+        const scheduleDate = new Date(scheduledSendDate);
+        
+        // Create scheduled invoice record
+        await tx.insert(scheduledInvoices).values({
+          invoiceId: invoice.id,
+          sendDate: scheduleDate,
+          status: 'pending'
+        });
+        
+        // Update invoice status to scheduled
+        await tx.update(invoices)
+          .set({ status: 'scheduled' })
+          .where(eq(invoices.id, invoice.id));
+      }
+      
+      return invoice;
+    });
   }
 
   async updateInvoice(id: number, invoiceUpdate: Partial<InsertInvoice>): Promise<Invoice | undefined> {
@@ -358,20 +384,25 @@ export class DatabaseStorage implements IStorage {
     // Extract items from the request
     const { items, ...templateData } = templateWithItems;
     
-    // Create the template first
-    const template = await this.createRecurringTemplate(templateData);
-    
-    // Create all the template line items
-    if (items && items.length > 0) {
-      for (const item of items) {
-        await this.createTemplateLineItem({
+    // Use a database transaction to ensure all operations are atomic
+    return await db.transaction(async (tx) => {
+      // Create the template first
+      const [template] = await tx.insert(recurringTemplates).values(templateData).returning();
+      
+      // Batch insert all template line items in a single query if items exist
+      if (items && items.length > 0) {
+        // Prepare all line items with the template ID
+        const lineItemsToInsert = items.map(item => ({
           ...item,
           templateId: template.id
-        });
+        }));
+        
+        // Batch insert all line items at once
+        await tx.insert(templateLineItems).values(lineItemsToInsert);
       }
-    }
-    
-    return template;
+      
+      return template;
+    });
   }
   
   async updateRecurringTemplate(id: number, templateUpdate: Partial<InsertRecurringTemplate>): Promise<RecurringTemplate | undefined> {
@@ -530,50 +561,59 @@ export class DatabaseStorage implements IStorage {
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 30);
     
-    // Create the invoice
-    const [invoice] = await db.insert(invoices).values({
-      userId: template.userId,
-      invoiceNumber,
-      issueDate: date.toISOString().split('T')[0],
-      dueDate: dueDate.toISOString().split('T')[0],
-      currency: template.currency,
+    // Use a database transaction to ensure all operations are atomic
+    return await db.transaction(async (tx) => {
+      // Create the shareable link
+      const shareableLink = nanoid(10);
       
-      // Copy sender details from template
-      senderName: template.senderName,
-      senderEmail: template.senderEmail,
-      senderAddress: template.senderAddress,
-      senderPhone: template.senderPhone,
+      // Create the invoice
+      const [invoice] = await tx.insert(invoices).values({
+        userId: template.userId,
+        invoiceNumber,
+        issueDate: date.toISOString().split('T')[0],
+        dueDate: dueDate.toISOString().split('T')[0],
+        currency: template.currency,
+        
+        // Copy sender details from template
+        senderName: template.senderName,
+        senderEmail: template.senderEmail,
+        senderAddress: template.senderAddress,
+        senderPhone: template.senderPhone,
+        
+        // Copy client details from template
+        clientName: template.clientName,
+        clientEmail: template.clientEmail,
+        clientAddress: template.clientAddress,
+        
+        // Financial details
+        subtotal,
+        taxRate: template.taxRate,
+        taxAmount,
+        total,
+        
+        // Additional info
+        notes: template.notes,
+        status: 'draft',
+        recurringTemplateId: template.id,
+        shareableLink
+      }).returning();
       
-      // Copy client details from template
-      clientName: template.clientName,
-      clientEmail: template.clientEmail,
-      clientAddress: template.clientAddress,
+      // Batch insert all line items in a single query
+      if (templateItems.length > 0) {
+        const lineItemsToInsert = templateItems.map(templateItem => ({
+          invoiceId: invoice.id,
+          description: templateItem.description,
+          quantity: templateItem.quantity,
+          rate: templateItem.rate,
+          amount: templateItem.amount
+        }));
+        
+        // Batch insert all line items at once
+        await tx.insert(lineItems).values(lineItemsToInsert);
+      }
       
-      // Financial details
-      subtotal,
-      taxRate: template.taxRate,
-      taxAmount,
-      total,
-      
-      // Additional info
-      notes: template.notes,
-      status: 'draft',
-      recurringTemplateId: template.id,
-      shareableLink: nanoid(10)
-    }).returning();
-    
-    // Create line items
-    for (const templateItem of templateItems) {
-      await db.insert(lineItems).values({
-        invoiceId: invoice.id,
-        description: templateItem.description,
-        quantity: templateItem.quantity,
-        rate: templateItem.rate,
-        amount: templateItem.amount
-      });
-    }
-    
-    return invoice;
+      return invoice;
+    });
   }
   
   // Share analytics methods
@@ -587,42 +627,34 @@ export class DatabaseStorage implements IStorage {
     shareMethod: string,
     referrer?: string,
     userAgent?: string,
-    ipAddress?: string,
-    metadata?: Record<string, any>
+    ipAddress?: string
   ): Promise<ShareAnalytics | undefined> {
-    // Find the most recent share record for this invoice and method
-    const [existingShare] = await db.select()
-      .from(shareAnalytics)
-      .where(and(
-        eq(shareAnalytics.invoiceId, invoiceId),
-        eq(shareAnalytics.shareMethod, shareMethod)
-      ))
-      .orderBy(desc(shareAnalytics.shareTimestamp))
-      .limit(1);
+    try {
+      // Instead of updating an existing share, create a new record with event_type="view"
+      const [viewRecord] = await db.insert(shareAnalytics).values({
+        invoiceId,
+        shareMethod,
+        eventType: "view",
+        // Store referrer and other tracking data in metadata
+        metadata: {
+          referrer: referrer || null,
+          userAgent: userAgent || null,
+          ipAddress: ipAddress || null
+        }
+      }).returning();
       
-    if (!existingShare) return undefined;
-    
-    // Update the view count and last viewed timestamp
-    const [updatedShare] = await db.update(shareAnalytics)
-      .set({ 
-        viewCount: (existingShare.viewCount || 0) + 1,
-        lastViewedAt: new Date(),
-        referrer: referrer || existingShare.referrer,
-        userAgent: userAgent || existingShare.userAgent,
-        ipAddress: ipAddress || existingShare.ipAddress,
-        metadata: metadata || existingShare.metadata
-      })
-      .where(eq(shareAnalytics.id, existingShare.id))
-      .returning();
-      
-    return updatedShare;
+      return viewRecord;
+    } catch (error) {
+      console.error("Error recording share view:", error);
+      return undefined;
+    }
   }
   
   async getShareAnalytics(invoiceId: number): Promise<ShareAnalytics[]> {
     return db.select()
       .from(shareAnalytics)
       .where(eq(shareAnalytics.invoiceId, invoiceId))
-      .orderBy(desc(shareAnalytics.shareTimestamp));
+      .orderBy(desc(shareAnalytics.timestamp));
   }
   
   async getShareAnalyticsByMethod(userId: number, options?: { startDate?: Date, endDate?: Date, groupBy?: string }): Promise<{ method: string, count: number }[]> {
@@ -672,7 +704,7 @@ export class DatabaseStorage implements IStorage {
     const result = await pool.query(query, params);
     
     // Handle the result format
-    const rows = result as unknown as { rows: Array<{ method: string, count: string }> };
+    const rows = result;
     
     return (rows.rows || []).map((row: any) => ({
       method: row.method,
@@ -680,7 +712,7 @@ export class DatabaseStorage implements IStorage {
     }));
   }
   
-  async getShareViewAnalytics(userId: number, options?: { startDate?: Date, endDate?: Date, groupBy?: string }): Promise<{ invoiceId: number, views: number, date?: Date }[]> {
+  async getShareViewAnalytics(userId: number, options?: { startDate?: Date, endDate?: Date, groupBy?: string }): Promise<{ invoiceId: number, views: number }[]> {
     // First get all invoices for this user
     const userInvoices = await this.getAllInvoices(userId);
     const invoiceIds = userInvoices.map(invoice => invoice.id);
@@ -732,13 +764,34 @@ export class DatabaseStorage implements IStorage {
     const result = await pool.query(query, params);
     
     // Handle the result format
-    const rows = result as unknown as { rows: Array<{ invoiceId: string, views: string, date?: string }> };
+    const rows = result;
     
     return (rows.rows || []).map((row: any) => ({
       invoiceId: parseInt(row.invoiceId),
       views: parseInt(row.views),
-      ...(row.date && { date: new Date(row.date) })
+      ...(row.date && { date: row.date })
     }));
+  }
+
+  // Count methods for database health checks
+  async getUserCount(): Promise<number> {
+    const result = await pool.query('SELECT COUNT(*) as count FROM users');
+    return parseInt(result.rows[0].count);
+  }
+
+  async getInvoiceCount(): Promise<number> {
+    const result = await pool.query('SELECT COUNT(*) as count FROM invoices');
+    return parseInt(result.rows[0].count);
+  }
+
+  async getShareAnalyticsCount(): Promise<number> {
+    const result = await pool.query('SELECT COUNT(*) as count FROM share_analytics');
+    return parseInt(result.rows[0].count);
+  }
+
+  async getSubscriptionPlansCount(): Promise<number> {
+    const result = await pool.query('SELECT COUNT(*) as count FROM subscription_plans');
+    return parseInt(result.rows[0].count);
   }
 }
 

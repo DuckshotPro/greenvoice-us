@@ -1,4 +1,4 @@
-import { ErrorLogger, LogLevel, LogCategory } from "../lib/error-logger";
+import { ErrorLogger, LogLevel, LogCategory } from "./error-logger";
 
 /**
  * Logger utility functions for consistent logging across the application
