@@ -1,5 +1,5 @@
 import { InvoiceProcessor } from "./invoice-processor";
-import { logInfo, logError } from "../lib/error-logger";
+import { logInfo, logError } from "../utils/error-logger";
 
 // Configuration for scheduled tasks
 const SCHEDULED_INVOICES_INTERVAL = 5 * 60 * 1000; // Run every 5 minutes

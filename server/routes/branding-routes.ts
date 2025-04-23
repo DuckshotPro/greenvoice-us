@@ -1,10 +1,10 @@
 import express, { Request, Response } from 'express';
 import { z } from 'zod';
 import { generateLogo, generatePattern } from '../services/huggingface-service';
-import { storage } from '../storage';
+import { storage } from '../models/storage';
 import { validateBody } from '../middleware/validation';
 import { requireAuth } from '../middleware/auth';
-import { logError, logInfo } from '../utils/logger';
+import { logError, logInfo } from '../utils/error-logger';
 
 // Add type augmentation for the user object on the request
 declare global {

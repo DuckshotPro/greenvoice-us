@@ -1,7 +1,6 @@
-import { Request, Response, NextFunction, Express } from "express";
-import { logWarning, logInfo } from "../utils/logger";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
+import { Express, Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
@@ -34,32 +33,10 @@ async function hashPassword(password: string) {
  * @returns {Promise<boolean>} True if passwords match, false otherwise.
  */
 async function comparePasswords(supplied: string, stored: string) {
-  // For now, let's use simple equality for testing/demo purposes
-  // In production, you would use proper password hashing
-  
-  // Handle bcrypt format (starting with $2a$, $2b$, etc.)
-  if (stored.startsWith('$2')) {
-    // Return true for any login with password "password" for testing
-    // This is a temporary fix - In production, use bcrypt.compare
-    return supplied === "password";
-  }
-  
-  // Handle our custom scrypt format (hash.salt)
-  if (stored.includes('.')) {
-    try {
-      const [hashed, salt] = stored.split(".");
-      const hashedBuf = Buffer.from(hashed, "hex");
-      const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
-      return timingSafeEqual(hashedBuf, suppliedBuf);
-    } catch (err) {
-      console.error('Error comparing passwords with scrypt:', err);
-      return false;
-    }
-  }
-  
-  // Fallback for old password format - direct comparison for demo
-  // For production, you would migrate these to secure hashes
-  return supplied === "admin";
+  const [hashed, salt] = stored.split(".");
+  const hashedBuf = Buffer.from(hashed, "hex");
+  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+  return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
 /**
@@ -73,7 +50,9 @@ export function setupAuth(app: Express) {
     saveUninitialized: false,
     cookie: {
       secure: process.env.NODE_ENV === "production",
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours default
+      httpOnly: true,
+      sameSite: 'lax'
     }
   };
 
@@ -136,6 +115,20 @@ export function setupAuth(app: Express) {
       if (!user) {
         return res.status(401).json({ message: info.message || "Invalid credentials" });
       }
+      
+      // If rememberMe is true, extend session expiration
+      if (req.body.rememberMe) {
+        // Set cookie to expire in 30 days
+        if (req.session.cookie) {
+          req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
+        }
+      } else {
+        // Set session to expire when the browser is closed
+        if (req.session.cookie) {
+          req.session.cookie.maxAge = 0;
+        }
+      }
+      
       req.login(user, (err: Error | null) => {
         if (err) return next(err);
         // Return user without password
@@ -160,72 +153,28 @@ export function setupAuth(app: Express) {
     const { password, ...userWithoutPassword } = req.user as SelectUser;
     res.json(userWithoutPassword);
   });
-  
-  logInfo("Authentication setup complete", "AuthMiddleware");
 }
 
 /**
  * Middleware to require authentication for protected routes
- * @param req Express request object
- * @param res Express response object
- * @param next Express next function
  */
 export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   if (!req.isAuthenticated()) {
-    logWarning(
-      `Unauthorized access attempt to protected route: ${req.path}`,
-      'AuthMiddleware',
-      {
-        path: req.path,
-        ip: req.ip,
-        userAgent: req.get('User-Agent')
-      }
-    );
-    
     return res.status(401).json({ message: "Authentication required" });
   }
-  
   next();
 };
 
 /**
- * Middleware to require admin role for protected admin routes
- * @param req Express request object
- * @param res Express response object
- * @param next Express next function
+ * Middleware to require admin role for admin-only routes
  */
 export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
-  // First check if user is authenticated
   if (!req.isAuthenticated()) {
-    logWarning(
-      `Unauthorized access attempt to admin route: ${req.path}`,
-      'AuthMiddleware',
-      {
-        path: req.path,
-        ip: req.ip,
-        userAgent: req.get('User-Agent')
-      }
-    );
-    
     return res.status(401).json({ message: "Authentication required" });
   }
   
-  // Then check if user is an admin
-  // In a production app, you would check the user's role
-  // For this prototype, we check for an isAdmin property or an API key
-  const apiKey = req.headers['x-admin-api-key'];
-  if ((!req.user.isAdmin) && (!apiKey || apiKey !== process.env.ADMIN_API_KEY)) {
-    logWarning(
-      `Unauthorized admin access attempt: ${req.path}`,
-      'AuthMiddleware',
-      {
-        path: req.path,
-        userId: req.user.id,
-        userAgent: req.get('User-Agent')
-      }
-    );
-    
-    return res.status(403).json({ message: "Unauthorized access to admin endpoint" });
+  if (!req.user?.isAdmin) {
+    return res.status(403).json({ message: "Admin privileges required" });
   }
   
   next();

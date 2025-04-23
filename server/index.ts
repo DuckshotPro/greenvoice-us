@@ -1,8 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
+import { registerRoutes } from "./routes/routes";
 import { setupVite, serveStatic, log } from "./utils/vite";
 import { scheduler } from "./services/scheduler";
-import { ErrorLogger, LogLevel, LogCategory, logInfo, logError } from "./lib/error-logger";
+import { ErrorLogger, LogLevel, LogCategory, logInfo, logError } from "./utils/error-logger";
 // Custom frontend router no longer needed
 // import customFrontendRouter from "./custom-frontend";
 import dotenv from "dotenv";
@@ -129,8 +129,21 @@ import { errorHandler, notFoundHandler } from './middleware/error-handler';
 
 (async () => {
   const server = await registerRoutes(app);
+
+  // Don't use the custom frontend router as we now have a working React app
+  // app.use(customFrontendRouter);
+  logInfo('Using standard Vite frontend router', 'ServerStartup');
+
+  // importantly only setup vite in development and after
+  // setting up all the other routes so the catch-all route
+  // doesn't interfere with the other routes
+  if (app.get("env") === "development") {
+    await setupVite(app, server);
+  } else {
+    serveStatic(app);
+  }
   
-  // Apply the 404 handler after all routes are registered
+  // Apply the 404 handler after Vite middleware
   app.use(notFoundHandler);
   
   // Apply the global error handler last
@@ -170,19 +183,6 @@ import { errorHandler, notFoundHandler } from './middleware/error-handler';
     });
   });
   
-  // Don't use the custom frontend router as we now have a working React app
-  // app.use(customFrontendRouter);
-  logInfo('Using standard Vite frontend router', 'ServerStartup');
-
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
-
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
