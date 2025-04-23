@@ -951,6 +951,18 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
   app.get("/api/test/database-status", async (req: Request, res: Response) => {
     try {
       // Test database connection
+      // Define a type for database tables to avoid indexing errors
+      type DbTables = {
+        users: boolean;
+        invoices: boolean;
+        share_analytics: boolean;
+        subscription_plans: boolean;
+        subscription_transactions: boolean;
+        ad_rewards: boolean;
+        coupons: boolean;
+        [key: string]: boolean; // Add index signature to allow dynamic access
+      };
+      
       const dbStatus = {
         connected: true,
         tables: {
@@ -961,7 +973,7 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
           subscription_transactions: false,
           ad_rewards: false,
           coupons: false
-        },
+        } as DbTables,
         counts: {} as Record<string, number>,
         schemas: [] as string[]
       };
