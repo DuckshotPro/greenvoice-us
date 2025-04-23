@@ -74,7 +74,10 @@ export function setupAuth(app: Express) {
             subscriptionPlan: user.subscriptionPlan || 'free',
             premiumDaysRemaining: user.premiumDaysRemaining ?? 0,
             totalInvoicesSent: user.totalInvoicesSent ?? 0,
-            lastAdDaysAwarded: user.lastAdDaysAwarded ?? 0
+            lastAdDaysAwarded: user.lastAdDaysAwarded ?? 0,
+            brandingSettings: user.brandingSettings || '',
+            customTemplateId: user.customTemplateId || '',
+            logoUrl: user.logoUrl || ''
           };
           return done(null, safeUser);
         }
@@ -97,7 +100,10 @@ export function setupAuth(app: Express) {
         subscriptionPlan: user.subscriptionPlan || 'free',
         premiumDaysRemaining: user.premiumDaysRemaining ?? 0,
         totalInvoicesSent: user.totalInvoicesSent ?? 0,
-        lastAdDaysAwarded: user.lastAdDaysAwarded ?? 0
+        lastAdDaysAwarded: user.lastAdDaysAwarded ?? 0,
+        brandingSettings: user.brandingSettings || '',
+        customTemplateId: user.customTemplateId || '',
+        logoUrl: user.logoUrl || ''
       };
       done(null, safeUser);
     } catch (error) {
@@ -130,7 +136,10 @@ export function setupAuth(app: Express) {
         subscriptionPlan: user.subscriptionPlan || 'free',
         premiumDaysRemaining: user.premiumDaysRemaining ?? 0,
         totalInvoicesSent: user.totalInvoicesSent ?? 0,
-        lastAdDaysAwarded: user.lastAdDaysAwarded ?? 0
+        lastAdDaysAwarded: user.lastAdDaysAwarded ?? 0,
+        brandingSettings: user.brandingSettings || '',
+        customTemplateId: user.customTemplateId || '',
+        logoUrl: user.logoUrl || ''
       };
 
       req.login(safeUser, (err) => {
