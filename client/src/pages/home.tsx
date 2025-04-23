@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Invoice } from '@/types/invoice';
+import { Invoice, formatCurrency } from '@/types/invoice';
 import { 
   PlusCircle, 
   FileText, 
@@ -423,7 +423,7 @@ const Home = () => {
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <div>${invoice.total.toFixed(2)}</div>
+                            <div>{formatCurrency(invoice.total, invoice.currency || 'USD')}</div>
                             <Badge 
                               variant={
                                 invoice.status === 'paid' ? 'default' :
@@ -478,7 +478,7 @@ const Home = () => {
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <div>${invoice.total.toFixed(2)}</div>
+                            <div>{formatCurrency(invoice.total, invoice.currency || 'USD')}</div>
                             <Badge variant="outline">Draft</Badge>
                             <Button variant="ghost" size="sm" asChild>
                               <Link href={`/create-invoice?id=${invoice.id}`}>
@@ -524,7 +524,7 @@ const Home = () => {
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <div>${invoice.total.toFixed(2)}</div>
+                            <div>{formatCurrency(invoice.total, invoice.currency || 'USD')}</div>
                             <Badge>Paid</Badge>
                             <Button variant="ghost" size="sm" asChild>
                               <Link href={`/create-invoice?id=${invoice.id}`}>

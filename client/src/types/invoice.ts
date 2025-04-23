@@ -18,6 +18,7 @@ export interface Invoice {
   issueDate: string;
   dueDate: string;
   currency: string;
+  status?: 'draft' | 'scheduled' | 'sent' | 'paid' | 'void' | 'overdue';
   
   // Sender details
   senderName: string;
