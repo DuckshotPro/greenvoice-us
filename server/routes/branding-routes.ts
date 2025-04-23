@@ -125,7 +125,8 @@ router.post('/generate-pattern', requireAuth, validateBody(patternRequestSchema)
     });
   } catch (error: any) {
     logError('Error generating pattern', 'BrandingService', { error });
-    res.status(500).json({ message: 'Failed to generate pattern', error: error.message });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    res.status(500).json({ message: 'Failed to generate pattern', error: errorMessage });
   }
 });
 
@@ -159,7 +160,8 @@ router.post('/settings', requireAuth, validateBody(brandingSettingsSchema), asyn
     });
   } catch (error: any) {
     logError('Error saving branding settings', 'BrandingService', { error });
-    res.status(500).json({ message: 'Failed to save branding settings', error: error.message });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    res.status(500).json({ message: 'Failed to save branding settings', error: errorMessage });
   }
 });
 
@@ -178,9 +180,10 @@ router.get('/settings', requireAuth, async (req: Request, res: Response) => {
         logoUrl: user.logoUrl || settings.logoUrl
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     logError('Error retrieving branding settings', 'BrandingService', { error });
-    res.status(500).json({ message: 'Failed to retrieve branding settings', error: error.message });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    res.status(500).json({ message: 'Failed to retrieve branding settings', error: errorMessage });
   }
 });
 

@@ -1031,12 +1031,12 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
         time: new Date().toISOString(),
         status: dbStatus
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error checking database status:", error);
       res.status(500).json({ 
         success: false, 
         message: "Error checking database status",
-        error: error.message instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error)
       });
     }
   });
