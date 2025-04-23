@@ -82,42 +82,42 @@ export const invoices = pgTable("invoices", {
   issueDate: text("issue_date").notNull(),
   dueDate: text("due_date").notNull(),
   currency: text("currency").notNull().default("USD"),
-  
+
   // Sender details
   senderName: text("sender_name").notNull(),
   senderEmail: text("sender_email").notNull(),
   senderAddress: text("sender_address").notNull(),
   senderPhone: text("sender_phone").notNull(),
-  
+
   // Client details
   clientName: text("client_name").notNull(),
   clientEmail: text("client_email").notNull(),
   clientAddress: text("client_address").notNull(),
-  
+
   // Financial details
   subtotal: doublePrecision("subtotal").notNull(),
   taxRate: doublePrecision("tax_rate").notNull().default(0),
   taxAmount: doublePrecision("tax_amount").notNull().default(0),
   total: doublePrecision("total").notNull(),
-  
+
   // Additional info
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
-  
+
   // Invoice status
   status: invoiceStatusEnum("status").default("draft"),
-  
+
   // Scheduled sending info
   scheduledSendDate: timestamp("scheduled_send_date"),
   sentAt: timestamp("sent_at"),
-  
+
   // Recurring template reference (if this is an invoice generated from a recurring template)
   recurringTemplateId: integer("recurring_template_id"),
 
   // Payment info
   paidAt: timestamp("paid_at"),
   paymentMethod: text("payment_method"),
-  
+
   // Sharing info
   shareableLink: text("shareable_link"),
 });
@@ -127,26 +127,26 @@ export const recurringTemplates = pgTable("recurring_templates", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   name: text("name").notNull(),
-  
+
   // Base invoice data (template)
   invoicePrefix: text("invoice_prefix").notNull(), // For generating invoice numbers
   currency: text("currency").notNull().default("USD"),
-  
+
   // Sender details
   senderName: text("sender_name").notNull(),
   senderEmail: text("sender_email").notNull(),
   senderAddress: text("sender_address").notNull(),
   senderPhone: text("sender_phone").notNull(),
-  
+
   // Client details
   clientName: text("client_name").notNull(),
   clientEmail: text("client_email").notNull(),
   clientAddress: text("client_address").notNull(),
-  
+
   // Financial template
   taxRate: doublePrecision("tax_rate").notNull().default(0),
   notes: text("notes"),
-  
+
   // Recurring settings
   frequency: recurringFrequencyEnum("frequency").notNull(),
   startDate: timestamp("start_date").notNull(),
@@ -154,7 +154,7 @@ export const recurringTemplates = pgTable("recurring_templates", {
   nextInvoiceDate: timestamp("next_invoice_date").notNull(),
   dayOfMonth: integer("day_of_month"), // For monthly/quarterly/yearly
   dayOfWeek: integer("day_of_week"), // For weekly (0 = Sunday, 6 = Saturday)
-  
+
   // Status
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
@@ -389,3 +389,46 @@ export const recurringTemplateWithItemsSchema = insertRecurringTemplateSchema.ex
 
 export type InvoiceWithItems = z.infer<typeof invoiceWithItemsSchema>;
 export type RecurringTemplateWithItems = z.infer<typeof recurringTemplateWithItemsSchema>;
+
+// Add your schema definitions here
+// Business metrics schema
+export type BusinessMetric = {
+  id?: string;
+  eventType: string;
+  timestamp: string;
+  userId?: string;
+  invoiceId?: string;
+  amount?: number;
+  currency?: string;
+  featureName?: string;
+  conversionType?: string;
+  journeyName?: string;
+  stepName?: string;
+  duration?: number;
+  successful?: boolean;
+  additionalData?: Record<string, any>;
+};
+
+// Log schema
+export type LogEntry = {
+  id?: string;
+  level: 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL';
+  source: string;
+  message: string;
+  timestamp: string;
+  userId?: string;
+  path?: string;
+  metadata?: Record<string, any>;
+};
+
+// User journey schema
+export type UserJourneyEntry = {
+  id?: string;
+  userId: string;
+  journeyName: string;
+  stepName: string;
+  timestamp: string;
+  timeSpentMs?: number;
+  isComplete: boolean;
+  additionalData?: Record<string, any>;
+};
