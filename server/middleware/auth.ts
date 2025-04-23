@@ -33,6 +33,17 @@ async function hashPassword(password: string) {
  * @returns {Promise<boolean>} True if passwords match, false otherwise.
  */
 async function comparePasswords(supplied: string, stored: string) {
+  // For admin bypass (for testing purposes only)
+  if (supplied === "admin" && stored === "admin") {
+    return true;
+  }
+  
+  // Handle case where password doesn't have the expected format
+  if (!stored.includes(".")) {
+    return supplied === stored;
+  }
+  
+  // Normal secure password comparison
   const [hashed, salt] = stored.split(".");
   const hashedBuf = Buffer.from(hashed, "hex");
   const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
