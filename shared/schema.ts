@@ -443,10 +443,14 @@ export type Attachment = {
 
 export type Payment = {
   id: string;
+  invoiceId: string;
+  userId: string;
   amount: number;
-  method: string;
-  date: string;
-  // Add other relevant payment properties
+  currency: string;
+  paymentMethod: string;
+  tipAmount?: number;
+  note?: string;
+  createdAt: Date;
 };
 
 export type Invoice = {

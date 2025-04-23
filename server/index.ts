@@ -208,7 +208,13 @@ import { errorHandler, notFoundHandler } from './middleware/error-handler';
 })();
 
 // Register API routes
+import routes from "./routes/routes.ts";
+import analyticsRoutes from "./routes/analytics-routes.ts";
+import brandingRoutes from "./routes/branding-routes.ts";
+import paymentRoutes from "./routes/payment-routes.ts"; //Import payment routes
+
 app.use('/api', routes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/branding', brandingRoutes);
 app.use('/api/attachments', attachmentRoutes); // Added attachment routes
+app.use('/api', paymentRoutes); // Added payment routes

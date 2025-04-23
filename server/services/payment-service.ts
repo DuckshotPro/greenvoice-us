@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from 'uuid';
 import { storage } from '../models/storage';
 import { logInfo, logError } from '../utils/logger';
@@ -31,12 +30,12 @@ export class PaymentService {
 
       // Calculate invoice total
       const invoiceTotal = this.calculateInvoiceTotal(invoice);
-      
+
       // Validate payment amount
       if (paymentData.amount <= 0) {
         throw new Error('Payment amount must be positive');
       }
-      
+
       if (paymentData.amount > invoiceTotal) {
         throw new Error('Payment amount exceeds invoice total');
       }
@@ -137,16 +136,16 @@ export class PaymentService {
     try {
       const totalPaid = await this.getTotalPaid(invoice.id);
       const invoiceTotal = this.calculateInvoiceTotal(invoice);
-      
+
       let newStatus = invoice.status;
-      
+
       // Determine payment status
       if (totalPaid >= invoiceTotal) {
         newStatus = 'paid';
       } else if (totalPaid > 0) {
         newStatus = 'partially_paid';
       }
-      
+
       // Only update if status has changed
       if (newStatus !== invoice.status) {
         await storage.updateInvoiceStatus(invoice.id, newStatus);
@@ -165,19 +164,19 @@ export class PaymentService {
     const subtotal = invoice.items.reduce((total, item) => {
       return total + (item.quantity * item.price);
     }, 0);
-    
+
     // Apply discount if any
     let discountedAmount = subtotal;
     if (invoice.discount && invoice.discount > 0) {
       discountedAmount -= (subtotal * invoice.discount) / 100;
     }
-    
+
     // Apply tax if any
     let total = discountedAmount;
     if (invoice.taxRate && invoice.taxRate > 0) {
       total += (discountedAmount * invoice.taxRate) / 100;
     }
-    
+
     return total;
   }
 }

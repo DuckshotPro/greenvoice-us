@@ -4,6 +4,7 @@ import { PaymentService } from '../services/payment-service';
 import { activityTrackers } from '../middleware/activity-tracker';
 import { isAuthenticated } from '../middleware/auth';
 import { storage } from '../models/storage';
+import { body, param, validationResult } from 'express-validator';
 
 const router = Router();
 
@@ -11,8 +12,21 @@ const router = Router();
 router.post(
   '/invoices/:invoiceId/payments',
   isAuthenticated,
+  [
+    param('invoiceId').isString().withMessage('Invoice ID must be provided'),
+    body('amount').isNumeric().withMessage('Amount must be a number'),
+    body('currency').isString().withMessage('Currency is required'),
+    body('paymentMethod').isString().withMessage('Payment method is required'),
+    body('tipAmount').optional().isNumeric().withMessage('Tip must be a number'),
+    body('note').optional().isString().withMessage('Note must be a string')
+  ],
   activityTrackers.processPayment,
   async (req, res) => {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
     try {
       const { invoiceId } = req.params;
       const userId = req.user.id;
