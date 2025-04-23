@@ -962,8 +962,8 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
           ad_rewards: false,
           coupons: false
         },
-        counts: {},
-        schemas: []
+        counts: {} as Record<string, number>,
+        schemas: [] as string[]
       };
 
       try {

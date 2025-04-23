@@ -177,7 +177,7 @@ router.get(
             startDate ? gte(shareAnalytics.share_timestamp, new Date(startDate)) : undefined,
             endDate ? sql`${shareAnalytics.share_timestamp} <= ${new Date(endDate)}` : undefined
           )
-        );
+        ) as any;
 
       // Handle different grouping options
       if (groupBy === "method") {
@@ -199,8 +199,9 @@ router.get(
       const result = await query;
 
       return res.status(200).json(result);
-    } catch (error) {
-      logError("Error fetching share methods analytics", "AnalyticsController", { error });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logError("Error fetching share methods analytics", "AnalyticsController", { error: errorMessage });
       return res.status(500).json({ error: "Failed to fetch share methods analytics" });
     }
   }
@@ -231,7 +232,7 @@ router.get(
             startDate ? gte(shareAnalytics.share_timestamp, new Date(startDate)) : undefined,
             endDate ? sql`${shareAnalytics.share_timestamp} <= ${new Date(endDate)}` : undefined
           )
-        );
+        ) as any;
 
       // Handle different grouping options
       if (groupBy === "method") {
@@ -253,8 +254,9 @@ router.get(
       const result = await query;
 
       return res.status(200).json(result);
-    } catch (error) {
-      logError("Error fetching share views analytics", "AnalyticsController", { error });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logError("Error fetching share views analytics", "AnalyticsController", { error: errorMessage });
       return res.status(500).json({ error: "Failed to fetch share views analytics" });
     }
   }
@@ -315,8 +317,9 @@ router.get(
         views: viewCount?.count || 0,
         utmSources,
       });
-    } catch (error) {
-      logError("Error fetching invoice share analytics", "AnalyticsController", { error, invoiceId: req.params.invoiceId });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logError("Error fetching invoice share analytics", "AnalyticsController", { error: errorMessage, invoiceId: req.params.invoiceId });
       return res.status(500).json({ error: "Failed to fetch invoice share analytics" });
     }
   }
