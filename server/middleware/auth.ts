@@ -68,7 +68,15 @@ export function setupAuth(app: Express) {
         if (!user || !(await comparePasswords(password, user.password))) {
           return done(null, false, { message: "Invalid username or password" });
         } else {
-          return done(null, user);
+          // Enforce non-null for required fields as per our schema definition
+          const safeUser: Express.User = {
+            ...user,
+            subscriptionPlan: user.subscriptionPlan || 'free',
+            premiumDaysRemaining: user.premiumDaysRemaining ?? 0,
+            totalInvoicesSent: user.totalInvoicesSent ?? 0,
+            lastAdDaysAwarded: user.lastAdDaysAwarded ?? 0
+          };
+          return done(null, safeUser);
         }
       } catch (error) {
         return done(error);
@@ -80,7 +88,18 @@ export function setupAuth(app: Express) {
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
-      done(null, user);
+      if (!user) {
+        return done(null, false);
+      }
+      // Ensure required fields are never null
+      const safeUser: Express.User = {
+        ...user,
+        subscriptionPlan: user.subscriptionPlan || 'free',
+        premiumDaysRemaining: user.premiumDaysRemaining ?? 0,
+        totalInvoicesSent: user.totalInvoicesSent ?? 0,
+        lastAdDaysAwarded: user.lastAdDaysAwarded ?? 0
+      };
+      done(null, safeUser);
     } catch (error) {
       done(error);
     }
@@ -93,15 +112,31 @@ export function setupAuth(app: Express) {
         return res.status(400).json({ message: "Username already exists" });
       }
 
-      const user = await storage.createUser({
+      // Prepare user data with default values for required fields
+      const userData = {
         ...req.body,
         password: await hashPassword(req.body.password),
-      });
+        subscriptionPlan: 'free',
+        premiumDaysRemaining: 0,
+        totalInvoicesSent: 0,
+        lastAdDaysAwarded: 0,
+      };
 
-      req.login(user, (err) => {
+      const user = await storage.createUser(userData);
+
+      // Create safe user to fix type issues
+      const safeUser: Express.User = {
+        ...user,
+        subscriptionPlan: user.subscriptionPlan || 'free',
+        premiumDaysRemaining: user.premiumDaysRemaining ?? 0,
+        totalInvoicesSent: user.totalInvoicesSent ?? 0,
+        lastAdDaysAwarded: user.lastAdDaysAwarded ?? 0
+      };
+
+      req.login(safeUser, (err) => {
         if (err) return next(err);
         // Return user without password
-        const { password, ...userWithoutPassword } = user;
+        const { password, ...userWithoutPassword } = safeUser;
         res.status(201).json(userWithoutPassword);
       });
     } catch (error) {
@@ -110,7 +145,7 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err: Error | null, user: SelectUser | false, info: { message: string }) => {
+    passport.authenticate("local", (err: Error | null, user: Express.User | false, info: { message: string }) => {
       if (err) return next(err);
       if (!user) {
         return res.status(401).json({ message: info.message || "Invalid credentials" });
