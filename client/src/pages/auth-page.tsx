@@ -37,14 +37,14 @@ import { useToast } from '@/hooks/use-toast';
 
 const loginSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string().min(5, 'Password must be at least 5 characters'),
   rememberMe: z.boolean().optional(),
 });
 
 const registerSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
   email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string().min(5, 'Password must be at least 5 characters'),
   fullName: z.string().optional(),
 });
 

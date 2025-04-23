@@ -276,6 +276,23 @@ const Home = () => {
 
           {/* Quick Actions */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <Card className="border-dashed border-2 border-primary/50 bg-primary/5 h-full">
+              <CardContent className="p-6 h-full flex flex-col items-center justify-center text-center">
+                <div className="p-3 rounded-full bg-primary/10 mb-4">
+                  <PlusCircle className="h-8 w-8 text-primary" />
+                </div>
+                <CardTitle className="text-xl mb-2">Ready to Invoice?</CardTitle>
+                <CardDescription className="mb-4">
+                  Create a new invoice with pre-filled information
+                </CardDescription>
+                <Button asChild className="mt-auto bg-gradient-to-r from-primary to-primary/80">
+                  <Link href="/create-invoice">
+                    Create New Invoice
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+            
             <Button asChild variant="outline" className="h-auto py-6 flex flex-col items-center justify-center gap-2">
               <Link href="/create-invoice">
                 <PlusCircle className="h-6 w-6 mb-1" />
