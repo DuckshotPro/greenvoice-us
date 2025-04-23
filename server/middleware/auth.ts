@@ -126,6 +126,9 @@ export function setupAuth(app: Express) {
         premiumDaysRemaining: 0,
         totalInvoicesSent: 0,
         lastAdDaysAwarded: 0,
+        brandingSettings: '',
+        customTemplateId: '',
+        logoUrl: '',
       };
 
       const user = await storage.createUser(userData);

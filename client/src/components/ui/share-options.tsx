@@ -57,7 +57,7 @@ export function ShareOptions({ invoice, isLoading = false, onClose }: ShareOptio
         body: JSON.stringify({
           invoiceId: invoice.id,
           shareMethod: method,
-          recipientEmail: email || null,
+          recipient_email: email || null,
           metadata: {
             shared_at: new Date().toISOString(),
             invoice_number: invoice.invoiceNumber,

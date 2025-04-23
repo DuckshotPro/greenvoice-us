@@ -95,7 +95,7 @@ router.post('/generate-logo', requireAuth, validateBody(logoRequestSchema), asyn
 router.post('/generate-pattern', requireAuth, validateBody(patternRequestSchema), async (req: Request, res: Response) => {
   try {
     // Check if user has premium access for pattern generation
-    const user = req.user;
+    const user = req.user!; // We know user exists because of requireAuth middleware
     const hasPremium = 
       user.subscriptionPlan !== 'free' || 
       (user.premiumDaysRemaining && user.premiumDaysRemaining > 0);
@@ -123,7 +123,7 @@ router.post('/generate-pattern', requireAuth, validateBody(patternRequestSchema)
         prompt: result.prompt
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     logError('Error generating pattern', 'BrandingService', { error });
     res.status(500).json({ message: 'Failed to generate pattern', error: error.message });
   }
@@ -132,7 +132,7 @@ router.post('/generate-pattern', requireAuth, validateBody(patternRequestSchema)
 // Save branding settings
 router.post('/settings', requireAuth, validateBody(brandingSettingsSchema), async (req: Request, res: Response) => {
   try {
-    const user = req.user;
+    const user = req.user!; // We know user exists because of requireAuth middleware
     const settings = req.body;
     
     // Store settings as JSON string
@@ -157,7 +157,7 @@ router.post('/settings', requireAuth, validateBody(brandingSettingsSchema), asyn
       message: 'Branding settings saved successfully',
       settings: JSON.parse(updatedUser.brandingSettings || '{}')
     });
-  } catch (error) {
+  } catch (error: any) {
     logError('Error saving branding settings', 'BrandingService', { error });
     res.status(500).json({ message: 'Failed to save branding settings', error: error.message });
   }
@@ -166,7 +166,7 @@ router.post('/settings', requireAuth, validateBody(brandingSettingsSchema), asyn
 // Get current branding settings
 router.get('/settings', requireAuth, async (req: Request, res: Response) => {
   try {
-    const user = req.user;
+    const user = req.user!; // We know user exists because of requireAuth middleware
     
     // Parse the stored JSON string
     const settings = user.brandingSettings ? JSON.parse(user.brandingSettings) : {};
