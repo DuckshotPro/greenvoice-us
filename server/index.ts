@@ -209,7 +209,7 @@ import { errorHandler, notFoundHandler } from './middleware/error-handler';
 
 // Register API routes
 import routes from "./routes/routes.ts";
-import analyticsRoutes from "./routes/analytics-routes.ts";
+import { analyticsRoutes } from "./routes/analytics-routes.ts";
 import brandingRoutes from "./routes/branding-routes.ts";
 import paymentRoutes from "./routes/payment-routes.ts"; //Import payment routes
 

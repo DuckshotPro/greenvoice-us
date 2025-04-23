@@ -5,7 +5,7 @@ import path from 'path';
 import fs from 'fs';
 import { FileAttachmentService } from '../services/file-attachment-service';
 import { activityTrackers } from '../middleware/activity-tracker';
-import { isAuthenticated } from '../middleware/auth';
+import { requireAuth } from '../middleware/auth';
 
 const router = Router();
 
@@ -25,7 +25,7 @@ const upload = multer({
 // Add attachment to invoice
 router.post(
   '/invoices/:invoiceId/attachments',
-  isAuthenticated,
+  requireAuth,
   activityTrackers.createAttachment,
   upload.single('file'),
   async (req, res) => {
@@ -53,7 +53,7 @@ router.post(
 // Get all attachments for an invoice
 router.get(
   '/invoices/:invoiceId/attachments',
-  isAuthenticated,
+  requireAuth,
   async (req, res) => {
     try {
       const { invoiceId } = req.params;
@@ -68,7 +68,7 @@ router.get(
 // Delete an attachment
 router.delete(
   '/attachments/:attachmentId',
-  isAuthenticated,
+  requireAuth,
   activityTrackers.deleteAttachment,
   async (req, res) => {
     try {
