@@ -1,154 +1,102 @@
 
-import { storage } from '../models/storage';
-import { logInfo, logError } from './logger';
+import { db } from "../models/db";
+import { logAudit } from "../utils/logger";
 
 /**
- * DBLogger provides methods for logging database operations
- * This helps with debugging, performance monitoring, and auditing
+ * Database operation logger
+ * Logs database operations for auditing and debugging
  */
-export class DBLogger {
-  private static readonly SOURCE = 'Database';
-  
+export class DbLogger {
   /**
-   * Log a database query
-   * @param operation The database operation (e.g., SELECT, INSERT)
-   * @param table The table being accessed
-   * @param duration Time taken for the operation in milliseconds
-   * @param details Additional details about the operation
+   * Log a database create operation
+   * @param entity The entity name (table/collection)
+   * @param userId The user who performed the action
+   * @param data The data that was created (sanitized)
+   * @param entityId The ID of the created entity
    */
-  static logQuery(
-    operation: string,
-    table: string,
-    duration: number,
-    details?: Record<string, any>
-  ): void {
-    logInfo(
-      `DB ${operation} on ${table} (${duration}ms)`,
-      this.SOURCE,
-      details
-    );
+  static logCreate(entity: string, userId: number, data: any, entityId?: number): void {
+    // Sanitize data to remove sensitive fields
+    const safeData = this.sanitizeData(data);
     
-    // For performance monitoring, log slower queries at a higher level
-    if (duration > 500) {
-      logError(
-        `Slow DB ${operation} on ${table} (${duration}ms)`,
-        this.SOURCE,
-        details
-      );
-    }
-  }
-  
-  /**
-   * Log a database error
-   * @param operation The database operation that failed
-   * @param table The table being accessed
-   * @param error The error that occurred
-   * @param details Additional details about the operation
-   */
-  static logError(
-    operation: string,
-    table: string,
-    error: unknown,
-    details?: Record<string, any>
-  ): void {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    const errorStack = error instanceof Error ? error.stack : undefined;
-    
-    logError(
-      `DB Error in ${operation} on ${table}: ${errorMessage}`,
-      this.SOURCE,
+    logAudit(
+      `Created ${entity}`,
+      userId,
       {
-        ...details,
-        errorStack
+        action: 'create',
+        entity,
+        entityId,
+        data: safeData
       }
     );
   }
   
   /**
-   * Log a database transaction
-   * @param status Status of the transaction (started, committed, rolled back)
-   * @param details Additional details about the transaction
+   * Log a database update operation
+   * @param entity The entity name (table/collection)
+   * @param userId The user who performed the action
+   * @param entityId The ID of the updated entity
+   * @param changes What fields were changed
+   * @param previousValues Optional previous values for important fields
    */
-  static logTransaction(
-    status: 'started' | 'committed' | 'rolled_back',
-    details?: Record<string, any>
+  static logUpdate(
+    entity: string, 
+    userId: number, 
+    entityId: number, 
+    changes: string[],
+    previousValues?: Record<string, any>
   ): void {
-    logInfo(
-      `Transaction ${status}`,
-      this.SOURCE,
-      details
+    logAudit(
+      `Updated ${entity} #${entityId}`,
+      userId,
+      {
+        action: 'update',
+        entity,
+        entityId,
+        changedFields: changes,
+        previousValues: previousValues ? this.sanitizeData(previousValues) : undefined
+      }
     );
   }
   
   /**
-   * Log a database schema change
-   * @param operation The schema operation (e.g., CREATE TABLE, ALTER TABLE)
-   * @param object The database object being modified
-   * @param details Additional details about the operation
+   * Log a database delete operation
+   * @param entity The entity name (table/collection)
+   * @param userId The user who performed the action
+   * @param entityId The ID of the deleted entity
    */
-  static logSchemaChange(
-    operation: string,
-    object: string,
-    details?: Record<string, any>
-  ): void {
-    logInfo(
-      `Schema change: ${operation} ${object}`,
-      this.SOURCE,
-      details
+  static logDelete(entity: string, userId: number, entityId: number): void {
+    logAudit(
+      `Deleted ${entity} #${entityId}`,
+      userId,
+      {
+        action: 'delete',
+        entity,
+        entityId
+      }
     );
+  }
+  
+  /**
+   * Sanitize data by removing sensitive fields
+   * @param data The data to sanitize
+   * @returns Sanitized data
+   */
+  private static sanitizeData(data: any): any {
+    if (!data) return data;
     
-    // Store schema changes for auditing
-    try {
-      storage.storeSchemaChange({
-        operation,
-        object,
-        timestamp: new Date().toISOString(),
-        details: details ? JSON.stringify(details) : undefined
-      });
-    } catch (error) {
-      console.error('Failed to store schema change:', error);
+    const sensitiveFields = [
+      'password', 'secret', 'token', 'apiKey', 'api_key', 
+      'creditCard', 'ssn', 'email', 'phone', 'address'
+    ];
+    
+    const sanitized = { ...data };
+    
+    for (const field of sensitiveFields) {
+      if (field in sanitized) {
+        sanitized[field] = '[REDACTED]';
+      }
     }
-  }
-  
-  /**
-   * Log a database connection event
-   * @param status Status of the connection (connected, disconnected)
-   * @param details Additional details about the connection
-   */
-  static logConnection(
-    status: 'connected' | 'disconnected' | 'failed',
-    details?: Record<string, any>
-  ): void {
-    if (status === 'failed') {
-      logError(
-        `Database connection ${status}`,
-        this.SOURCE,
-        details
-      );
-    } else {
-      logInfo(
-        `Database connection ${status}`,
-        this.SOURCE,
-        details
-      );
-    }
+    
+    return sanitized;
   }
 }
-
-// Export pre-configured loggers for common database operations
-export const dbLoggers = {
-  query: (operation: string, table: string, duration: number, details?: Record<string, any>) =>
-    DBLogger.logQuery(operation, table, duration, details),
-    
-  error: (operation: string, table: string, error: unknown, details?: Record<string, any>) =>
-    DBLogger.logError(operation, table, error, details),
-    
-  transaction: (status: 'started' | 'committed' | 'rolled_back', details?: Record<string, any>) =>
-    DBLogger.logTransaction(status, details),
-    
-  schemaChange: (operation: string, object: string, details?: Record<string, any>) =>
-    DBLogger.logSchemaChange(operation, object, details),
-    
-  connection: (status: 'connected' | 'disconnected' | 'failed', details?: Record<string, any>) =>
-    DBLogger.logConnection(status, details)
-};
