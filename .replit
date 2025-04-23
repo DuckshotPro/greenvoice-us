@@ -15,7 +15,7 @@ localPort = 5000
 externalPort = 80
 
 [workflows]
-runButton = "Project"
+runButton = "Run Application"
 
 [[workflows.workflow]]
 name = "Project"
@@ -101,3 +101,12 @@ args = "mv server/routes.ts server/routes/routes.ts"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "mv server/storage.ts server/models/storage.ts"
+
+[[workflows.workflow]]
+name = "Run Application"
+author = 41040400
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"

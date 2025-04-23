@@ -390,6 +390,29 @@ export const recurringTemplateWithItemsSchema = insertRecurringTemplateSchema.ex
 export type InvoiceWithItems = z.infer<typeof invoiceWithItemsSchema>;
 export type RecurringTemplateWithItems = z.infer<typeof recurringTemplateWithItemsSchema>;
 
+// Payment processing table
+export const payments = pgTable("payments", {
+  id: serial("id").primaryKey(),
+  invoiceId: integer("invoice_id").notNull(),
+  userId: integer("user_id").notNull(),
+  amount: doublePrecision("amount").notNull(),
+  currency: text("currency").notNull().default("USD"),
+  paymentMethod: text("payment_method").notNull(),
+  paymentStatus: text("payment_status").notNull().default("pending"), // pending, completed, failed, refunded
+  transactionId: text("transaction_id"),
+  transactionDate: timestamp("transaction_date").defaultNow(),
+  gatewayResponse: jsonb("gateway_response"),
+  metadata: jsonb("metadata"),
+});
+
+export const insertPaymentSchema = createInsertSchema(payments).omit({
+  id: true,
+  transactionDate: true,
+});
+
+export type Payment = typeof payments.$inferSelect;
+export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+
 // Add your schema definitions here
 // Business metrics schema
 export type BusinessMetric = {
@@ -433,7 +456,7 @@ export type UserJourneyEntry = {
   additionalData?: Record<string, any>;
 };
 
-// Adding Attachment and Payment types (assuming these types are defined elsewhere)
+// Adding Attachment type (assuming this type is defined elsewhere)
 export type Attachment = {
   id: string;
   filename: string;
@@ -441,39 +464,9 @@ export type Attachment = {
   // Add other relevant attachment properties
 };
 
-export type Payment = {
-  id: string;
-  amount: number;
-  method: string;
-  date: string;
-  // Add other relevant payment properties
-};
-
-export type Invoice = {
-  id: string;
-  userId: string;
-  clientName: string;
-  clientEmail: string;
-  clientAddress?: string;
-  invoiceNumber: string;
-  date: string;
-  dueDate: string;
-  items: InvoiceItem[];
-  notes?: string;
-  terms?: string;
-  status: InvoiceStatus;
-  taxRate?: number;
-  discount?: number;
-  logo?: string;
-  shareId?: string;
-  createdAt: string;
-  updatedAt: string;
-  attachments?: Attachment[];
-  payments?: Payment[];
-};
-
-
-// Placeholder for InvoiceItem and InvoiceStatus types -  replace with your actual types
+// The placeholder types below are not needed as we have the actual models defined above
+// They are kept as comments for reference
+/*
 export type InvoiceItem = {
     description: string;
     quantity: number;
@@ -481,3 +474,4 @@ export type InvoiceItem = {
 };
 
 export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue';
+*/
