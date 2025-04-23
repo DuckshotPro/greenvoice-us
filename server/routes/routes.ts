@@ -346,11 +346,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             invoiceId: id,
             userId: req.user.id,
             shareMethod: 'email',
-            recipientEmail: recipient,
+            recipient_email: recipient,
             referrer: null,
-            userAgent: null,
-            ipAddress: null,
-            metadata: { subject, recipientEmail: recipient }
+            user_agent: null,
+            ip_address: null,
+            metadata: { subject, recipient_email: recipient }
           });
         } catch (analyticsError) {
           // Don't let analytics tracking failure affect the response
