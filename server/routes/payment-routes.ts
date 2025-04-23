@@ -1,118 +1,99 @@
-
-import { Router } from 'express';
+import express from 'express';
+import { body, param } from 'express-validator';
+import { handleValidationErrors } from '../middleware/validation';
+import { requireAuth } from '../middleware/auth';
 import { PaymentService } from '../services/payment-service';
-import { activityTrackers } from '../middleware/activity-tracker';
-import { isAuthenticated } from '../middleware/auth';
 import { storage } from '../models/storage';
+import { logInfo, logError } from '../utils/logger';
 
-const router = Router();
-
-// Process a payment for an invoice
-router.post(
-  '/invoices/:invoiceId/payments',
-  isAuthenticated,
-  activityTrackers.processPayment,
-  async (req, res) => {
-    try {
-      const { invoiceId } = req.params;
-      const userId = req.user.id;
-      
-      // Validate request body
-      const { amount, currency, paymentMethod, tipAmount, note } = req.body;
-      
-      if (!amount || !currency || !paymentMethod) {
-        return res.status(400).json({ 
-          error: 'Missing required fields: amount, currency, paymentMethod' 
-        });
-      }
-      
-      // Check if invoice exists and user has access
-      const invoice = await storage.getInvoiceById(invoiceId);
-      if (!invoice) {
-        return res.status(404).json({ error: 'Invoice not found' });
-      }
-      
-      if (invoice.userId !== userId) {
-        return res.status(403).json({ error: 'Not authorized to update this invoice' });
-      }
-      
-      // Process the payment
-      const payment = await PaymentService.processPayment(
-        invoiceId,
-        userId,
-        {
-          amount: parseFloat(amount),
-          currency,
-          paymentMethod,
-          tipAmount: tipAmount ? parseFloat(tipAmount) : undefined,
-          note
-        }
-      );
-      
-      res.status(201).json(payment);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  }
-);
+const router = express.Router();
 
 // Get all payments for an invoice
 router.get(
-  '/invoices/:invoiceId/payments',
-  isAuthenticated,
+  '/:invoiceId', 
+  requireAuth,
+  param('invoiceId').isInt().withMessage('Invoice ID must be an integer'),
+  handleValidationErrors,
   async (req, res) => {
     try {
-      const { invoiceId } = req.params;
-      const userId = req.user.id;
-      
-      // Check if invoice exists and user has access
-      const invoice = await storage.getInvoiceById(invoiceId);
+      const invoiceId = parseInt(req.params.invoiceId);
+
+      // Check if the invoice belongs to the authenticated user
+      const invoice = await storage.getInvoice(invoiceId);
+
       if (!invoice) {
-        return res.status(404).json({ error: 'Invoice not found' });
+        return res.status(404).json({ message: 'Invoice not found' });
       }
-      
-      if (invoice.userId !== userId) {
-        return res.status(403).json({ error: 'Not authorized to access this invoice' });
+
+      if (invoice.userId !== req.user?.id) {
+        return res.status(403).json({ message: 'You do not have permission to access this invoice' });
       }
-      
-      const payments = await PaymentService.getPayments(invoiceId);
-      res.json(payments);
+
+      // Get payment summary
+      const summary = await PaymentService.getPaymentSummary(invoiceId);
+
+      res.json(summary);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      logError(`Error retrieving payments: ${error.message}`, 'PaymentRoutes', {
+        invoiceId: req.params.invoiceId,
+        userId: req.user?.id
+      });
+      res.status(500).json({ message: 'Failed to retrieve payments' });
     }
   }
 );
 
-// Get payment summary for an invoice
-router.get(
-  '/invoices/:invoiceId/payment-summary',
-  isAuthenticated,
+// Process a new payment
+router.post(
+  '/:invoiceId',
+  requireAuth,
+  param('invoiceId').isInt().withMessage('Invoice ID must be an integer'),
+  body('amount').isNumeric().withMessage('Amount must be a number'),
+  body('paymentMethod').isString().withMessage('Payment method is required'),
+  body('currency').optional().isString().isLength({ min: 3, max: 3 }).withMessage('Currency must be a 3-letter code'),
+  body('tipAmount').optional().isNumeric().withMessage('Tip amount must be a number'),
+  body('note').optional().isString(),
+  handleValidationErrors,
   async (req, res) => {
     try {
-      const { invoiceId } = req.params;
-      const userId = req.user.id;
-      
-      // Check if invoice exists and user has access
-      const invoice = await storage.getInvoiceById(invoiceId);
+      const invoiceId = parseInt(req.params.invoiceId);
+
+      // Check if the invoice belongs to the authenticated user
+      const invoice = await storage.getInvoice(invoiceId);
+
       if (!invoice) {
-        return res.status(404).json({ error: 'Invoice not found' });
+        return res.status(404).json({ message: 'Invoice not found' });
       }
-      
-      if (invoice.userId !== userId) {
-        return res.status(403).json({ error: 'Not authorized to access this invoice' });
+
+      if (invoice.userId !== req.user?.id) {
+        return res.status(403).json({ message: 'You do not have permission to access this invoice' });
       }
-      
-      const totalPaid = await PaymentService.getTotalPaid(invoiceId);
-      const remainingBalance = await PaymentService.getRemainingBalance(invoice);
-      
-      res.json({
+
+      // Process the payment
+      const payment = await PaymentService.processPayment({
         invoiceId,
-        totalPaid,
-        remainingBalance,
-        isFullyPaid: remainingBalance === 0
+        amount: parseFloat(req.body.amount),
+        currency: req.body.currency || invoice.currency || 'USD',
+        paymentMethod: req.body.paymentMethod,
+        tipAmount: req.body.tipAmount ? parseFloat(req.body.tipAmount) : undefined,
+        note: req.body.note,
+        receiptUrl: req.body.receiptUrl,
+        transactionId: req.body.transactionId
       });
+
+      logInfo('Payment created successfully', 'PaymentRoutes', {
+        invoiceId,
+        amount: req.body.amount,
+        userId: req.user?.id
+      });
+
+      res.status(201).json(payment);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      logError(`Error creating payment: ${error.message}`, 'PaymentRoutes', {
+        invoiceId: req.params.invoiceId,
+        userId: req.user?.id
+      });
+      res.status(500).json({ message: 'Failed to process payment' });
     }
   }
 );

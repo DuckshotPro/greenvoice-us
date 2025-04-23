@@ -783,14 +783,11 @@ export class DatabaseStorage implements IStorage {
     global.attachments = global.attachments.filter((a: AttachmentMetadata) => a.id !== id);
     return global.attachments.length < initialLength;
   }
-}
-
-// Switch to DatabaseStorage
-export const storage = new DatabaseStorage();
-/**
- * Store an attachment record
- */
-async storeAttachment(attachment: Attachment): Promise<void> {
+  
+  /**
+   * Store an attachment record
+   */
+  async storeAttachment(attachment: Attachment): Promise<void> {
   try {
     const client = await this.getClient();
     await client.query(

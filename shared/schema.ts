@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, doublePrecision, date, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, doublePrecision, date, pgEnum, varchar, numeric } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -362,7 +362,7 @@ export const insertUtmTrackingSchema = createInsertSchema(utmTracking).omit({
 });
 
 export type ShareAnalytics = typeof shareAnalytics.$inferSelect;
-export type InsertShareAnalytics = z.infer<typeof insertShareAnalyticsSchema>;
+export type InsertShareAnalytics = typeof shareAnalytics.$inferInsert;
 export type UtmTracking = typeof utmTracking.$inferSelect;
 export type InsertUtmTracking = z.infer<typeof insertUtmTrackingSchema>;
 
@@ -481,3 +481,24 @@ export type InvoiceItem = {
 };
 
 export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue';
+
+// Payments table
+export const payments = pgTable('payments', {
+  id: varchar('id', { length: 36 }).primaryKey(), // UUID
+  invoiceId: integer('invoice_id').notNull()
+    .references(() => invoices.id, { onDelete: 'cascade' }),
+  amount: numeric('amount').notNull(),
+  currency: varchar('currency', { length: 3 }).notNull(),
+  paymentMethod: varchar('payment_method', { length: 50 }).notNull(),
+  paymentDate: timestamp('payment_date').notNull(),
+  tipAmount: numeric('tip_amount'),
+  note: text('note'),
+  receiptUrl: text('receipt_url'),
+  transactionId: varchar('transaction_id', { length: 255 }),
+  status: varchar('status', { length: 20 }).notNull()
+    .default('completed'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export type Payment = typeof payments.$inferSelect;
+export type InsertPayment = typeof payments.$inferInsert;

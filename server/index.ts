@@ -7,6 +7,7 @@ import { ErrorLogger, LogLevel, LogCategory, logInfo, logError } from "./lib/err
 // import customFrontendRouter from "./custom-frontend";
 import dotenv from "dotenv";
 import attachmentRoutes from './routes/attachment-routes'; // Added import for attachment routes
+import paymentRoutes from './routes/payment-routes'; // Import payment routes
 
 // Load environment variables from .env file
 dotenv.config();
@@ -212,3 +213,4 @@ app.use('/api', routes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/branding', brandingRoutes);
 app.use('/api/attachments', attachmentRoutes); // Added attachment routes
+app.use('/api/payments', paymentRoutes); // Added payment routes

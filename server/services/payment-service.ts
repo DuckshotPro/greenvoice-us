@@ -1,183 +1,138 @@
-
 import { v4 as uuidv4 } from 'uuid';
 import { storage } from '../models/storage';
 import { logInfo, logError } from '../utils/logger';
-import { Payment, Invoice, PaymentStatus } from '../../shared/schema';
-import { BusinessMetricsLogger } from '../utils/business-metrics-logger';
+import { type Payment } from '@shared/schema';
+
+export interface PaymentOptions {
+  invoiceId: number;
+  amount: number;
+  currency: string;
+  paymentMethod: string;
+  tipAmount?: number;
+  note?: string;
+  receiptUrl?: string;
+  transactionId?: string;
+}
 
 export class PaymentService {
-  private static readonly SOURCE = 'PaymentService';
-
   /**
-   * Process a payment for an invoice
+   * Process a new payment for an invoice
    */
-  static async processPayment(
-    invoiceId: string,
-    userId: string,
-    paymentData: {
-      amount: number;
-      currency: string;
-      paymentMethod: string;
-      tipAmount?: number;
-      note?: string;
-    }
-  ): Promise<Payment> {
+  static async processPayment(options: PaymentOptions): Promise<Payment> {
     try {
-      // Get the invoice to check current status and total amount
-      const invoice = await storage.getInvoiceById(invoiceId);
+      const {
+        invoiceId,
+        amount,
+        currency,
+        paymentMethod,
+        tipAmount,
+        note,
+        receiptUrl,
+        transactionId
+      } = options;
+
+      // Get the invoice to verify it exists
+      const invoice = await storage.getInvoice(invoiceId);
       if (!invoice) {
-        throw new Error('Invoice not found');
+        throw new Error(`Invoice not found: ${invoiceId}`);
       }
 
-      // Calculate invoice total
-      const invoiceTotal = this.calculateInvoiceTotal(invoice);
-      
-      // Validate payment amount
-      if (paymentData.amount <= 0) {
-        throw new Error('Payment amount must be positive');
-      }
-      
-      if (paymentData.amount > invoiceTotal) {
-        throw new Error('Payment amount exceeds invoice total');
-      }
-
-      // Create the payment record
-      const payment: Payment = {
+      // Create payment record
+      const paymentData = {
         id: uuidv4(),
         invoiceId,
-        amount: paymentData.amount,
-        currency: paymentData.currency,
-        paymentMethod: paymentData.paymentMethod,
-        paymentDate: new Date().toISOString(),
-        tipAmount: paymentData.tipAmount,
-        note: paymentData.note,
+        amount,
+        currency: currency || 'USD',
+        paymentMethod,
+        paymentDate: new Date(),
+        tipAmount,
+        note,
+        receiptUrl,
+        transactionId,
         status: 'completed',
-        createdAt: new Date().toISOString()
+        createdAt: new Date()
       };
 
-      // Save payment record in database
-      await storage.storePayment(payment);
+      // Store the payment
+      const payment = await storage.storePayment(paymentData);
+
+      // Calculate total paid amount
+      const payments = await storage.getPaymentsByInvoiceId(invoiceId);
+      const totalPaid = payments.reduce((sum, p) => sum + parseFloat(p.amount.toString()), 0);
 
       // Update invoice status based on payment
-      await this.updateInvoicePaymentStatus(invoice);
+      let newStatus: string;
 
-      // Log the payment
-      logInfo(`Payment processed: ${payment.id}`, this.SOURCE, {
+      if (totalPaid >= parseFloat(invoice.total.toString())) {
+        newStatus = 'paid';
+      } else if (totalPaid > 0) {
+        newStatus = 'partially_paid';
+      } else {
+        newStatus = invoice.status;
+      }
+
+      // Update invoice status if needed
+      if (newStatus !== invoice.status) {
+        await storage.updateInvoiceStatus(invoiceId, newStatus);
+      }
+
+      logInfo('Payment processed successfully', 'PaymentService', {
         invoiceId,
-        amount: payment.amount,
-        currency: payment.currency,
-        paymentMethod: payment.paymentMethod
-      });
-
-      // Track business metrics
-      BusinessMetricsLogger.logPaymentReceived(invoiceId, {
-        amount: payment.amount,
-        currency: payment.currency,
-        paymentMethod: payment.paymentMethod,
-        isPartial: payment.amount < invoiceTotal,
-        hasTip: !!payment.tipAmount,
-        tipAmount: payment.tipAmount
+        amount,
+        paymentMethod,
+        tipAmount,
+        totalPaid
       });
 
       return payment;
     } catch (error) {
-      logError(`Failed to process payment`, this.SOURCE, { invoiceId, error });
+      logError(`Error processing payment: ${error.message}`, 'PaymentService', {
+        invoiceId: options.invoiceId,
+        amount: options.amount
+      });
       throw error;
     }
   }
 
   /**
-   * Get all payments for an invoice
+   * Calculate payment summary for an invoice
    */
-  static async getPayments(invoiceId: string): Promise<Payment[]> {
+  static async getPaymentSummary(invoiceId: number): Promise<{
+    totalPaid: number;
+    remaining: number;
+    isFullyPaid: boolean;
+    payments: Payment[];
+  }> {
     try {
-      return await storage.getPaymentsByInvoiceId(invoiceId);
-    } catch (error) {
-      logError(`Failed to get payments`, this.SOURCE, { invoiceId, error });
-      throw error;
-    }
-  }
-
-  /**
-   * Calculate total amount paid for an invoice
-   */
-  static async getTotalPaid(invoiceId: string): Promise<number> {
-    try {
-      const payments = await this.getPayments(invoiceId);
-      return payments.reduce((total, payment) => {
-        if (payment.status === 'completed') {
-          return total + payment.amount;
-        }
-        return total;
-      }, 0);
-    } catch (error) {
-      logError(`Failed to calculate total paid`, this.SOURCE, { invoiceId, error });
-      throw error;
-    }
-  }
-
-  /**
-   * Calculate remaining balance for an invoice
-   */
-  static async getRemainingBalance(invoice: Invoice): Promise<number> {
-    try {
-      const totalPaid = await this.getTotalPaid(invoice.id);
-      const invoiceTotal = this.calculateInvoiceTotal(invoice);
-      return Math.max(0, invoiceTotal - totalPaid);
-    } catch (error) {
-      logError(`Failed to calculate remaining balance`, this.SOURCE, { invoiceId: invoice.id, error });
-      throw error;
-    }
-  }
-
-  /**
-   * Update invoice payment status based on payments
-   */
-  private static async updateInvoicePaymentStatus(invoice: Invoice): Promise<void> {
-    try {
-      const totalPaid = await this.getTotalPaid(invoice.id);
-      const invoiceTotal = this.calculateInvoiceTotal(invoice);
-      
-      let newStatus = invoice.status;
-      
-      // Determine payment status
-      if (totalPaid >= invoiceTotal) {
-        newStatus = 'paid';
-      } else if (totalPaid > 0) {
-        newStatus = 'partially_paid';
+      // Get the invoice
+      const invoice = await storage.getInvoice(invoiceId);
+      if (!invoice) {
+        throw new Error(`Invoice not found: ${invoiceId}`);
       }
-      
-      // Only update if status has changed
-      if (newStatus !== invoice.status) {
-        await storage.updateInvoiceStatus(invoice.id, newStatus);
-      }
+
+      // Get all payments for this invoice
+      const payments = await storage.getPaymentsByInvoiceId(invoiceId);
+
+      // Calculate total paid amount
+      const totalPaid = payments.reduce((sum, p) => sum + parseFloat(p.amount.toString()), 0);
+
+      // Calculate remaining amount
+      const remaining = parseFloat(invoice.total.toString()) - totalPaid;
+
+      // Determine if fully paid
+      const isFullyPaid = remaining <= 0;
+
+      return {
+        totalPaid,
+        remaining,
+        isFullyPaid,
+        payments
+      };
     } catch (error) {
-      logError(`Failed to update invoice payment status`, this.SOURCE, { invoiceId: invoice.id, error });
+      logError(`Error getting payment summary: ${error.message}`, 'PaymentService', {
+        invoiceId
+      });
       throw error;
     }
-  }
-
-  /**
-   * Calculate total amount for an invoice
-   */
-  private static calculateInvoiceTotal(invoice: Invoice): number {
-    // Calculate subtotal from items
-    const subtotal = invoice.items.reduce((total, item) => {
-      return total + (item.quantity * item.price);
-    }, 0);
-    
-    // Apply discount if any
-    let discountedAmount = subtotal;
-    if (invoice.discount && invoice.discount > 0) {
-      discountedAmount -= (subtotal * invoice.discount) / 100;
-    }
-    
-    // Apply tax if any
-    let total = discountedAmount;
-    if (invoice.taxRate && invoice.taxRate > 0) {
-      total += (discountedAmount * invoice.taxRate) / 100;
-    }
-    
-    return total;
   }
 }
