@@ -152,5 +152,47 @@ export const activityTrackers = {
   addClient: trackUserActivity('add_client', { 
     journey: 'client_management', 
     step: 'add_client' 
+  }),
+  
+  // New attachment-related activities
+  createAttachment: trackUserActivity('create_attachment', { 
+    journey: 'invoice_management', 
+    step: 'add_attachment' 
+  }),
+  
+  viewAttachment: trackUserActivity('view_attachment', { 
+    journey: 'invoice_usage', 
+    step: 'view_attachment' 
+  }),
+  
+  deleteAttachment: trackUserActivity('delete_attachment', { 
+    journey: 'invoice_management', 
+    step: 'delete_attachment' 
+  }),
+  
+  // New payment-related activities
+  initiatePayment: trackUserActivity('initiate_payment', { 
+    journey: 'checkout', 
+    step: 'initiate_payment' 
+  }),
+  
+  completePayment: trackUserActivity('complete_payment', { 
+    journey: 'checkout', 
+    step: 'complete_payment' 
+  }),
+  
+  viewPaymentHistory: trackUserActivity('view_payment_history', { 
+    journey: 'invoice_usage', 
+    step: 'view_payment_history' 
+  }),
+  
+  addTip: trackUserActivity('add_tip', { 
+    journey: 'checkout', 
+    step: 'add_tip' 
+  }),
+  
+  partialPayment: trackUserActivity('partial_payment', { 
+    journey: 'checkout', 
+    step: 'partial_payment' 
   })
 };

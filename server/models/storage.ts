@@ -787,3 +787,172 @@ export class DatabaseStorage implements IStorage {
 
 // Switch to DatabaseStorage
 export const storage = new DatabaseStorage();
+/**
+ * Store an attachment record
+ */
+async storeAttachment(attachment: Attachment): Promise<void> {
+  try {
+    const client = await this.getClient();
+    await client.query(
+      `INSERT INTO attachments (
+        id, invoice_id, file_name, file_type, file_size, url, thumbnail_url, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [
+        attachment.id,
+        attachment.invoiceId,
+        attachment.fileName,
+        attachment.fileType,
+        attachment.fileSize,
+        attachment.url,
+        attachment.thumbnailUrl,
+        attachment.createdAt
+      ]
+    );
+  } catch (error) {
+    throw new Error(`Failed to store attachment: ${error.message}`);
+  }
+},
+
+/**
+ * Get all attachments for an invoice
+ */
+async getAttachmentsByInvoiceId(invoiceId: string): Promise<Attachment[]> {
+  try {
+    const client = await this.getClient();
+    const result = await client.query(
+      `SELECT * FROM attachments WHERE invoice_id = $1 ORDER BY created_at DESC`,
+      [invoiceId]
+    );
+    return result.rows.map(row => ({
+      id: row.id,
+      invoiceId: row.invoice_id,
+      fileName: row.file_name,
+      fileType: row.file_type,
+      fileSize: row.file_size,
+      url: row.url,
+      thumbnailUrl: row.thumbnail_url,
+      createdAt: row.created_at
+    }));
+  } catch (error) {
+    throw new Error(`Failed to get attachments: ${error.message}`);
+  }
+},
+
+/**
+ * Get an attachment by ID
+ */
+async getAttachmentById(attachmentId: string): Promise<Attachment | null> {
+  try {
+    const client = await this.getClient();
+    const result = await client.query(
+      `SELECT * FROM attachments WHERE id = $1`,
+      [attachmentId]
+    );
+    if (result.rows.length === 0) {
+      return null;
+    }
+    const row = result.rows[0];
+    return {
+      id: row.id,
+      invoiceId: row.invoice_id,
+      fileName: row.file_name,
+      fileType: row.file_type,
+      fileSize: row.file_size,
+      url: row.url,
+      thumbnailUrl: row.thumbnail_url,
+      createdAt: row.created_at
+    };
+  } catch (error) {
+    throw new Error(`Failed to get attachment: ${error.message}`);
+  }
+},
+
+/**
+ * Delete an attachment
+ */
+async deleteAttachment(attachmentId: string): Promise<void> {
+  try {
+    const client = await this.getClient();
+    await client.query(
+      `DELETE FROM attachments WHERE id = $1`,
+      [attachmentId]
+    );
+  } catch (error) {
+    throw new Error(`Failed to delete attachment: ${error.message}`);
+  }
+},
+
+/**
+ * Store a payment record
+ */
+async storePayment(payment: Payment): Promise<void> {
+  try {
+    const client = await this.getClient();
+    await client.query(
+      `INSERT INTO payments (
+        id, invoice_id, amount, currency, payment_method, payment_date, 
+        tip_amount, note, receipt_url, transaction_id, status, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+      [
+        payment.id,
+        payment.invoiceId,
+        payment.amount,
+        payment.currency,
+        payment.paymentMethod,
+        payment.paymentDate,
+        payment.tipAmount,
+        payment.note,
+        payment.receiptUrl,
+        payment.transactionId,
+        payment.status,
+        payment.createdAt
+      ]
+    );
+  } catch (error) {
+    throw new Error(`Failed to store payment: ${error.message}`);
+  }
+},
+
+/**
+ * Get all payments for an invoice
+ */
+async getPaymentsByInvoiceId(invoiceId: string): Promise<Payment[]> {
+  try {
+    const client = await this.getClient();
+    const result = await client.query(
+      `SELECT * FROM payments WHERE invoice_id = $1 ORDER BY payment_date DESC`,
+      [invoiceId]
+    );
+    return result.rows.map(row => ({
+      id: row.id,
+      invoiceId: row.invoice_id,
+      amount: parseFloat(row.amount),
+      currency: row.currency,
+      paymentMethod: row.payment_method,
+      paymentDate: row.payment_date,
+      tipAmount: row.tip_amount ? parseFloat(row.tip_amount) : undefined,
+      note: row.note,
+      receiptUrl: row.receipt_url,
+      transactionId: row.transaction_id,
+      status: row.status,
+      createdAt: row.created_at
+    }));
+  } catch (error) {
+    throw new Error(`Failed to get payments: ${error.message}`);
+  }
+},
+
+/**
+ * Update invoice status
+ */
+async updateInvoiceStatus(invoiceId: string, status: string): Promise<void> {
+  try {
+    const client = await this.getClient();
+    await client.query(
+      `UPDATE invoices SET status = $1, updated_at = $2 WHERE id = $3`,
+      [status, new Date().toISOString(), invoiceId]
+    );
+  } catch (error) {
+    throw new Error(`Failed to update invoice status: ${error.message}`);
+  }
+}

@@ -432,3 +432,52 @@ export type UserJourneyEntry = {
   isComplete: boolean;
   additionalData?: Record<string, any>;
 };
+
+// Adding Attachment and Payment types (assuming these types are defined elsewhere)
+export type Attachment = {
+  id: string;
+  filename: string;
+  url: string;
+  // Add other relevant attachment properties
+};
+
+export type Payment = {
+  id: string;
+  amount: number;
+  method: string;
+  date: string;
+  // Add other relevant payment properties
+};
+
+export type Invoice = {
+  id: string;
+  userId: string;
+  clientName: string;
+  clientEmail: string;
+  clientAddress?: string;
+  invoiceNumber: string;
+  date: string;
+  dueDate: string;
+  items: InvoiceItem[];
+  notes?: string;
+  terms?: string;
+  status: InvoiceStatus;
+  taxRate?: number;
+  discount?: number;
+  logo?: string;
+  shareId?: string;
+  createdAt: string;
+  updatedAt: string;
+  attachments?: Attachment[];
+  payments?: Payment[];
+};
+
+
+// Placeholder for InvoiceItem and InvoiceStatus types -  replace with your actual types
+export type InvoiceItem = {
+    description: string;
+    quantity: number;
+    amount: number;
+};
+
+export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue';
