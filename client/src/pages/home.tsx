@@ -398,11 +398,11 @@ const Home = () => {
                   ))}
                 </div>
               ) : !invoices?.length ? (
-                <Card className="bg-gray-50 border-dashed">
+                <Card className="bg-gray-50 dark:bg-[#151f33] border-dashed dark:border-[#2B3245]">
                   <CardContent className="flex flex-col items-center justify-center p-6 text-center">
-                    <FileText className="h-12 w-12 text-gray-300 mb-4" />
-                    <h3 className="text-lg font-medium mb-1">No invoices yet</h3>
-                    <p className="text-gray-500 mb-4">
+                    <FileText className="h-12 w-12 text-gray-300 dark:text-gray-600 mb-4" />
+                    <h3 className="text-lg font-medium mb-1 dark:text-white">No invoices yet</h3>
+                    <p className="text-gray-500 dark:text-gray-400 mb-4">
                       Create your first invoice to get started
                     </p>
                     <Button asChild>
@@ -453,11 +453,11 @@ const Home = () => {
             
             <TabsContent value="draft">
               {!draftInvoices?.length ? (
-                <Card className="bg-gray-50 border-dashed">
+                <Card className="bg-gray-50 dark:bg-[#151f33] border-dashed dark:border-[#2B3245]">
                   <CardContent className="flex flex-col items-center justify-center p-6 text-center">
-                    <Clock className="h-12 w-12 text-gray-300 mb-4" />
-                    <h3 className="text-lg font-medium mb-1">No draft invoices</h3>
-                    <p className="text-gray-500 mb-4">
+                    <Clock className="h-12 w-12 text-gray-300 dark:text-gray-600 mb-4" />
+                    <h3 className="text-lg font-medium mb-1 dark:text-white">No draft invoices</h3>
+                    <p className="text-gray-500 dark:text-gray-400 mb-4">
                       Create a draft invoice to save your work in progress
                     </p>
                     <Button asChild>
@@ -499,11 +499,11 @@ const Home = () => {
             
             <TabsContent value="paid">
               {!paidInvoices?.length ? (
-                <Card className="bg-gray-50 border-dashed">
+                <Card className="bg-gray-50 dark:bg-[#151f33] border-dashed dark:border-[#2B3245]">
                   <CardContent className="flex flex-col items-center justify-center p-6 text-center">
-                    <CheckCircle className="h-12 w-12 text-gray-300 mb-4" />
-                    <h3 className="text-lg font-medium mb-1">No paid invoices</h3>
-                    <p className="text-gray-500 mb-4">
+                    <CheckCircle className="h-12 w-12 text-gray-300 dark:text-gray-600 mb-4" />
+                    <h3 className="text-lg font-medium mb-1 dark:text-white">No paid invoices</h3>
+                    <p className="text-gray-500 dark:text-gray-400 mb-4">
                       Paid invoices will appear here when clients complete payment
                     </p>
                     <Button asChild>
