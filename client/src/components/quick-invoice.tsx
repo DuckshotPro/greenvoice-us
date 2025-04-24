@@ -1,10 +1,10 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import {
   Card,
@@ -63,7 +63,7 @@ type QuickInvoiceFormValues = z.infer<typeof quickInvoiceSchema>;
 const QuickInvoice = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [_, navigate] = useNavigate();
+  const [_, navigate] = useLocation();
   const [adDialogOpen, setAdDialogOpen] = useState(false);
   const [adWatched, setAdWatched] = useState(false);
   const [adProgress, setAdProgress] = useState(0);
