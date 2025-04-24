@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
+import { FeatureBox } from '@/components/ui/feature-box';
 import { Invoice, formatCurrency } from '@/types/invoice';
 import { 
   PlusCircle, 
@@ -72,7 +73,7 @@ const Home = () => {
                 Professional Invoices in Seconds
               </h1>
               <p className="mt-6 max-w-lg mx-auto text-xl text-white opacity-80">
-                Create, share, and track invoices easily with InvoiceFlow's all-in-one platform.
+                Create, share, and track invoices easily with GreenVoice's all-in-one platform.
               </p>
               <div className="mt-10 max-w-sm mx-auto sm:max-w-none sm:flex sm:justify-center">
                 <div className="space-y-4 sm:space-y-0 sm:mx-auto sm:inline-grid sm:grid-cols-2 sm:gap-5">
@@ -112,41 +113,26 @@ const Home = () => {
               </div>
 
               <div className="mt-12 grid gap-8 md:grid-cols-3">
-                <Card>
-                  <CardHeader className="text-center">
-                    <div className="mx-auto bg-primary/10 p-3 rounded-full w-12 h-12 flex items-center justify-center mb-4">
-                      <FileText className="h-6 w-6 text-primary" />
-                    </div>
-                    <CardTitle>Professional Templates</CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-center text-gray-500">
-                    Create beautiful, professional invoices that make a great impression on your clients.
-                  </CardContent>
-                </Card>
+                <FeatureBox 
+                  icon={<FileText className="h-6 w-6 text-greenvoice-primary" />}
+                  title="Professional Templates"
+                  description="Create beautiful, professional invoices that make a great impression on your clients."
+                  iconBackground="bg-greenvoice-primary/10"
+                />
 
-                <Card>
-                  <CardHeader className="text-center">
-                    <div className="mx-auto bg-primary/10 p-3 rounded-full w-12 h-12 flex items-center justify-center mb-4">
-                      <Share className="h-6 w-6 text-primary" />
-                    </div>
-                    <CardTitle>Multi-Format Sharing</CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-center text-gray-500">
-                    Share invoices via PDF, image, email, or directly to social platforms with just one click.
-                  </CardContent>
-                </Card>
+                <FeatureBox 
+                  icon={<Share className="h-6 w-6 text-greenvoice-primary" />}
+                  title="Multi-Format Sharing"
+                  description="Share invoices via PDF, image, email, or directly to social platforms with just one click."
+                  iconBackground="bg-greenvoice-primary/10"
+                />
 
-                <Card>
-                  <CardHeader className="text-center">
-                    <div className="mx-auto bg-primary/10 p-3 rounded-full w-12 h-12 flex items-center justify-center mb-4">
-                      <PlusCircle className="h-6 w-6 text-primary" />
-                    </div>
-                    <CardTitle>Quick & Easy</CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-center text-gray-500">
-                    Create and send invoices in seconds with our intuitive interface and real-time preview.
-                  </CardContent>
-                </Card>
+                <FeatureBox 
+                  icon={<PlusCircle className="h-6 w-6 text-greenvoice-primary" />}
+                  title="Quick & Easy"
+                  description="Create and send invoices in seconds with our intuitive interface and real-time preview."
+                  iconBackground="bg-greenvoice-primary/10"
+                />
               </div>
             </div>
           </section>
@@ -159,7 +145,7 @@ const Home = () => {
                   Ready to Streamline Your Invoicing?
                 </h2>
                 <p className="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
-                  Join thousands of businesses who trust InvoiceFlow for their invoicing needs.
+                  Join thousands of businesses who trust GreenVoice for their invoicing needs.
                 </p>
                 <div className="mt-8">
                   <Button 
