@@ -16,7 +16,7 @@ import History from "@/pages/history";
 import Settings from "@/pages/settings";
 import FaqPage from "@/pages/faq-page";
 import AdminConsole from "@/pages/admin-console";
-import RoadmapPage from "@/pages/roadmap";
+import Roadmap from "@/pages/roadmap";
 import NotFound from "@/pages/not-found";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 
@@ -28,7 +28,7 @@ function Router() {
       <Route path="/auth" component={AuthPage} />
       <Route path="/premium" component={PremiumPage} />
       <Route path="/faq" component={FaqPage} />
-      <Route path="/roadmap" component={RoadmapPage} />
+      <Route path="/roadmap" component={Roadmap} />
       <ProtectedRoute path="/create-invoice" component={CreateInvoice} />
       <ProtectedRoute path="/analytics" component={AnalyticsDashboard} requirePremium />
       <ProtectedRoute path="/branding" component={BrandingSettings} />
