@@ -65,30 +65,36 @@ const AdminConsole = () => {
   }
 
   // Get health status for the database
-  const { data: dbHealth, isLoading: loadingDbHealth, refetch: refetchDbHealth } = useQuery({
+  const { data: dbHealthResponse, isLoading: loadingDbHealth, refetch: refetchDbHealth, error: dbHealthError } = useQuery({
     queryKey: ['/api/admin/db-health'],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/admin/db-health");
       return await res.json();
-    }
+    },
+    retry: 1
   });
+  
+  // Extract the actual db health from the response
+  const dbHealth = dbHealthResponse?.dbHealth;
 
   // Get system information
-  const { data: systemInfo, isLoading: loadingSystemInfo, refetch: refetchSystemInfo } = useQuery({
+  const { data: systemInfo, isLoading: loadingSystemInfo, refetch: refetchSystemInfo, error: systemInfoError } = useQuery({
     queryKey: ['/api/admin/system'],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/admin/system");
       return await res.json();
-    }
+    },
+    retry: 1
   });
 
   // Get logs information
-  const { data: logs, isLoading: loadingLogs, refetch: refetchLogs } = useQuery({
+  const { data: logs, isLoading: loadingLogs, refetch: refetchLogs, error: logsError } = useQuery({
     queryKey: ['/api/admin/logs'],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/admin/logs");
       return await res.json();
-    }
+    },
+    retry: 1
   });
 
   // Process scheduled invoices and recurring templates
@@ -221,19 +227,15 @@ const AdminConsole = () => {
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Users</span>
-                        <span className="font-medium">{dbHealth.counts.users}</span>
+                        <span className="font-medium">{dbHealth.users || 'N/A'}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Invoices</span>
-                        <span className="font-medium">{dbHealth.counts.invoices}</span>
+                        <span className="font-medium">{dbHealth.invoices || 0}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span>Share Analytics</span>
-                        <span className="font-medium">{dbHealth.counts.shareAnalytics}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Subscription Plans</span>
-                        <span className="font-medium">{dbHealth.counts.subscriptionPlans}</span>
+                        <span>Response Time</span>
+                        <span className="font-medium">{dbHealth.responseTimeMs || 0} ms</span>
                       </div>
                     </div>
                   </div>
