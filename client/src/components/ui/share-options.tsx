@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Invoice } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,8 +8,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { getBrandingSettings, BrandingSettings } from "@/lib/branding-service";
 import { handleInputFocus, handleTextareaFocus } from "@/lib/focus-handlers";
 import { Clipboard, Copy, Link, Mail, MessageCircle, Share2, Facebook, Linkedin, Twitter, Check, FileText, Download, Instagram, Smartphone } from "lucide-react";
+import { SiGithub, SiLinkedin, SiFacebook, SiTwitter, SiInstagram, SiPinterest, SiYoutube, SiTiktok, SiSnapchat, 
+         SiWhatsapp, SiTelegram, SiWechat, SiMedium, SiSlack, SiDiscord, SiReddit, SiPaypal, SiApple,
+         SiMicrosoft, SiGoogle, SiAmazon, SiAdobe, SiShopify, SiWordpress, SiWix, SiSquarespace } from "react-icons/si";
 import generatePdf from "@/lib/pdf-generator";
 
 interface ShareOptionsProps {
@@ -30,6 +34,22 @@ export function ShareOptions({ invoice, isLoading = false, onClose }: ShareOptio
   const [emailMessage, setEmailMessage] = useState(`Please find your invoice attached.`);
   const [linkCopied, setLinkCopied] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [brandingSettings, setBrandingSettings] = useState<BrandingSettings | null>(null);
+  const [selectedBranding, setSelectedBranding] = useState<string>("none");
+  
+  // Fetch branding settings when component mounts
+  useEffect(() => {
+    const fetchBranding = async () => {
+      try {
+        const settings = await getBrandingSettings();
+        setBrandingSettings(settings);
+      } catch (error) {
+        console.error("Failed to fetch branding settings:", error);
+      }
+    };
+    
+    fetchBranding();
+  }, []);
 
   // Generate the shareable URL
   const getShareableUrl = (source?: string) => {
