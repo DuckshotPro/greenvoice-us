@@ -21,24 +21,29 @@
     --border: #E5E5E5;
     --input: #FFFFFF;
     --ring: #009888;
+    --sidebar-bg: #FFFFFF;
+    
+    /* Gray color from branding */
+    --gray-brand: #333333;
   }
 
   .dark {
-    --background: #121212;
+    --background: #0D0D0D;
     --foreground: #EDEDED;
-    --card: #1E1E1E;
+    --card: #171717;
     --card-foreground: #EDEDED;
     --primary: #00B9A6;
     --primary-foreground: #FFFFFF;
-    --secondary: #2A2A2A;
+    --secondary: #222222;
     --secondary-foreground: #EDEDED;
-    --muted: #252525;
+    --muted: #1A1A1A;
     --muted-foreground: #A0A0A0;
-    --accent: #1A3330;
+    --accent: #143430;
     --accent-foreground: #00B9A6;
-    --border: #333333;
-    --input: #1E1E1E;
+    --border: #303030;
+    --input: #171717;
     --ring: #00B9A6;
+    --sidebar-bg: #171717;
   }
 
   * {
@@ -91,5 +96,44 @@
 
   .greenvoice-background {
     background-color: var(--background);
+  }
+  
+  /* Gradient styles */
+  .gradient-primary {
+    background: linear-gradient(135deg, var(--primary), #00c4af);
+  }
+  
+  .gradient-text {
+    background: linear-gradient(135deg, var(--primary), #00c4af);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  
+  /* Button styles with gradients */
+  .btn-gradient {
+    background: linear-gradient(135deg, var(--primary), #00c4af);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-gradient:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Sidebar styling */
+  .sidebar {
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid var(--border);
+  }
+  
+  .dark .sidebar {
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid var(--border);
   }
 }
