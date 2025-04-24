@@ -1,12 +1,12 @@
 import { Router, Request, Response } from "express";
 import { z } from "zod";
-import { db } from "../models/db";
 import { invoices, lineItems } from "@shared/schema";
 import { requireAuth } from "../middleware/auth";
 import { validateBody } from "../middleware/validation";
 import { v4 as uuidv4 } from "uuid";
 import nodemailer from "nodemailer";
 import { format } from "date-fns";
+import { storage } from "../models/storage";
 
 // Validation schema for quick invoices
 const quickInvoiceSchema = z.object({
@@ -114,7 +114,7 @@ quickInvoiceRoutes.post(
         // Format the items into HTML
         const itemsHtml = invoiceData.items
           .map(
-            (item) => `
+            (item: { description: string; quantity: number; rate: number; amount: number }) => `
             <tr>
               <td style="padding: 8px; border-bottom: 1px solid #eee;">${item.description}</td>
               <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">${
@@ -214,13 +214,11 @@ quickInvoiceRoutes.get(
       const userId = req.user?.id;
       
       // Get all quick invoices for the user
-      const userQuickInvoices = await db
-        .select()
-        .from(invoices)
-        .where(eb => eb.eq(invoices.userId, userId))
-        .where(eb => eb.eq(invoices.notes, "Created via Quick Invoice"))
-        .orderBy(eb => eb.desc(invoices.createdAt))
-        .limit(10); // Limit to most recent 10
+      // Using the storage service to handle this properly
+      const userInvoices = await storage.getAllInvoices(userId);
+      const userQuickInvoices = userInvoices
+        .filter(inv => inv.notes === "Created via Quick Invoice")
+        .slice(0, 10); // Limit to most recent 10
       
       res.status(200).json(userQuickInvoices);
     } catch (error) {

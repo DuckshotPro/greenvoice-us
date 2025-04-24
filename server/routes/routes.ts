@@ -86,6 +86,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register branding routes
   app.use("/api/branding", brandingRoutes);
   
+  // Register quick invoice routes
+  app.use("/api/invoices", quickInvoiceRoutes);
+  
   // Initialize Stripe with secret key
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
     apiVersion: '2023-10-16' as any, // Cast to any to avoid TypeScript error since Stripe SDK types may lag behind API versions
