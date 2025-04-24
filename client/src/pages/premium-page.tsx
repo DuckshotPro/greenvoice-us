@@ -78,7 +78,7 @@ function CheckoutForm({ onSuccess }: { onSuccess: () => void }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <PaymentElement options={{
-          business: {name: 'InvoiceFlow'},
+          business: {name: 'GreenVoice'},
           defaultValues: {
             billingDetails: {
               email: user?.email || '',

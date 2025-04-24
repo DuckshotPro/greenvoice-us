@@ -24,7 +24,7 @@ export function FeatureBox({
         "group relative p-6 rounded-lg transition-all duration-300",
         darkMode 
           ? "bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 hover:border-greenvoice-primary/50 shadow-md shadow-greenvoice-primary/5" 
-          : "bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-greenvoice-primary/30 hover:shadow-lg shadow-md",
+          : "bg-white border border-gray-200 hover:border-greenvoice-primary/30 hover:shadow-lg shadow-md",
         className
       )}
     >
