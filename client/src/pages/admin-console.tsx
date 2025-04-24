@@ -404,16 +404,16 @@ const AdminConsole = () => {
                     <h3 className="text-lg font-medium mb-2">Memory</h3>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div className="font-medium">Total Memory</div>
-                      <div>{Math.round(systemInfo.memoryUsage.totalMB)} MB</div>
+                      <div>{systemInfo.memoryUsage?.totalMB ? Math.round(systemInfo.memoryUsage.totalMB) : 'N/A'} {systemInfo.memoryUsage?.totalMB ? 'MB' : ''}</div>
                       
                       <div className="font-medium">Free Memory</div>
-                      <div>{Math.round(systemInfo.memoryUsage.freeMB)} MB</div>
+                      <div>{systemInfo.memoryUsage?.freeMB ? Math.round(systemInfo.memoryUsage.freeMB) : 'N/A'} {systemInfo.memoryUsage?.freeMB ? 'MB' : ''}</div>
                       
                       <div className="font-medium">Used Memory</div>
-                      <div>{Math.round(systemInfo.memoryUsage.usedMB)} MB</div>
+                      <div>{systemInfo.memoryUsage?.usedMB ? Math.round(systemInfo.memoryUsage.usedMB) : 'N/A'} {systemInfo.memoryUsage?.usedMB ? 'MB' : ''}</div>
                       
                       <div className="font-medium">Memory Usage</div>
-                      <div>{Math.round(systemInfo.memoryUsage.usedPercent * 100)}%</div>
+                      <div>{systemInfo.memoryUsage?.usedPercent ? Math.round(systemInfo.memoryUsage.usedPercent * 100) : 'N/A'}{systemInfo.memoryUsage?.usedPercent ? '%' : ''}</div>
                     </div>
                   </div>
                   
@@ -422,14 +422,18 @@ const AdminConsole = () => {
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div className="font-medium">Uptime</div>
                       <div>
-                        {Math.floor(systemInfo.uptime / 86400)}d {Math.floor((systemInfo.uptime % 86400) / 3600)}h {Math.floor((systemInfo.uptime % 3600) / 60)}m
+                        {systemInfo.uptime ? 
+                          `${Math.floor(systemInfo.uptime / 86400)}d ${Math.floor((systemInfo.uptime % 86400) / 3600)}h ${Math.floor((systemInfo.uptime % 3600) / 60)}m`
+                          : 'N/A'}
                       </div>
                       
                       <div className="font-medium">CPU Cores</div>
-                      <div>{systemInfo.cpuCount}</div>
+                      <div>{systemInfo.cpuCount || 'N/A'}</div>
                       
                       <div className="font-medium">CPU Load (1m, 5m, 15m)</div>
-                      <div>{systemInfo.cpuLoad.map((load: number) => Math.round(load * 100) / 100).join(', ')}</div>
+                      <div>{systemInfo.cpuLoad && Array.isArray(systemInfo.cpuLoad) 
+                        ? systemInfo.cpuLoad.map((load: number) => Math.round(load * 100) / 100).join(', ')
+                        : 'N/A'}</div>
                     </div>
                   </div>
                 </div>

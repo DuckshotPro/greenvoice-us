@@ -42,6 +42,7 @@ import {
 } from "../middleware/validation-schemas";
 import { analyticsRoutes } from "./analytics-routes";
 import brandingRoutes from "./branding-routes";
+import { quickInvoiceRoutes } from "./quick-invoice-routes";
 import {
   trackShareSchema,
   analyticsQuerySchema,
