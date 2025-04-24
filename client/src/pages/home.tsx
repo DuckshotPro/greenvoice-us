@@ -185,10 +185,16 @@ const Home = () => {
               <p className="text-gray-500 mt-1">Here's your invoice dashboard</p>
             </div>
             <div className="flex gap-3">
-              <Button asChild variant="outline" size="sm" className="hidden sm:flex">
+              <Button asChild variant="outline" size="sm" className="hidden md:flex">
                 <Link href="/settings">
                   <Settings className="h-4 w-4 mr-1" />
                   Settings
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="sm" className="hidden sm:flex md:hidden">
+                <Link href="/roadmap">
+                  <MapPin className="h-4 w-4 mr-1" />
+                  Roadmap
                 </Link>
               </Button>
               <Button asChild className="bg-gradient-to-r from-primary to-primary/80">
@@ -263,7 +269,7 @@ const Home = () => {
           </div>
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
             <Card className="border-dashed border-2 border-primary/50 bg-primary/5 h-full">
               <CardContent className="p-6 h-full flex flex-col items-center justify-center text-center">
                 <div className="p-3 rounded-full bg-primary/10 mb-4">
@@ -299,6 +305,13 @@ const Home = () => {
               <Link href="/analytics">
                 <FileBarChart2 className="h-6 w-6 mb-1" />
                 <span>Analytics</span>
+              </Link>
+            </Button>
+            
+            <Button asChild variant="outline" className="h-auto py-6 flex flex-col items-center justify-center gap-2">
+              <Link href="/roadmap">
+                <MapPin className="h-6 w-6 mb-1" />
+                <span>Roadmap</span>
               </Link>
             </Button>
             
