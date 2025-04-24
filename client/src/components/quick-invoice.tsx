@@ -4,6 +4,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { useAds } from "@/hooks/use-ads";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import {
@@ -63,10 +64,12 @@ type QuickInvoiceFormValues = z.infer<typeof quickInvoiceSchema>;
 const QuickInvoice = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { shouldShowAds, recordAdAction, completeAdView } = useAds();
   const [_, navigate] = useLocation();
   const [adDialogOpen, setAdDialogOpen] = useState(false);
   const [adWatched, setAdWatched] = useState(false);
   const [adProgress, setAdProgress] = useState(0);
+  const [adViewId, setAdViewId] = useState("");
   const [sendingInvoice, setSendingInvoice] = useState(false);
   const [invoiceSent, setInvoiceSent] = useState(false);
   

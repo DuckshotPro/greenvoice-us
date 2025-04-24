@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { requireAuth } from "../middleware/auth";
-import { storage } from "../storage";
-import { IStorage } from "../storage";
+import { storage } from "../models/storage";
+import { IStorage } from "../models/storage";
 import { adViewSchema } from "../middleware/validation-schemas";
 import { validateBody } from "../middleware/validation";
 import { v4 as uuidv4 } from "uuid";
