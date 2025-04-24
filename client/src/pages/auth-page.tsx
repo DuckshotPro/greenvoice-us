@@ -190,7 +190,8 @@ export default function AuthPage() {
                       />
                       <Button 
                         type="submit" 
-                        className="w-full bg-greenvoice-primary hover:bg-greenvoice-dark font-nunito"
+                        variant="gradient"
+                        className="w-full font-nunito"
                         disabled={loginMutation.isPending}
                       >
                         {loginMutation.isPending ? 'Signing in...' : 'Sign in'}
@@ -296,7 +297,8 @@ export default function AuthPage() {
                       />
                       <Button 
                         type="submit" 
-                        className="w-full bg-greenvoice-primary hover:bg-greenvoice-dark font-nunito"
+                        variant="gradient"
+                        className="w-full font-nunito"
                         disabled={registerMutation.isPending}
                       >
                         {registerMutation.isPending ? 'Creating account...' : 'Create account'}
