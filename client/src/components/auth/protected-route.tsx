@@ -15,7 +15,7 @@ export function ProtectedRoute({
   requirePremium = false,
   requireAdmin = false,
 }: ProtectedRouteProps) {
-  const { user, isLoading, isPremium } = useAuth();
+  const { user, isLoading, isPremium, isAdmin } = useAuth();
   const [, setLocation] = useLocation();
 
   if (isLoading) {
@@ -46,16 +46,12 @@ export function ProtectedRoute({
     );
   }
   
-  if (requireAdmin) {
-    // Check admin status through subscription plan or email
-    const isAdmin = user.subscriptionPlan === "enterprise" || user.email?.includes("admin");
-    if (!isAdmin) {
-      return (
-        <Route path={path}>
-          {() => <Redirect to="/" />}
-        </Route>
-      );
-    }
+  if (requireAdmin && !isAdmin) {
+    return (
+      <Route path={path}>
+        {() => <Redirect to="/" />}
+      </Route>
+    );
   }
 
   return (

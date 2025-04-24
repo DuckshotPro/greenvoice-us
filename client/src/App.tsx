@@ -28,6 +28,7 @@ function Router() {
       <Route path="/auth" component={AuthPage} />
       <Route path="/premium" component={PremiumPage} />
       <Route path="/faq" component={FaqPage} />
+      <Route path="/roadmap" component={RoadmapPage} />
       <ProtectedRoute path="/create-invoice" component={CreateInvoice} />
       <ProtectedRoute path="/analytics" component={AnalyticsDashboard} requirePremium />
       <ProtectedRoute path="/branding" component={BrandingSettings} />
