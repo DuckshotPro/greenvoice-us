@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { LogIn, Crown, HelpCircle, ShieldCheck } from 'lucide-react';
 import { BrandLogo } from '@/components/ui/brand-logo';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,8 +60,8 @@ const Header = () => {
                   href={link.href}
                   className={`${
                     isActive(link.href)
-                      ? 'border-greenvoice-primary text-greenvoice-primary font-nunito'
-                      : 'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-700 font-montserrat'
+                      ? 'border-primary text-primary font-nunito'
+                      : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground font-montserrat'
                   } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
                 >
                   {link.label}
@@ -70,6 +71,11 @@ const Header = () => {
           </div>
           
           <div className="flex items-center space-x-2">
+            {/* Theme toggle */}
+            <div className="hidden sm:block">
+              <ThemeToggle />
+            </div>
+            
             {/* Premium badge/button */}
             {user && (
               <Link href="/premium">
@@ -164,8 +170,8 @@ const Header = () => {
                       href={link.href}
                       className={`${
                         isActive(link.href)
-                          ? 'bg-greenvoice-primary/10 text-greenvoice-primary font-nunito'
-                          : 'text-gray-600 hover:bg-gray-50 font-montserrat'
+                          ? 'bg-primary/10 text-primary font-nunito'
+                          : 'text-muted-foreground hover:bg-secondary font-montserrat'
                       } px-3 py-2 rounded-md text-base font-medium`}
                       onClick={() => setIsSheetOpen(false)}
                     >
@@ -206,6 +212,14 @@ const Header = () => {
                       Admin Console
                     </Link>
                   )}
+                  
+                  {/* Theme toggle for mobile */}
+                  <div className="px-3 py-2 rounded-md">
+                    <div className="flex items-center">
+                      <span className="text-base font-medium mr-2">Theme</span>
+                      <ThemeToggle />
+                    </div>
+                  </div>
                   
                   {/* Mobile logout */}
                   {user && (

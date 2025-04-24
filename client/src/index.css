@@ -5,44 +5,91 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --background: #F7F7F7;
+    --foreground: #333333;
+    --card: #FFFFFF;
+    --card-foreground: #333333;
+    --primary: #009888;
+    --primary-foreground: #FFFFFF;
+    --secondary: #F0F0F0;
+    --secondary-foreground: #333333;
+    --muted: #E9E9E9;
+    --muted-foreground: #717171;
+    --accent: #E8F7F5;
+    --accent-foreground: #009888;
+    --border: #E5E5E5;
+    --input: #FFFFFF;
+    --ring: #009888;
+  }
+
+  .dark {
+    --background: #121212;
+    --foreground: #EDEDED;
+    --card: #1E1E1E;
+    --card-foreground: #EDEDED;
+    --primary: #00B9A6;
+    --primary-foreground: #FFFFFF;
+    --secondary: #2A2A2A;
+    --secondary-foreground: #EDEDED;
+    --muted: #252525;
+    --muted-foreground: #A0A0A0;
+    --accent: #1A3330;
+    --accent-foreground: #00B9A6;
+    --border: #333333;
+    --input: #1E1E1E;
+    --ring: #00B9A6;
+  }
+
   * {
     @apply border-border;
   }
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
-    background-color: #F7F7F7;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  .light h1, .light h2, .light h3, .light h4, .light h5, .light h6,
+  :root:not(.dark) h1, :root:not(.dark) h2, :root:not(.dark) h3, 
+  :root:not(.dark) h4, :root:not(.dark) h5, :root:not(.dark) h6 {
     font-family: 'Nunito Sans', sans-serif;
     font-weight: 700;
-    color: #009888; /* Bluish Jade Stone Green */
+    color: var(--primary);
+  }
+
+  .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+    font-family: 'Nunito Sans', sans-serif;
+    font-weight: 700;
+    color: var(--primary);
   }
 
   p, a, button, input, textarea, span, div {
     font-family: 'Montserrat', sans-serif;
-    color: #333333; /* Dark Grey */
+    color: var(--foreground);
   }
   
   /* GreenVoice Brand Styles */
   .greenvoice-primary {
-    color: #009888;
+    color: var(--primary);
   }
 
   .greenvoice-bg-primary {
-    background-color: #009888;
+    background-color: var(--primary);
   }
 
   .greenvoice-heading {
     font-family: 'Nunito Sans', sans-serif;
     font-weight: 700;
-    color: #009888;
+    color: var(--primary);
   }
 
   .greenvoice-subheading {
     font-family: 'Montserrat', sans-serif;
     font-weight: 500;
-    color: #333333;
+    color: var(--foreground);
+  }
+
+  .greenvoice-background {
+    background-color: var(--background);
   }
 }
