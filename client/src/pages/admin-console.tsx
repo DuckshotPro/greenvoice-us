@@ -275,19 +275,19 @@ const AdminConsole = () => {
                       <div className="flex justify-between text-sm">
                         <span>Memory Usage</span>
                         <span className="font-medium">
-                          {Math.round(systemInfo.memoryUsage.usedMB)} / {Math.round(systemInfo.memoryUsage.totalMB)} MB
+                          {systemInfo.memory ? `${systemInfo.memory.used} / ${systemInfo.memory.total} MB` : 'N/A'}
                         </span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span>CPU Load</span>
-                        <span className="font-medium">
-                          {systemInfo.cpuLoad.map((load: number) => Math.round(load * 100) / 100).join(', ')}
-                        </span>
+                        <span>Platform</span>
+                        <span className="font-medium">{systemInfo.platform || 'Unknown'}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Uptime</span>
                         <span className="font-medium">
-                          {Math.floor(systemInfo.uptime / 86400)}d {Math.floor((systemInfo.uptime % 86400) / 3600)}h
+                          {systemInfo.uptime ? 
+                            `${Math.floor(systemInfo.uptime / 86400)}d ${Math.floor((systemInfo.uptime % 86400) / 3600)}h` : 
+                            'Unknown'}
                         </span>
                       </div>
                     </div>
@@ -323,15 +323,17 @@ const AdminConsole = () => {
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Total Users</span>
-                        <span className="font-medium">{dbHealth.counts.users}</span>
+                        <span className="font-medium">{dbHealth.users || 0}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span>Premium Users</span>
-                        <span className="font-medium">{dbHealth.counts.premiumUsers || "N/A"}</span>
+                        <span>Total Invoices</span>
+                        <span className="font-medium">{dbHealth.invoices || 0}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span>Active Today</span>
-                        <span className="font-medium">{dbHealth.counts.activeToday || "N/A"}</span>
+                        <span>System Status</span>
+                        <Badge variant={dbHealth.status === "healthy" ? "default" : "destructive"}>
+                          {dbHealth.status === "healthy" ? "Healthy" : "Error"}
+                        </Badge>
                       </div>
                     </div>
                     
@@ -475,15 +477,15 @@ const AdminConsole = () => {
                     <div key={i} className="h-6 bg-gray-200 rounded w-full"></div>
                   ))}
                 </div>
-              ) : logs && logs.entries ? (
+              ) : logs && logs.logs ? (
                 <div className="space-y-1 max-h-[600px] overflow-y-auto font-mono text-xs">
-                  {logs.entries.map((entry: any, index: number) => (
+                  {logs.logs.map((entry: any, index: number) => (
                     <div 
                       key={index}
                       className={`p-2 rounded ${
                         entry.level === 'ERROR' 
                           ? 'bg-red-50 text-red-800' 
-                          : entry.level === 'WARN' 
+                          : entry.level === 'WARNING' 
                           ? 'bg-yellow-50 text-yellow-800' 
                           : entry.level === 'INFO' 
                           ? 'bg-blue-50 text-blue-800' 
@@ -498,7 +500,7 @@ const AdminConsole = () => {
                           variant={
                             entry.level === 'ERROR' 
                               ? 'destructive' 
-                              : entry.level === 'WARN' 
+                              : entry.level === 'WARNING' 
                               ? 'secondary' 
                               : entry.level === 'INFO' 
                               ? 'default' 
@@ -511,7 +513,7 @@ const AdminConsole = () => {
                         <span className="flex-grow">{entry.message}</span>
                       </div>
                       {entry.details && (
-                        <div className="mt-1 pl-24 text-gray-600">
+                        <div className="mt-1 pl-24 text-gray-600 break-words">
                           {typeof entry.details === 'object' 
                             ? JSON.stringify(entry.details) 
                             : entry.details}
