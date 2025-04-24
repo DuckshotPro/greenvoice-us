@@ -62,7 +62,7 @@ const Home = () => {
   // Render the marketing landing page for non-authenticated users
   if (!user) {
     return (
-      <div className="bg-gray-100 min-h-screen flex flex-col">
+      <div className="bg-gray-100 dark:bg-[#0E1525] min-h-screen flex flex-col">
         <Header />
 
         <main className="flex-grow">
@@ -87,7 +87,7 @@ const Home = () => {
                   </Button>
                   <Button 
                     variant="outline"
-                    className="flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md text-primary bg-white hover:bg-gray-50 sm:px-8"
+                    className="flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md text-primary bg-white dark:bg-[#1C2333] dark:text-white dark:border-[#2B3245] hover:bg-gray-50 dark:hover:bg-[#2B3245] sm:px-8"
                     onClick={() => {
                       const element = document.getElementById('features');
                       element?.scrollIntoView({ behavior: 'smooth' });
@@ -101,13 +101,13 @@ const Home = () => {
           </section>
 
           {/* Features Section */}
-          <section id="features" className="py-16 bg-white">
+          <section id="features" className="py-16 bg-card dark:bg-[#1C2333]">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center">
-                <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white sm:text-4xl">
                   All-in-One Invoice Solution
                 </h2>
-                <p className="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
+                <p className="mt-4 max-w-2xl text-xl text-gray-500 dark:text-gray-300 mx-auto">
                   Everything you need to create and share professional invoices.
                 </p>
               </div>
@@ -138,13 +138,13 @@ const Home = () => {
           </section>
 
           {/* CTA Section */}
-          <section className="bg-gray-50 py-16">
+          <section className="bg-gray-50 dark:bg-[#0E1525] py-16">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center">
-                <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white sm:text-4xl">
                   Ready to Streamline Your Invoicing?
                 </h2>
-                <p className="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
+                <p className="mt-4 max-w-2xl text-xl text-gray-500 dark:text-gray-300 mx-auto">
                   Join thousands of businesses who trust GreenVoice for their invoicing needs.
                 </p>
                 <div className="mt-8">
@@ -169,7 +169,7 @@ const Home = () => {
 
   // User dashboard for authenticated users
   return (
-    <div className="bg-gray-100 min-h-screen flex flex-col">
+    <div className="bg-gray-100 dark:bg-[#0E1525] min-h-screen flex flex-col">
       <Header />
 
       <main className="flex-grow container mx-auto px-4 py-8">
