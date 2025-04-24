@@ -4,15 +4,17 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Force html and body to have a dark background in dark mode */
+/* Dark mode body and HTML */
 html.dark,
-.dark body {
-  background-color: #050505 !important;
+.dark body,
+.dark {
+  background-color: #000000 !important;
 }
 
-/* Force document element to be dark */
-.dark {
-  background-color: #050505 !important;
+/* Light mode body and HTML - ensure proper background */
+html:not(.dark),
+:root:not(.dark) body {
+  background-color: #F7F7F7 !important;
 }
 
 @layer base {
@@ -39,22 +41,22 @@ html.dark,
   }
 
   .dark {
-    --background: #050505;
+    --background: #000000;
     --foreground: #EDEDED;
-    --card: #111111;
+    --card: #0C0C0C;
     --card-foreground: #EDEDED;
     --primary: #00B9A6;
     --primary-foreground: #FFFFFF;
-    --secondary: #161616;
+    --secondary: #121212;
     --secondary-foreground: #EDEDED;
-    --muted: #0F0F0F;
+    --muted: #0A0A0A;
     --muted-foreground: #A0A0A0;
     --accent: #143430;
     --accent-foreground: #00B9A6;
-    --border: #232323;
-    --input: #0F0F0F;
+    --border: #1A1A1A;
+    --input: #0A0A0A;
     --ring: #00B9A6;
-    --sidebar-bg: #0A0A0A;
+    --sidebar-bg: #080808;
   }
 
   * {
@@ -144,6 +146,44 @@ html.dark,
   .dark .gradient-primary:hover {
     background: linear-gradient(135deg, #00B9A6, #00e8d0);
     box-shadow: 0 4px 12px rgba(0, 185, 166, 0.4);
+  }
+  
+  /* Enhanced gradient for primary buttons */
+  [data-variant="default"],
+  .btn-primary,
+  button[type="submit"]:not([data-variant]) {
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+  }
+  
+  [data-variant="default"]::before,
+  .btn-primary::before,
+  button[type="submit"]:not([data-variant])::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, var(--primary), #00c4af);
+    background-size: 200% 200%;
+    animation: gradientShift 5s ease infinite;
+    z-index: -1;
+    transition: opacity 0.3s ease;
+    opacity: 0;
+  }
+  
+  .dark [data-variant="default"]::before,
+  .dark .btn-primary::before,
+  .dark button[type="submit"]:not([data-variant])::before {
+    background: linear-gradient(135deg, #00B9A6, #00d6c0);
+  }
+  
+  [data-variant="default"]:hover::before,
+  .btn-primary:hover::before,
+  button[type="submit"]:not([data-variant]):hover::before {
+    opacity: 1;
   }
   
   .gradient-text {
@@ -258,11 +298,11 @@ html.dark,
     background-color: rgba(0, 185, 166, 0.15) !important;
   }
   
-  /* Ensure the content area is also dark */
+  /* Ensure the content area is consistently dark */
   .dark main,
   .dark .bg-background,
   .dark [class*="bg-background"] {
-    background-color: #050505 !important;
+    background-color: #000000 !important;
   }
   
   /* Card styling for dark mode */
@@ -271,24 +311,54 @@ html.dark,
     background-color: #0a0a0a !important;
   }
   
-  /* Dialog and modal styling for dark mode */
-  .dark [role="dialog"],
+  /* All dark mode elements */
+  .dark [data-radix-popper-content-wrapper] [role="dialog"],
   .dark [data-state="open"][role="dialog"],
-  .dark [data-radix-popper-content-wrapper] [role="dialog"] {
-    background-color: #0a0a0a !important;
+  .dark [role="dialog"],
+  .dark div[role="dialog"],
+  .dark div[role="dialog"] > div,
+  .dark [data-radix-sheet-content] {
+    background-color: #080808 !important;
   }
   
-  /* Tailwind UI components dark styling overrides */
+  /* Auth page specific dark mode */
+  .dark [data-auth-container] {
+    background-color: #000000 !important;
+  }
+  
+  .dark [data-auth-form] {
+    background-color: #080808 !important;
+  }
+  
+  /* Force light background for light mode */
+  :root:not(.dark) .bg-background,
+  :root:not(.dark) [class*="bg-background"] {
+    background-color: #F7F7F7 !important;
+  }
+  
+  /* Tailwind UI components dark styling */
   .dark .bg-white {
-    background-color: #0a0a0a !important;
+    background-color: #080808 !important;
   }
   
   .dark .border-gray-200 {
-    border-color: #232323 !important;
+    border-color: #1A1A1A !important;
   }
   
   /* Override any sheets/dialogs in dark mode */
   .dark [data-radix-scroll-area-viewport] > div {
     background-color: #080808 !important;
+  }
+  
+  /* Make sure footer is proper dark mode */
+  .dark footer {
+    background-color: #000000 !important;
+    border-top: 1px solid #1A1A1A !important;
+  }
+  
+  /* Make sure header is proper dark mode */
+  .dark header {
+    background-color: #000000 !important;
+    border-bottom: 1px solid #1A1A1A !important;
   }
 }
