@@ -20,6 +20,8 @@ import {
   SiSalesforce, SiHubspot, SiMailchimp
 } from "react-icons/si";
 import generatePdf from "@/lib/pdf-generator";
+// Import our GreenVoice logo
+import greenVoiceLogo from "../../assets/green-voice-logo.png";
 
 interface ShareOptionsProps {
   invoice: Invoice;
@@ -271,8 +273,22 @@ export function ShareOptions({ invoice, isLoading = false, onClose }: ShareOptio
     shareToSocial(platform);
   };
   
+  // Custom GreenVoice icon component
+  const GreenVoiceIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <div className={`relative flex items-center justify-center ${props.className}`}>
+      <img 
+        src={greenVoiceLogo} 
+        alt="GreenVoice Logo" 
+        className="object-contain w-full h-full"
+        style={{ maxWidth: '100%', maxHeight: '100%' }}
+      />
+    </div>
+  );
+
   // Define company logo options for branded sharing
   const companyLogos = [
+    // Add GreenVoice as the first option
+    { id: "greenvoice", name: "GreenVoice", icon: GreenVoiceIcon, color: "#4CAF50", isCustom: true },
     { id: "facebook", name: "Facebook", icon: SiFacebook, color: "#4267B2" },
     { id: "google", name: "Google", icon: SiGoogle, color: "#4285F4" },
     { id: "amazon", name: "Amazon", icon: SiAmazon, color: "#FF9900" },
@@ -314,7 +330,7 @@ export function ShareOptions({ invoice, isLoading = false, onClose }: ShareOptio
               Social
             </TabsTrigger>
             <TabsTrigger value="branded">
-              <SiGoogle className="mr-2 h-4 w-4" />
+              <GreenVoiceIcon className="mr-2 h-4 w-4" />
               Branded
             </TabsTrigger>
             <TabsTrigger value="export">
