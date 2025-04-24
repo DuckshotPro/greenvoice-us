@@ -34,6 +34,7 @@ import { z } from 'zod';
 import { FileText, FileCheck, Calendar, Mail, Github, Facebook, AlignJustify } from 'lucide-react';
 import { SiFacebook, SiGoogle, SiGithub } from 'react-icons/si';
 import { useToast } from '@/hooks/use-toast';
+import { BrandLogo } from '@/components/ui/brand-logo';
 
 const loginSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
@@ -122,7 +123,7 @@ export default function AuthPage() {
               <CardDescription>
                 {activeTab === 'login' 
                   ? 'Enter your credentials to access your account' 
-                  : 'Fill in the details to create your InvoiceFlow account'}
+                  : 'Fill in the details to create your GreenVoice account'}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -348,8 +349,10 @@ export default function AuthPage() {
         <div className="hidden lg:flex lg:flex-col justify-center">
           <div className="space-y-8">
             <div>
-              <h1 className="text-3xl font-bold text-primary mb-2">InvoiceFlow</h1>
-              <p className="text-xl text-gray-600">The professional invoice solution for freelancers and businesses</p>
+              <div className="mb-4">
+                <BrandLogo size="xl" showText={true} />
+              </div>
+              <p className="text-xl text-gray-600 font-montserrat">The professional invoice solution for freelancers and businesses</p>
             </div>
             
             <div className="grid gap-4">
