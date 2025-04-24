@@ -376,6 +376,18 @@ export type InsertSubscriptionTransaction = z.infer<typeof insertSubscriptionTra
 export type AdReward = typeof adRewards.$inferSelect;
 export type InsertAdReward = z.infer<typeof insertAdRewardSchema>;
 
+// Ad view interface for tracking ad views
+export interface AdView {
+  id: string;
+  userId: number | null;
+  adType: string;
+  sourceAction: string;
+  viewedAt: Date;
+  completed: boolean;
+  completedAt?: Date;
+  duration?: number;
+}
+
 // Extended types for front-end use
 export const invoiceWithItemsSchema = insertInvoiceSchema.extend({
   items: z.array(insertLineItemSchema.omit({ invoiceId: true })),
