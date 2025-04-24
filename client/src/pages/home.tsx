@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/use-auth';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
+import QuickInvoice from '@/components/quick-invoice';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -70,33 +71,41 @@ const Home = () => {
         <main className="flex-grow">
           {/* Hero Section */}
           <section className="bg-gradient-to-r from-primary to-accent py-16">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-              <h1 className="text-4xl font-extrabold text-white sm:text-5xl sm:tracking-tight lg:text-6xl">
-                Professional Invoices in Seconds
-              </h1>
-              <p className="mt-6 max-w-lg mx-auto text-xl text-white opacity-80">
-                Create, share, and track invoices easily with GreenVoice's all-in-one platform.
-              </p>
-              <div className="mt-10 max-w-sm mx-auto sm:max-w-none sm:flex sm:justify-center">
-                <div className="space-y-4 sm:space-y-0 sm:mx-auto sm:inline-grid sm:grid-cols-2 sm:gap-5">
-                  <Button 
-                    asChild
-                    className="flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-accent hover:bg-accent/90 sm:px-8"
-                  >
-                    <Link href="/auth">
-                      Sign In
-                    </Link>
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    className="flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md text-primary bg-white dark:bg-[#1C2333] dark:text-white dark:border-[#2B3245] hover:bg-gray-50 dark:hover:bg-[#2B3245] sm:px-8"
-                    onClick={() => {
-                      const element = document.getElementById('features');
-                      element?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                  >
-                    Learn More
-                  </Button>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                {/* Left Column - Text */}
+                <div className="text-center lg:text-left">
+                  <h1 className="text-4xl font-extrabold text-white sm:text-5xl sm:tracking-tight lg:text-6xl">
+                    Professional Invoices in Seconds
+                  </h1>
+                  <p className="mt-6 max-w-lg text-xl text-white opacity-80">
+                    Create, share, and track invoices easily with GreenVoice's all-in-one platform.
+                  </p>
+                  <div className="mt-10 max-w-sm mx-auto lg:mx-0 sm:flex sm:space-x-4">
+                    <Button 
+                      asChild
+                      className="w-full sm:w-auto flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-accent hover:bg-accent/90 sm:px-8"
+                    >
+                      <Link href="/auth">
+                        Sign In
+                      </Link>
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      className="w-full sm:w-auto mt-4 sm:mt-0 flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md text-primary bg-white dark:bg-[#1C2333] dark:text-white dark:border-[#2B3245] hover:bg-gray-50 dark:hover:bg-[#2B3245] sm:px-8"
+                      onClick={() => {
+                        const element = document.getElementById('features');
+                        element?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                    >
+                      Learn More
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Right Column - Quick Invoice */}
+                <div className="mt-8 lg:mt-0">
+                  <QuickInvoice />
                 </div>
               </div>
             </div>
