@@ -5,6 +5,10 @@ export default {
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      fontFamily: {
+        'nunito': ['Nunito Sans', 'sans-serif'],
+        'montserrat': ['Montserrat', 'sans-serif']
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
@@ -44,6 +48,13 @@ export default {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
+        greenvoice: {
+          primary: '#009888',     // Bluish Jade Stone Green
+          dark: '#007A6F',        // Darker shade for hover
+          light: '#4CB8AD',       // Lighter shade for highlights
+          text: '#333333',        // Dark Grey for text
+          background: '#F7F7F7',  // Off-white background
+        },
         chart: {
           "1": "hsl(var(--chart-1))",
           "2": "hsl(var(--chart-2))",

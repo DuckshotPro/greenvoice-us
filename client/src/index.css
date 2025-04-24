@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,5 +11,38 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    background-color: #F7F7F7;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Nunito Sans', sans-serif;
+    font-weight: 700;
+    color: #009888; /* Bluish Jade Stone Green */
+  }
+
+  p, a, button, input, textarea, span, div {
+    font-family: 'Montserrat', sans-serif;
+    color: #333333; /* Dark Grey */
+  }
+  
+  /* GreenVoice Brand Styles */
+  .greenvoice-primary {
+    color: #009888;
+  }
+
+  .greenvoice-bg-primary {
+    background-color: #009888;
+  }
+
+  .greenvoice-heading {
+    font-family: 'Nunito Sans', sans-serif;
+    font-weight: 700;
+    color: #009888;
+  }
+
+  .greenvoice-subheading {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    color: #333333;
   }
 }
