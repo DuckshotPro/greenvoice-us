@@ -4,17 +4,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Dark mode body and HTML */
+/* Basic dark mode body and HTML */
 html.dark,
-.dark body,
-.dark {
-  background-color: #000000 !important;
+.dark body {
+  background-color: #000000;
 }
 
-/* Light mode body and HTML - ensure proper background */
+/* Light mode body and HTML */
 html:not(.dark),
 :root:not(.dark) body {
-  background-color: #F7F7F7 !important;
+  background-color: #F7F7F7;
 }
 
 @layer base {
@@ -234,131 +233,86 @@ html:not(.dark),
   
   /* Enhanced dark mode styling */
   .dark [data-sidebar="sidebar"] {
-    background-color: #080808 !important;
-    border-right: 1px solid var(--border) !important;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5) !important;
+    background-color: #080808;
+    border-right: 1px solid var(--border);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
   }
   
-  /* Force dark background for sidebar in dark mode */
-  /* Specific selectors for sidebar to force dark mode */
-  .dark div[data-side="left"] > div,
-  .dark div[data-collapsible] .peer-data-\[side\=left\],
+  /* Sidebar in dark mode */
   .dark .sidebar,
-  .dark [data-sidebar],
-  .dark [data-sidebar] > div,
-  .dark [data-sidebar] > div > div,
-  .dark div[data-radix-scroll-area-viewport],
-  .dark div[data-radix-scroll-area-viewport] > div,
-  .dark div[data-radix-scroll-area-viewport] > div > div {
-    background-color: #080808 !important;
+  .dark [data-sidebar] {
+    background-color: #080808;
   }
   
-  /* Force all modals and dialogs */
-  .dark div[role="dialog"],
-  .dark div[role="dialog"] > div,
-  .dark div[role="dialog"] > div > div,
-  .dark [data-radix-sheet-content] {
-    background-color: #080808 !important;
-    border-color: #232323 !important;
-  }
-  
-  /* Force dark background for sheet menu in dark mode */
-  .dark [data-radix-popper-content-wrapper],
-  .dark .radix-sheet-content,
+  /* Dialog and modal styling for dark mode */
   .dark [role="dialog"] {
-    background-color: #080808 !important;
+    background-color: #080808;
+    border-color: #1A1A1A;
   }
   
-  /* Sheet menu styling */
-  .dark [data-state] div[role="dialog"] {
-    background-color: #080808 !important;
-    border-color: #232323 !important;
-  }
-  
-  /* Dark mode for select dropdowns and popups */
-  .dark [role="listbox"] {
-    background-color: #080808 !important;
-    border-color: #232323 !important;
-  }
-  
-  /* Dark mode for input fields */
+  /* Dark mode for form elements */
   .dark input, 
   .dark textarea,
-  .dark select {
-    background-color: #0a0a0a !important;
-    border-color: #232323 !important;
+  .dark select,
+  .dark [role="listbox"] {
+    background-color: #0a0a0a;
+    border-color: #1A1A1A;
   }
   
-  /* Force dark background for menu items */
+  /* Sidebar menu items hover effects */
   .dark [data-sidebar="menu-button"]:hover {
-    background-color: rgba(0, 185, 166, 0.1) !important;
+    background-color: rgba(0, 185, 166, 0.1);
   }
   
   .dark [data-sidebar="menu-button"][data-active="true"] {
-    background-color: rgba(0, 185, 166, 0.15) !important;
+    background-color: rgba(0, 185, 166, 0.15);
   }
   
   /* Ensure the content area is consistently dark */
   .dark main,
   .dark .bg-background,
   .dark [class*="bg-background"] {
-    background-color: #000000 !important;
+    background-color: #000000;
   }
   
   /* Card styling for dark mode */
   .dark .card,
   .dark [class*="bg-card"] {
-    background-color: #0a0a0a !important;
+    background-color: #0a0a0a;
   }
   
-  /* All dark mode elements */
-  .dark [data-radix-popper-content-wrapper] [role="dialog"],
-  .dark [data-state="open"][role="dialog"],
-  .dark [role="dialog"],
-  .dark div[role="dialog"],
-  .dark div[role="dialog"] > div,
-  .dark [data-radix-sheet-content] {
-    background-color: #080808 !important;
-  }
-  
-  /* Auth page specific dark mode */
+  /* Auth page elements */
   .dark [data-auth-container] {
-    background-color: #000000 !important;
+    background-color: #000000;
   }
   
   .dark [data-auth-form] {
-    background-color: #080808 !important;
+    background-color: #080808;
   }
   
-  /* Force light background for light mode */
+  /* Light mode background */
   :root:not(.dark) .bg-background,
   :root:not(.dark) [class*="bg-background"] {
-    background-color: #F7F7F7 !important;
+    background-color: #F7F7F7;
   }
   
-  /* Tailwind UI components dark styling */
+  /* Common dark mode components */
   .dark .bg-white {
-    background-color: #080808 !important;
+    background-color: #080808;
   }
   
   .dark .border-gray-200 {
-    border-color: #1A1A1A !important;
+    border-color: #1A1A1A;
   }
   
-  /* Override any sheets/dialogs in dark mode */
-  .dark [data-radix-scroll-area-viewport] > div {
-    background-color: #080808 !important;
-  }
-  
-  /* Make sure footer is proper dark mode */
+  /* Header and footer in dark mode */
   .dark footer {
-    background-color: #000000 !important;
-    border-top: 1px solid #1A1A1A !important;
+    background-color: #000000;
+    border-top: 1px solid #1A1A1A;
   }
   
-  /* Make sure header is proper dark mode */
   .dark header {
-    background-color: #000000 !important;
-    border-bottom: 1px solid #1A1A1A !important;
+    background-color: #000000;
+    border-bottom: 1px solid #1A1A1A;
   }
 }
