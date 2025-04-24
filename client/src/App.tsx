@@ -16,6 +16,7 @@ import History from "@/pages/history";
 import Settings from "@/pages/settings";
 import FaqPage from "@/pages/faq-page";
 import AdminConsole from "@/pages/admin-console";
+import RoadmapPage from "@/pages/roadmap";
 import NotFound from "@/pages/not-found";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 
