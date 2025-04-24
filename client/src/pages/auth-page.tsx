@@ -120,7 +120,7 @@ export default function AuthPage() {
               <CardTitle className="text-2xl font-nunito font-bold text-greenvoice-primary">
                 {activeTab === 'login' ? 'Sign in to your account' : 'Create an account'}
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="font-montserrat text-gray-600">
                 {activeTab === 'login' 
                   ? 'Enter your credentials to access your account' 
                   : 'Fill in the details to create your GreenVoice account'}
@@ -128,9 +128,9 @@ export default function AuthPage() {
             </CardHeader>
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-6">
-                  <TabsTrigger value="login">Login</TabsTrigger>
-                  <TabsTrigger value="register">Register</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 mb-6 bg-gray-100">
+                  <TabsTrigger value="login" className="data-[state=active]:bg-greenvoice-primary data-[state=active]:text-white font-montserrat">Login</TabsTrigger>
+                  <TabsTrigger value="register" className="data-[state=active]:bg-greenvoice-primary data-[state=active]:text-white font-montserrat">Register</TabsTrigger>
                 </TabsList>
                 <TabsContent value="login">
                   <Form {...loginForm}>
@@ -140,9 +140,13 @@ export default function AuthPage() {
                         name="username"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Username</FormLabel>
+                            <FormLabel className="font-montserrat">Username</FormLabel>
                             <FormControl>
-                              <Input placeholder="Enter your username" {...field} />
+                              <Input 
+                                placeholder="Enter your username" 
+                                className="focus-visible:ring-greenvoice-primary/50" 
+                                {...field} 
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -153,9 +157,9 @@ export default function AuthPage() {
                         name="password"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Password</FormLabel>
+                            <FormLabel className="font-montserrat">Password</FormLabel>
                             <FormControl>
-                              <Input type="password" placeholder="••••••••" {...field} />
+                              <Input className="focus-visible:ring-greenvoice-primary/50" type="password" placeholder="••••••••" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -170,6 +174,7 @@ export default function AuthPage() {
                               <Checkbox
                                 checked={field.value}
                                 onCheckedChange={field.onChange}
+                                className="data-[state=checked]:bg-greenvoice-primary data-[state=checked]:border-greenvoice-primary"
                               />
                             </FormControl>
                             <div className="space-y-1 leading-none">
@@ -242,9 +247,9 @@ export default function AuthPage() {
                         name="username"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Username</FormLabel>
+                            <FormLabel className="font-montserrat">Username</FormLabel>
                             <FormControl>
-                              <Input placeholder="Choose a username" {...field} />
+                              <Input className="focus-visible:ring-greenvoice-primary/50" placeholder="Choose a username" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -255,9 +260,9 @@ export default function AuthPage() {
                         name="email"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Email</FormLabel>
+                            <FormLabel className="font-montserrat">Email</FormLabel>
                             <FormControl>
-                              <Input type="email" placeholder="you@example.com" {...field} />
+                              <Input className="focus-visible:ring-greenvoice-primary/50" type="email" placeholder="you@example.com" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -268,9 +273,9 @@ export default function AuthPage() {
                         name="fullName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Full Name (Optional)</FormLabel>
+                            <FormLabel className="font-montserrat">Full Name (Optional)</FormLabel>
                             <FormControl>
-                              <Input placeholder="John Doe" {...field} />
+                              <Input className="focus-visible:ring-greenvoice-primary/50" placeholder="John Doe" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -281,9 +286,9 @@ export default function AuthPage() {
                         name="password"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Password</FormLabel>
+                            <FormLabel className="font-montserrat">Password</FormLabel>
                             <FormControl>
-                              <Input type="password" placeholder="Create a password" {...field} />
+                              <Input className="focus-visible:ring-greenvoice-primary/50" type="password" placeholder="Create a password" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
