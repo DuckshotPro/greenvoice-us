@@ -23,7 +23,7 @@ import { Menu } from 'lucide-react';
 const Header = () => {
   const [location] = useLocation();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const { user, logoutMutation, isPremium } = useAuth();
+  const { user, logoutMutation, isPremium, isAdmin } = useAuth();
 
   // Navigation links
   const navLinks = [
@@ -32,6 +32,7 @@ const Header = () => {
     { href: '/history', label: 'History' },
     { href: '/analytics', label: 'Analytics' },
     { href: '/branding', label: 'Branding' },
+    { href: '/roadmap', label: 'Roadmap' },
     { href: '/settings', label: 'Settings' },
   ];
 
@@ -125,7 +126,7 @@ const Header = () => {
                         Help & FAQ
                       </Link>
                     </DropdownMenuItem>
-                    {user && user.subscriptionPlan === "enterprise" && (
+                    {isAdmin && (
                       <DropdownMenuItem asChild>
                         <Link href="/admin" className="flex items-center">
                           <ShieldCheck className="mr-2 h-4 w-4 text-green-500" />
@@ -201,8 +202,8 @@ const Header = () => {
                     Help & FAQ
                   </Link>
                   
-                  {/* Admin Console Link - only for enterprise users */}
-                  {user && user.subscriptionPlan === "enterprise" && (
+                  {/* Admin Console Link */}
+                  {isAdmin && (
                     <Link
                       href="/admin"
                       className="flex items-center px-3 py-2 rounded-md text-base font-medium text-green-700 bg-green-50"
