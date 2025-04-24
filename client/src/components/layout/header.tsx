@@ -43,7 +43,7 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-greenvoice-background shadow-sm">
+    <header className="bg-background shadow-sm border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
@@ -94,7 +94,7 @@ const Header = () => {
               <>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full bg-greenvoice-primary text-white font-nunito">
+                    <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full bg-primary text-primary-foreground font-nunito">
                       {user.username ? user.username.substring(0, 2).toUpperCase() : 'U'}
                     </Button>
                   </DropdownMenuTrigger>
@@ -141,7 +141,7 @@ const Header = () => {
                 </DropdownMenu>
               </>
             ) : (
-              <Button asChild className="flex items-center bg-greenvoice-primary hover:bg-greenvoice-primary/90 font-nunito">
+              <Button asChild className="flex items-center bg-primary hover:bg-primary/90 font-nunito">
                 <Link href="/auth">
                   <LogIn className="mr-2 h-4 w-4" />
                   Login
@@ -158,7 +158,7 @@ const Header = () => {
                   size="icon"
                   className="inline-flex items-center justify-center"
                 >
-                  <Menu className="h-6 w-6 text-gray-400" />
+                  <Menu className="h-6 w-6 text-muted-foreground" />
                   <span className="sr-only">Open main menu</span>
                 </Button>
               </SheetTrigger>
