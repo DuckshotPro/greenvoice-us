@@ -111,16 +111,16 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4" data-auth-container>
       <div className="grid w-full max-w-6xl gap-6 lg:grid-cols-2">
         {/* Left side: Auth forms */}
         <div className="flex flex-col justify-center">
-          <Card className="w-full max-w-md mx-auto">
+          <Card className="w-full max-w-md mx-auto" data-auth-form>
             <CardHeader className="space-y-1">
               <CardTitle className="text-2xl font-nunito font-bold text-greenvoice-primary">
                 {activeTab === 'login' ? 'Sign in to your account' : 'Create an account'}
               </CardTitle>
-              <CardDescription className="font-montserrat text-gray-600">
+              <CardDescription className="font-montserrat text-muted-foreground">
                 {activeTab === 'login' 
                   ? 'Enter your credentials to access your account' 
                   : 'Fill in the details to create your GreenVoice account'}
@@ -128,9 +128,19 @@ export default function AuthPage() {
             </CardHeader>
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-6 bg-gray-100">
-                  <TabsTrigger value="login" className="data-[state=active]:bg-greenvoice-primary data-[state=active]:text-white font-montserrat">Login</TabsTrigger>
-                  <TabsTrigger value="register" className="data-[state=active]:bg-greenvoice-primary data-[state=active]:text-white font-montserrat">Register</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 mb-6 dark:bg-secondary">
+                  <TabsTrigger 
+                    value="login" 
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[var(--primary)] data-[state=active]:to-[#00c4af] data-[state=active]:text-white font-montserrat"
+                  >
+                    Login
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="register" 
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[var(--primary)] data-[state=active]:to-[#00c4af] data-[state=active]:text-white font-montserrat"
+                  >
+                    Register
+                  </TabsTrigger>
                 </TabsList>
                 <TabsContent value="login">
                   <Form {...loginForm}>
@@ -353,13 +363,13 @@ export default function AuthPage() {
         </div>
 
         {/* Right side: App info */}
-        <div className="hidden lg:flex lg:flex-col justify-center">
-          <div className="space-y-8">
+        <div className="hidden lg:flex lg:flex-col justify-center" data-auth-hero>
+          <div className="space-y-8 bg-accent dark:bg-secondary p-8 rounded-xl">
             <div>
               <div className="mb-4">
                 <BrandLogo size="xl" showText={true} />
               </div>
-              <p className="text-xl text-gray-600 font-montserrat">The professional invoice solution for freelancers and businesses</p>
+              <p className="text-xl text-gray-600 dark:text-gray-300 font-montserrat">The professional invoice solution for freelancers and businesses</p>
             </div>
             
             <div className="grid gap-4">
