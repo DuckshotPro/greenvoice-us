@@ -44,35 +44,39 @@ quickInvoiceRoutes.post(
       // Create invoice in database if the user is authenticated
       let createdInvoice = null;
       if (userId) {
-        // Insert the invoice
-        const [insertedInvoice] = await db
-          .insert(invoices)
-          .values({
-            userId,
-            clientName: "Quick Invoice Client", // Placeholder
-            clientEmail: invoiceData.clientEmail,
-            invoiceNumber,
-            issueDate: new Date(invoiceData.issueDate),
-            dueDate: new Date(invoiceData.dueDate),
-            status: invoiceData.status,
-            currency: invoiceData.currency,
-            total: invoiceData.total,
-            notes: "Created via Quick Invoice",
-          })
-          .returning();
-
-        // Insert line items
-        for (const item of invoiceData.items) {
-          await db.insert(lineItems).values({
-            invoiceId: insertedInvoice.id,
+        // Create an invoice object for the storage service
+        const invoiceWithItems = {
+          userId,
+          clientName: "Quick Invoice Client", // Placeholder
+          clientEmail: invoiceData.clientEmail,
+          invoiceNumber,
+          issueDate: new Date(invoiceData.issueDate),
+          dueDate: new Date(invoiceData.dueDate),
+          status: invoiceData.status,
+          currency: invoiceData.currency,
+          total: invoiceData.total,
+          subtotal: invoiceData.total, // Same as total for quick invoices
+          notes: "Created via Quick Invoice",
+          items: invoiceData.items.map((item: { description: string; quantity: number; rate: number; amount: number }) => ({
             description: item.description,
             quantity: item.quantity,
             rate: item.rate,
-            amount: item.amount,
-          });
-        }
+            amount: item.amount
+          })),
+          senderName: "GreenVoice",
+          senderEmail: "noreply@greenvoice.us",
+          senderAddress: "123 Invoice St",
+          senderPhone: "555-123-4567",
+          clientAddress: "",
+          clientPhone: "",
+          discount: 0,
+          tax: 0,
+          taxRate: 0,
+          shareableLink: uuidv4().substring(0, 8)
+        };
 
-        createdInvoice = insertedInvoice;
+        // Use the storage service to create the invoice with items
+        createdInvoice = await storage.createInvoiceWithItems(invoiceWithItems);
       }
 
       // Send the invoice email
@@ -217,7 +221,9 @@ quickInvoiceRoutes.get(
       // Using the storage service to handle this properly
       const userInvoices = await storage.getAllInvoices(userId);
       const userQuickInvoices = userInvoices
-        .filter(inv => inv.notes === "Created via Quick Invoice")
+        .filter((inv): boolean => {
+          return inv.notes === "Created via Quick Invoice";
+        })
         .slice(0, 10); // Limit to most recent 10
       
       res.status(200).json(userQuickInvoices);
