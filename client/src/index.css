@@ -210,12 +210,38 @@ html:not(.dark),
   }
   
   /* Make sure all buttons with variant="gradient" get the animation */
+  button[data-variant="gradient"],
+  a[data-variant="gradient"],
+  [data-variant="gradient"] {
+    background: linear-gradient(135deg, var(--primary), #00c4af);
+    background-size: 200% 200%;
+    animation: gradientShift 5s ease infinite;
+    color: white;
+  }
+  
+  button[data-variant="gradient"]:hover,
+  a[data-variant="gradient"]:hover,
+  [data-variant="gradient"]:hover {
+    background: linear-gradient(135deg, var(--primary), #00d6c0);
+    box-shadow: 0 4px 12px rgba(0, 152, 136, 0.25);
+    transform: translateY(-1px);
+  }
+  
   .dark button[data-variant="gradient"],
   .dark a[data-variant="gradient"],
   .dark [data-variant="gradient"] {
     background: linear-gradient(135deg, #00B9A6, #00d6c0);
     background-size: 200% 200%;
     animation: gradientShift 5s ease infinite;
+    color: white;
+  }
+  
+  .dark button[data-variant="gradient"]:hover,
+  .dark a[data-variant="gradient"]:hover,
+  .dark [data-variant="gradient"]:hover {
+    background: linear-gradient(135deg, #00B9A6, #00e8d0);
+    box-shadow: 0 4px 12px rgba(0, 185, 166, 0.4);
+    transform: translateY(-1px);
   }
   
   /* Sidebar styling */

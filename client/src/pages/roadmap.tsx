@@ -147,7 +147,7 @@ const Roadmap = () => {
   const getStatusBadge = (status: FeatureStatus) => {
     switch (status) {
       case 'completed':
-        return <Badge className="bg-green-500">Completed</Badge>;
+        return <Badge className="bg-primary text-white">Completed</Badge>;
       case 'inprogress':
         return <Badge className="bg-amber-500">In Progress</Badge>;
       case 'planned':
@@ -223,8 +223,8 @@ const Roadmap = () => {
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
                       <div className="flex items-center gap-2">
-                        <div className="p-2 rounded-full bg-green-100 dark:bg-green-900/30">
-                          <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
+                        <div className="p-2 rounded-full bg-primary/10">
+                          <Check className="h-5 w-5 text-primary" />
                         </div>
                         <CardTitle className="text-lg">{feature.title}</CardTitle>
                       </div>
