@@ -26,7 +26,9 @@ import {
   DollarSign, 
   RefreshCw,
   AlarmClock,
-  ScrollText
+  ScrollText,
+  MapPin,
+  ChevronRight
 } from 'lucide-react';
 
 const Home = () => {

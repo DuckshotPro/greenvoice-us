@@ -55,9 +55,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
   
   // Determine if user has admin access
-  const isAdmin = !!user && (
+  const isAdmin: boolean = !!user && (
     user.subscriptionPlan === "enterprise" || 
-    (user.email && (user.email.includes("admin") || user.email.includes("greenvoice")))
+    !!(user.email && (user.email.includes("admin") || user.email.includes("greenvoice")))
   );
 
   const loginMutation = useMutation({
