@@ -141,7 +141,7 @@ const Header = () => {
                 </DropdownMenu>
               </>
             ) : (
-              <Button asChild className="flex items-center bg-primary hover:bg-primary/90 font-nunito">
+              <Button asChild variant="gradient" className="flex items-center font-nunito">
                 <Link href="/auth">
                   <LogIn className="mr-2 h-4 w-4" />
                   Login
@@ -224,7 +224,7 @@ const Header = () => {
                   {/* Mobile logout */}
                   {user && (
                     <Button
-                      variant="outline"
+                      variant="gradient"
                       className="w-full justify-start"
                       onClick={() => {
                         handleLogout();
