@@ -85,13 +85,28 @@ const QuickInvoice = () => {
     },
   });
 
-  const onSubmit = (data: QuickInvoiceFormValues) => {
+  const onSubmit = async (data: QuickInvoiceFormValues) => {
     if (user && isPremiumUser) {
       // Premium user - send directly
       handleSendInvoice(data);
     } else {
-      // Non-premium user - show ad dialog
-      setAdDialogOpen(true);
+      // Non-premium user - check with our ad system
+      try {
+        const adResult = await recordAdAction('quickInvoice', 'sendInvoice');
+        
+        if (adResult.skipAd) {
+          // User can skip the ad (premium or has temp premium)
+          handleSendInvoice(data);
+        } else {
+          // User needs to watch an ad
+          setAdViewId(adResult.viewId);
+          setAdDialogOpen(true);
+        }
+      } catch (error) {
+        console.error('Error checking ad status:', error);
+        // If ad system fails, still allow user to proceed
+        setAdDialogOpen(true);
+      }
     }
   };
 
@@ -145,6 +160,8 @@ const QuickInvoice = () => {
     const steps = (totalTime * 1000) / interval;
     
     let currentStep = 0;
+    let startTime = Date.now();
+    
     const timer = setInterval(() => {
       currentStep += 1;
       setAdProgress(Math.min((currentStep / steps) * 100, 100));
@@ -152,15 +169,27 @@ const QuickInvoice = () => {
       if (currentStep >= steps) {
         clearInterval(timer);
         setAdWatched(true);
+        
+        // Record ad completion in the tracking system
+        if (adViewId) {
+          const duration = (Date.now() - startTime) / 1000; // Duration in seconds
+          completeAdView(adViewId, true, duration);
+        }
       }
     }, interval);
   };
 
   const resetAdDialog = () => {
+    // If dialog is closed without watching the ad, mark it as incomplete
+    if (adViewId && !adWatched && !invoiceSent) {
+      completeAdView(adViewId, false);
+    }
+    
     setAdDialogOpen(false);
     setAdWatched(false);
     setAdProgress(0);
     setInvoiceSent(false);
+    setAdViewId("");
   };
 
   return (

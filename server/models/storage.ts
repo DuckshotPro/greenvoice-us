@@ -9,7 +9,8 @@ import {
   subscriptionPlans, type SubscriptionPlan, type InsertSubscriptionPlan,
   subscriptionTransactions, type SubscriptionTransaction, type InsertSubscriptionTransaction,
   shareAnalytics, type ShareAnalytics, type InsertShareAnalytics,
-  type InvoiceWithItems, type RecurringTemplateWithItems
+  type InvoiceWithItems, type RecurringTemplateWithItems,
+  type AdView
 } from "@shared/schema";
 import { nanoid } from "nanoid";
 import { db, pool } from "./db";
@@ -24,7 +25,14 @@ export interface IStorage {
   updateUser(id: number, userData: Partial<InsertUser>): Promise<User | undefined>;
   updateUserSubscription(id: number, plan: string, expiryDate: Date): Promise<User | undefined>;
   updateUserPremiumDays(id: number, daysToAdd: number): Promise<User | undefined>;
-  recordAdView(userId: number, daysAwarded: number): Promise<User | undefined>;
+  recordAdView(adView: AdView): Promise<void>;
+  completeAdView(viewId: string, completed: boolean): Promise<void>;
+  getTempPremiumStatus(userId: number): Promise<{
+    hasTempPremium: boolean;
+    expiresAt: Date | null;
+    adViewsCount: number;
+    requiredAdViews: number;
+  }>;
 
   // Invoice methods
   getInvoice(id: number): Promise<Invoice | undefined>;
@@ -150,36 +158,65 @@ export class DatabaseStorage implements IStorage {
     return updatedUser;
   }
 
-  async recordAdView(userId: number, daysAwarded: number): Promise<User | undefined> {
-    // Get the current user
+  async recordAdView(adView: AdView): Promise<void> {
+    // Store ad view data in database
+    // This would typically be stored in an ad_views table
+    // For now, we'll just log it for demonstration
+    console.log('Recording ad view:', adView);
+    
+    // In a real implementation, this would be stored in the database
+    // For example:
+    // await db.insert(adViews).values(adView);
+  }
+  
+  async completeAdView(viewId: string, completed: boolean): Promise<void> {
+    // Update the ad view status in the database
+    // In a real implementation, this would update the record in the database
+    console.log('Completing ad view:', { viewId, completed });
+    
+    // If the user completed the ad view, we might award them with temporary premium access
+    // For example:
+    // if (completed) {
+    //   await db.update(adViews)
+    //     .set({ completed: true, completedAt: new Date() })
+    //     .where(eq(adViews.id, viewId));
+    // }
+  }
+  
+  async getTempPremiumStatus(userId: number): Promise<{
+    hasTempPremium: boolean;
+    expiresAt: Date | null;
+    adViewsCount: number;
+    requiredAdViews: number;
+  }> {
+    // In a real implementation, we would check if the user has temporary premium access
+    // based on their ad viewing history
+    // For now, we'll return a placeholder response
+    
+    // Get the user to check their subscription status
     const user = await this.getUser(userId);
-    if (!user) return undefined;
     
-    const now = new Date();
+    if (user && user.subscriptionPlan !== 'free') {
+      // User already has a premium subscription
+      return {
+        hasTempPremium: false,
+        expiresAt: null,
+        adViewsCount: 0,
+        requiredAdViews: 5
+      };
+    }
     
-    // Record the ad view in the ad_rewards table
-    const expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + daysAwarded);
+    // Check if user has temp premium from ad views
+    // This would query the database to count completed ad views in recent period
+    // and check if any temp premium tokens are active
     
-    await db.insert(adRewards).values({
-      userId,
-      rewardType: 'premium_day',
-      daysAwarded,
-      expiryDate,
-      adProvider: 'internal',
-    });
-    
-    // Update the user's premium days and ad viewing data
-    const [updatedUser] = await db.update(users)
-      .set({ 
-        lastAdViewTime: now,
-        lastAdDaysAwarded: daysAwarded,
-        premiumDaysRemaining: (user.premiumDaysRemaining || 0) + daysAwarded
-      })
-      .where(eq(users.id, userId))
-      .returning();
-    
-    return updatedUser;
+    // Placeholder implementation
+    return {
+      hasTempPremium: false,
+      expiresAt: null,
+      adViewsCount: 0, // This would be calculated from actual ad views in DB
+      requiredAdViews: 5 // Configure how many ads are needed for temp premium
+    };
   }
 
   // Invoice methods
