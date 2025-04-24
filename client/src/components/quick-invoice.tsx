@@ -161,16 +161,16 @@ const QuickInvoice = () => {
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="text-xl md:text-2xl font-bold text-center gradient-text">
+    <Card className="w-full border-primary/20 bg-white dark:bg-[#1C2333] shadow-md">
+      <CardHeader className="pb-3 border-b border-primary/10">
+        <CardTitle className="text-xl md:text-2xl font-bold text-center text-primary dark:text-primary">
           Quick Invoice Generator
         </CardTitle>
         <CardDescription className="text-center">
           Create and send a simple invoice in seconds
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -336,41 +336,89 @@ const QuickInvoice = () => {
                 <Button 
                   onClick={() => handleSendInvoice(form.getValues())}
                   disabled={sendingInvoice}
-                  className="w-full"
+                  className="w-full bg-gradient-to-r from-primary to-primary/80"
                 >
                   {sendingInvoice ? "Sending..." : "Send Invoice Now"}
                 </Button>
               </div>
             ) : (
               <div className="space-y-4 w-full">
-                <div className="bg-gray-100 dark:bg-gray-800 rounded-md aspect-video flex items-center justify-center">
-                  {adProgress > 0 ? (
-                    <div className="text-center">
-                      <p className="mb-2">Ad playing...</p>
-                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                        <div 
-                          className="bg-primary h-2.5 rounded-full" 
-                          style={{ width: `${adProgress}%` }}
-                        ></div>
-                      </div>
-                      <p className="text-xs mt-2 text-muted-foreground">
-                        Please wait {Math.ceil(5 * (1 - adProgress / 100))} seconds
-                      </p>
+                <div className="relative">
+                  {/* Ad Container */}
+                  <div className="bg-white dark:bg-gray-800 rounded-md aspect-video flex flex-col overflow-hidden border shadow-md">
+                    {/* Ad Header */}
+                    <div className="bg-gradient-to-r from-primary to-primary/80 text-white py-1 px-3 flex justify-between items-center">
+                      <span className="text-xs font-medium">GreenVoice Ad</span>
+                      {adProgress >= 100 && (
+                        <button 
+                          className="text-white hover:bg-white/20 rounded-sm h-5 w-5 flex items-center justify-center"
+                          onClick={() => setAdWatched(true)}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      )}
                     </div>
-                  ) : (
-                    <div className="text-center">
+                    
+                    {/* Ad Content */}
+                    <div className="flex-grow flex items-center justify-center p-4 relative">
+                      {/* Ad Image/Content */}
+                      <div className="text-center z-10">
+                        <img 
+                          src="/Green%20Voice%20Logo1.avif" 
+                          alt="GreenVoice" 
+                          className="h-20 w-auto mx-auto mb-4"
+                        />
+                        <h3 className="text-lg font-bold text-primary">Upgrade to Premium</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                          Send unlimited invoices without ads
+                        </p>
+                        {adProgress >= 100 ? (
+                          <Button
+                            size="sm"
+                            className="bg-gradient-to-r from-primary to-primary/80"
+                            onClick={() => {
+                              resetAdDialog();
+                              navigate("/premium-page");
+                            }}
+                          >
+                            Learn More
+                          </Button>
+                        ) : (
+                          <div className="w-48 mx-auto mt-4">
+                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                              <div 
+                                className="bg-primary h-2.5 rounded-full transition-all duration-200" 
+                                style={{ width: `${adProgress}%` }}
+                              ></div>
+                            </div>
+                            <p className="text-xs mt-2 text-muted-foreground">
+                              Ad: {Math.ceil(5 * (1 - adProgress / 100))}s remaining
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Watermark */}
+                      <div className="absolute top-3 right-3 opacity-50">
+                        <span className="text-xs text-gray-400">Ad</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {adProgress === 0 && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
                       <Button 
-                        variant="outline" 
+                        className="bg-primary hover:bg-primary/90"
                         size="lg"
-                        className="gap-2 rounded-full h-16 w-16 flex items-center justify-center p-0"
                         onClick={startAdPlayback}
                       >
-                        <Play className="h-8 w-8" />
+                        <Play className="h-5 w-5 mr-2" />
+                        Watch Ad to Continue
                       </Button>
-                      <p className="mt-2 text-sm">Click to watch ad (5 seconds)</p>
                     </div>
                   )}
                 </div>
+                
                 <div className="flex justify-between">
                   <Button 
                     variant="ghost" 
@@ -381,7 +429,8 @@ const QuickInvoice = () => {
                     Cancel
                   </Button>
                   <Button 
-                    size="sm" 
+                    size="sm"
+                    className="bg-gradient-to-r from-primary to-primary/80"
                     onClick={() => {
                       resetAdDialog();
                       navigate("/premium-page");
