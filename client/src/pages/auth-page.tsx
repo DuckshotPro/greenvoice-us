@@ -117,7 +117,7 @@ export default function AuthPage() {
         <div className="flex flex-col justify-center">
           <Card className="w-full max-w-md mx-auto">
             <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl font-bold">
+              <CardTitle className="text-2xl font-nunito font-bold text-greenvoice-primary">
                 {activeTab === 'login' ? 'Sign in to your account' : 'Create an account'}
               </CardTitle>
               <CardDescription>
@@ -185,7 +185,7 @@ export default function AuthPage() {
                       />
                       <Button 
                         type="submit" 
-                        className="w-full"
+                        className="w-full bg-greenvoice-primary hover:bg-greenvoice-dark font-nunito"
                         disabled={loginMutation.isPending}
                       >
                         {loginMutation.isPending ? 'Signing in...' : 'Sign in'}
@@ -291,7 +291,7 @@ export default function AuthPage() {
                       />
                       <Button 
                         type="submit" 
-                        className="w-full"
+                        className="w-full bg-greenvoice-primary hover:bg-greenvoice-dark font-nunito"
                         disabled={registerMutation.isPending}
                       >
                         {registerMutation.isPending ? 'Creating account...' : 'Create account'}
@@ -357,42 +357,42 @@ export default function AuthPage() {
             
             <div className="grid gap-4">
               <div className="flex items-start gap-4">
-                <div className="bg-primary/10 p-3 rounded-full">
-                  <FileText className="h-6 w-6 text-primary" />
+                <div className="bg-greenvoice-primary/10 p-3 rounded-full">
+                  <FileText className="h-6 w-6 text-greenvoice-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold">Professional Invoices</h3>
-                  <p className="text-gray-500">Create beautiful invoices with our easy-to-use templates</p>
+                  <h3 className="font-nunito font-bold text-greenvoice-primary">Professional Invoices</h3>
+                  <p className="text-gray-600 font-montserrat text-sm">Create beautiful invoices with our easy-to-use templates</p>
                 </div>
               </div>
               
               <div className="flex items-start gap-4">
-                <div className="bg-primary/10 p-3 rounded-full">
-                  <Mail className="h-6 w-6 text-primary" />
+                <div className="bg-greenvoice-primary/10 p-3 rounded-full">
+                  <Mail className="h-6 w-6 text-greenvoice-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold">Multiple Sharing Options</h3>
-                  <p className="text-gray-500">Share via email, social media, or generate PDF and images</p>
+                  <h3 className="font-nunito font-bold text-greenvoice-primary">Multiple Sharing Options</h3>
+                  <p className="text-gray-600 font-montserrat text-sm">Share via email, social media, or generate PDF and images</p>
                 </div>
               </div>
               
               <div className="flex items-start gap-4">
-                <div className="bg-primary/10 p-3 rounded-full">
-                  <Calendar className="h-6 w-6 text-primary" />
+                <div className="bg-greenvoice-primary/10 p-3 rounded-full">
+                  <Calendar className="h-6 w-6 text-greenvoice-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold">Recurring Invoices</h3>
-                  <p className="text-gray-500">Set up recurring invoices for regular clients</p>
+                  <h3 className="font-nunito font-bold text-greenvoice-primary">Recurring Invoices</h3>
+                  <p className="text-gray-600 font-montserrat text-sm">Set up recurring invoices for regular clients</p>
                 </div>
               </div>
               
               <div className="flex items-start gap-4">
-                <div className="bg-primary/10 p-3 rounded-full">
-                  <FileCheck className="h-6 w-6 text-primary" />
+                <div className="bg-greenvoice-primary/10 p-3 rounded-full">
+                  <FileCheck className="h-6 w-6 text-greenvoice-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold">Analytics & Tracking</h3>
-                  <p className="text-gray-500">Monitor your invoice performance and client engagement</p>
+                  <h3 className="font-nunito font-bold text-greenvoice-primary">Analytics & Tracking</h3>
+                  <p className="text-gray-600 font-montserrat text-sm">Monitor your invoice performance and client engagement</p>
                 </div>
               </div>
             </div>
