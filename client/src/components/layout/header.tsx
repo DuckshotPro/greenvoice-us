@@ -3,6 +3,7 @@ import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { LogIn, Crown, HelpCircle, ShieldCheck } from 'lucide-react';
+import { BrandLogo } from '@/components/ui/brand-logo';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,13 +42,13 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white shadow-sm">
+    <header className="bg-greenvoice-background shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center">
-              <Link href="/" className="text-primary font-bold text-xl">
-                Invoice<span className="text-accent">Flow</span>
+              <Link href="/" className="flex items-center">
+                <BrandLogo size="md" showText={true} />
               </Link>
             </div>
             
@@ -58,8 +59,8 @@ const Header = () => {
                   href={link.href}
                   className={`${
                     isActive(link.href)
-                      ? 'border-primary text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                      ? 'border-greenvoice-primary text-greenvoice-primary font-nunito'
+                      : 'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-700 font-montserrat'
                   } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
                 >
                   {link.label}
@@ -87,7 +88,7 @@ const Header = () => {
               <>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full bg-primary text-white">
+                    <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full bg-greenvoice-primary text-white font-nunito">
                       {user.username ? user.username.substring(0, 2).toUpperCase() : 'U'}
                     </Button>
                   </DropdownMenuTrigger>
@@ -134,7 +135,7 @@ const Header = () => {
                 </DropdownMenu>
               </>
             ) : (
-              <Button asChild className="flex items-center">
+              <Button asChild className="flex items-center bg-greenvoice-primary hover:bg-greenvoice-primary/90 font-nunito">
                 <Link href="/auth">
                   <LogIn className="mr-2 h-4 w-4" />
                   Login
@@ -163,8 +164,8 @@ const Header = () => {
                       href={link.href}
                       className={`${
                         isActive(link.href)
-                          ? 'bg-primary/10 text-primary'
-                          : 'text-gray-600 hover:bg-gray-50'
+                          ? 'bg-greenvoice-primary/10 text-greenvoice-primary font-nunito'
+                          : 'text-gray-600 hover:bg-gray-50 font-montserrat'
                       } px-3 py-2 rounded-md text-base font-medium`}
                       onClick={() => setIsSheetOpen(false)}
                     >
