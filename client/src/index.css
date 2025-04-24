@@ -7,7 +7,7 @@
 /* Basic dark mode body and HTML */
 html.dark,
 .dark body {
-  background-color: #000000;
+  background-color: #0E1525; /* Replit dark blue color */
 }
 
 /* Light mode body and HTML */
@@ -40,22 +40,22 @@ html:not(.dark),
   }
 
   .dark {
-    --background: #000000;
+    --background: #0E1525; /* Replit dark blue */
     --foreground: #EDEDED;
-    --card: #0C0C0C;
+    --card: #1C2333; /* Slightly lighter dark blue for cards */
     --card-foreground: #EDEDED;
     --primary: #00B9A6;
     --primary-foreground: #FFFFFF;
-    --secondary: #121212;
+    --secondary: #1C2333;
     --secondary-foreground: #EDEDED;
-    --muted: #0A0A0A;
+    --muted: #1C2333;
     --muted-foreground: #A0A0A0;
     --accent: #143430;
     --accent-foreground: #00B9A6;
-    --border: #1A1A1A;
-    --input: #0A0A0A;
+    --border: #2B3245;
+    --input: #1C2333;
     --ring: #00B9A6;
-    --sidebar-bg: #080808;
+    --sidebar-bg: #1C2333;
   }
 
   * {
@@ -110,12 +110,13 @@ html:not(.dark),
     background-color: var(--background);
   }
   
-  /* Gradient styles */
+  /* Gradient styles - with stronger effect for both light and dark modes */
   .gradient-primary {
     background: linear-gradient(135deg, var(--primary), #00c4af);
     background-size: 200% 200%;
     animation: gradientShift 5s ease infinite;
     transition: all 0.3s ease-in-out;
+    color: white;
   }
   
   @keyframes gradientShift {
@@ -147,42 +148,40 @@ html:not(.dark),
     box-shadow: 0 4px 12px rgba(0, 185, 166, 0.4);
   }
   
-  /* Enhanced gradient for primary buttons */
+  /* Enhanced gradient for primary buttons - fully visible in light mode */
   [data-variant="default"],
   .btn-primary,
   button[type="submit"]:not([data-variant]) {
     position: relative;
     z-index: 1;
     overflow: hidden;
-  }
-  
-  [data-variant="default"]::before,
-  .btn-primary::before,
-  button[type="submit"]:not([data-variant])::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
     background: linear-gradient(135deg, var(--primary), #00c4af);
     background-size: 200% 200%;
     animation: gradientShift 5s ease infinite;
-    z-index: -1;
-    transition: opacity 0.3s ease;
-    opacity: 0;
+    color: white;
   }
   
-  .dark [data-variant="default"]::before,
-  .dark .btn-primary::before,
-  .dark button[type="submit"]:not([data-variant])::before {
+  [data-variant="default"]:hover,
+  .btn-primary:hover,
+  button[type="submit"]:not([data-variant]):hover {
+    background: linear-gradient(135deg, var(--primary), #00d6c0);
+    box-shadow: 0 4px 12px rgba(0, 152, 136, 0.25);
+    transform: translateY(-1px);
+  }
+  
+  .dark [data-variant="default"],
+  .dark .btn-primary,
+  .dark button[type="submit"]:not([data-variant]) {
     background: linear-gradient(135deg, #00B9A6, #00d6c0);
+    background-size: 200% 200%;
+    animation: gradientShift 5s ease infinite;
   }
   
-  [data-variant="default"]:hover::before,
-  .btn-primary:hover::before,
-  button[type="submit"]:not([data-variant]):hover::before {
-    opacity: 1;
+  .dark [data-variant="default"]:hover,
+  .dark .btn-primary:hover,
+  .dark button[type="submit"]:not([data-variant]):hover {
+    background: linear-gradient(135deg, #00B9A6, #00e8d0);
+    box-shadow: 0 4px 12px rgba(0, 185, 166, 0.4);
   }
   
   .gradient-text {
@@ -233,21 +232,21 @@ html:not(.dark),
   
   /* Enhanced dark mode styling */
   .dark [data-sidebar="sidebar"] {
-    background-color: #080808;
+    background-color: #1C2333;
     border-right: 1px solid var(--border);
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
   }
   
   /* Sidebar in dark mode */
   .dark .sidebar,
   .dark [data-sidebar] {
-    background-color: #080808;
+    background-color: #1C2333;
   }
   
   /* Dialog and modal styling for dark mode */
   .dark [role="dialog"] {
-    background-color: #080808;
-    border-color: #1A1A1A;
+    background-color: #1C2333;
+    border-color: var(--border);
   }
   
   /* Dark mode for form elements */
@@ -255,11 +254,23 @@ html:not(.dark),
   .dark textarea,
   .dark select,
   .dark [role="listbox"] {
-    background-color: #0a0a0a;
-    border-color: #1A1A1A;
+    background-color: #0E1525;
+    border-color: var(--border);
   }
   
-  /* Sidebar menu items hover effects */
+  /* Sidebar menu items hover effects with gradients for both light and dark modes */
+  [data-sidebar="menu-button"][data-active="true"] {
+    font-weight: 600;
+    color: var(--primary);
+  }
+  
+  [data-sidebar="menu-button"][data-active="true"] span {
+    background: linear-gradient(135deg, var(--primary), #00c4af);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  
   .dark [data-sidebar="menu-button"]:hover {
     background-color: rgba(0, 185, 166, 0.1);
   }
@@ -268,26 +279,33 @@ html:not(.dark),
     background-color: rgba(0, 185, 166, 0.15);
   }
   
+  .dark [data-sidebar="menu-button"][data-active="true"] span {
+    background: linear-gradient(135deg, #00B9A6, #00d6c0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  
   /* Ensure the content area is consistently dark */
   .dark main,
   .dark .bg-background,
   .dark [class*="bg-background"] {
-    background-color: #000000;
+    background-color: #0E1525;
   }
   
   /* Card styling for dark mode */
   .dark .card,
   .dark [class*="bg-card"] {
-    background-color: #0a0a0a;
+    background-color: #1C2333;
   }
   
   /* Auth page elements */
   .dark [data-auth-container] {
-    background-color: #000000;
+    background-color: #0E1525;
   }
   
   .dark [data-auth-form] {
-    background-color: #080808;
+    background-color: #1C2333;
   }
   
   /* Light mode background */
@@ -298,21 +316,21 @@ html:not(.dark),
   
   /* Common dark mode components */
   .dark .bg-white {
-    background-color: #080808;
+    background-color: #1C2333;
   }
   
   .dark .border-gray-200 {
-    border-color: #1A1A1A;
+    border-color: #2B3245;
   }
   
   /* Header and footer in dark mode */
   .dark footer {
-    background-color: #000000;
-    border-top: 1px solid #1A1A1A;
+    background-color: #0E1525;
+    border-top: 1px solid #2B3245;
   }
   
   .dark header {
-    background-color: #000000;
-    border-bottom: 1px solid #1A1A1A;
+    background-color: #0E1525;
+    border-bottom: 1px solid #2B3245;
   }
 }
