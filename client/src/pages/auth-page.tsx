@@ -379,7 +379,7 @@ export default function AuthPage() {
                 </div>
                 <div>
                   <h3 className="font-nunito font-bold text-greenvoice-primary">Professional Invoices</h3>
-                  <p className="text-gray-600 font-montserrat text-sm">Create beautiful invoices with our easy-to-use templates</p>
+                  <p className="text-gray-600 dark:text-gray-300 font-montserrat text-sm">Create beautiful invoices with our easy-to-use templates</p>
                 </div>
               </div>
               
@@ -389,7 +389,7 @@ export default function AuthPage() {
                 </div>
                 <div>
                   <h3 className="font-nunito font-bold text-greenvoice-primary">Multiple Sharing Options</h3>
-                  <p className="text-gray-600 font-montserrat text-sm">Share via email, social media, or generate PDF and images</p>
+                  <p className="text-gray-600 dark:text-gray-300 font-montserrat text-sm">Share via email, social media, or generate PDF and images</p>
                 </div>
               </div>
               
@@ -399,7 +399,7 @@ export default function AuthPage() {
                 </div>
                 <div>
                   <h3 className="font-nunito font-bold text-greenvoice-primary">Recurring Invoices</h3>
-                  <p className="text-gray-600 font-montserrat text-sm">Set up recurring invoices for regular clients</p>
+                  <p className="text-gray-600 dark:text-gray-300 font-montserrat text-sm">Set up recurring invoices for regular clients</p>
                 </div>
               </div>
               
@@ -409,7 +409,7 @@ export default function AuthPage() {
                 </div>
                 <div>
                   <h3 className="font-nunito font-bold text-greenvoice-primary">Analytics & Tracking</h3>
-                  <p className="text-gray-600 font-montserrat text-sm">Monitor your invoice performance and client engagement</p>
+                  <p className="text-gray-600 dark:text-gray-300 font-montserrat text-sm">Monitor your invoice performance and client engagement</p>
                 </div>
               </div>
             </div>
