@@ -4,6 +4,40 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  
+  .transform-style-3d {
+    transform-style: preserve-3d;
+  }
+  
+  .rotate-y-5 {
+    transform: rotateY(5deg);
+  }
+  
+  .rotate-x-2 {
+    transform: rotateX(2deg);
+  }
+  
+  .animate-float-slow {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+    100% {
+      transform: translateY(0px);
+    }
+  }
+}
+
 /* Basic dark mode body and HTML */
 html.dark,
 .dark body {

@@ -193,15 +193,21 @@ const QuickInvoice = () => {
   };
 
   return (
-    <Card className="w-full border-primary/20 bg-white dark:bg-[#1C2333] shadow-md">
-      <CardHeader className="pb-3 border-b border-primary/10">
-        <CardTitle className="text-xl md:text-2xl font-bold text-center text-primary dark:text-primary">
-          Quick Invoice Generator
-        </CardTitle>
-        <CardDescription className="text-center">
-          Create and send a simple invoice in seconds
-        </CardDescription>
-      </CardHeader>
+    <div className="transform perspective-1000 animate-float-slow shadow-xl">
+      <div className="relative h-full transform-style-3d transition-transform duration-300 transform">
+        <div className="absolute inset-0 bg-primary/30 dark:bg-primary/20 rounded-xl blur-md opacity-70 -z-10 translate-y-4"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/40 via-blue-500/20 to-white rounded-xl -z-10 translate-y-2"></div>
+        <Card className="w-full border-primary/20 bg-white dark:bg-[#1C2333] shadow-md relative transform-style-3d transition-transform duration-300 hover:scale-[1.02] hover:rotate-y-5 hover:rotate-x-2 rounded-xl overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-transparent pointer-events-none"></div>
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-blue-500 to-primary/50"></div>
+          <CardHeader className="pb-3 border-b border-primary/10">
+            <CardTitle className="text-xl md:text-2xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600 dark:from-primary dark:to-indigo-400">
+              Quick Invoice Generator
+            </CardTitle>
+            <CardDescription className="text-center">
+              Create and send a simple invoice in seconds
+            </CardDescription>
+          </CardHeader>
       <CardContent className="pt-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -478,7 +484,9 @@ const QuickInvoice = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </Card>
+        </Card>
+      </div>
+    </div>
   );
 };
 
