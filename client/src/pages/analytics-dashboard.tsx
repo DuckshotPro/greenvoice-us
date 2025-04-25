@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ShareAnalyticsDashboard from "@/components/analytics/share-analytics-dashboard";
+import { Card3D } from "@/components/ui/animated-background";
 import { ChevronLeft, Crown, Loader2, BarChart2, Share2 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
@@ -99,13 +100,17 @@ const AnalyticsDashboard = () => {
       </div>
 
       {/* Premium status banner */}
-      <Card className="mb-8 border-0 bg-gradient-to-r from-indigo-800/20 to-purple-800/20">
-        <CardHeader>
-          <CardTitle className="flex items-center">
+      <Card3D 
+        className="mb-8 overflow-hidden"
+        backgroundColor="bg-gradient-to-r from-indigo-800/20 to-purple-800/20 dark:from-indigo-900/30 dark:to-purple-900/30"
+        accentColor="#a855f7"
+      >
+        <div className="p-6">
+          <div className="flex items-center mb-2">
             <Crown className="h-5 w-5 mr-2 text-yellow-500" />
-            Premium Features Active
-          </CardTitle>
-          <CardDescription>
+            <h3 className="text-xl font-semibold">Premium Features Active</h3>
+          </div>
+          <p className="text-gray-600 dark:text-gray-300">
             {user?.subscriptionPlan === "premium" ? (
               <>You have full access to analytics with your premium subscription.</>
             ) : (
@@ -116,9 +121,9 @@ const AnalyticsDashboard = () => {
                 </Badge>
               </>
             )}
-          </CardDescription>
-        </CardHeader>
-      </Card>
+          </p>
+        </div>
+      </Card3D>
 
       <Tabs defaultValue="share" className="space-y-8">
         <TabsList className="grid w-full grid-cols-1 md:grid-cols-3">
@@ -141,39 +146,45 @@ const AnalyticsDashboard = () => {
         </TabsContent>
 
         <TabsContent value="overview">
-          <Card>
-            <CardHeader>
-              <CardTitle>Overview Analytics</CardTitle>
-              <CardDescription>
+          <Card3D
+            backgroundColor="bg-white dark:bg-gray-800"
+            accentColor="#6366f1"
+          >
+            <div className="p-6">
+              <h3 className="text-xl font-semibold mb-2">Overview Analytics</h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">
                 Comprehensive analytics for your invoices and payments
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="h-96 flex items-center justify-center">
-              <div className="text-center">
-                <p className="text-muted-foreground">
-                  Coming soon! More detailed analytics are being developed.
-                </p>
+              </p>
+              <div className="h-72 flex items-center justify-center">
+                <div className="text-center">
+                  <p className="text-muted-foreground">
+                    Coming soon! More detailed analytics are being developed.
+                  </p>
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </Card3D>
         </TabsContent>
 
         <TabsContent value="campaigns">
-          <Card>
-            <CardHeader>
-              <CardTitle>Campaign Analytics</CardTitle>
-              <CardDescription>
+          <Card3D
+            backgroundColor="bg-white dark:bg-gray-800"
+            accentColor="#ec4899"
+          >
+            <div className="p-6">
+              <h3 className="text-xl font-semibold mb-2">Campaign Analytics</h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">
                 Track the performance of your marketing campaigns
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="h-96 flex items-center justify-center">
-              <div className="text-center">
-                <p className="text-muted-foreground">
-                  Coming soon! Campaign analytics will be available in a future update.
-                </p>
+              </p>
+              <div className="h-72 flex items-center justify-center">
+                <div className="text-center">
+                  <p className="text-muted-foreground">
+                    Coming soon! Campaign analytics will be available in a future update.
+                  </p>
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </Card3D>
         </TabsContent>
       </Tabs>
     </div>
