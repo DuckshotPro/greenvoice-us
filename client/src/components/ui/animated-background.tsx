@@ -174,18 +174,34 @@ export const ShimmerButton: React.FC<{
   children: React.ReactNode;
   onClick?: () => void;
   className?: string;
-}> = ({ children, onClick, className = '' }) => {
+  variant?: 'primary' | 'secondary' | 'outline';
+}> = ({ children, onClick, className = '', variant = 'primary' }) => {
+  // Different styling based on variant
+  const getBackgroundStyle = () => {
+    switch (variant) {
+      case 'secondary':
+        return 'bg-white text-primary';
+      case 'outline':
+        return 'bg-transparent border-2 border-primary text-primary';
+      case 'primary':
+      default:
+        return 'bg-gradient-to-r from-[#009888] to-[#00C4B4] opacity-90 dark:opacity-100 text-white';
+    }
+  };
+
   return (
     <motion.button
       onClick={onClick}
-      className={`relative overflow-hidden rounded-lg px-4 py-2 font-medium text-white ${className}`}
+      className={`relative overflow-hidden rounded-lg px-4 py-2 font-medium ${className}`}
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.98 }}
     >
-      {/* Strong brand gradient: Primary Bluish Jade Green to a slightly lighter version */}
-      <span className="absolute inset-0 bg-gradient-to-r from-[#009888] to-[#00C4B4] opacity-90 dark:opacity-100" />
+      {/* Background based on variant */}
+      <span className={`absolute inset-0 ${getBackgroundStyle()}`} />
+      
+      {/* Shimmer effect */}
       <motion.span
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent"
+        className={`absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent ${variant === 'outline' ? 'opacity-30' : 'opacity-20'}`}
         style={{ width: '200%' }}
         animate={{ x: ['-100%', '100%'] }}
         transition={{ 
@@ -195,6 +211,8 @@ export const ShimmerButton: React.FC<{
           ease: 'linear',
         }}
       />
+      
+      {/* Content */}
       <span className="relative z-10">{children}</span>
     </motion.button>
   );

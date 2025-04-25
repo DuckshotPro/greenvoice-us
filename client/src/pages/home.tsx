@@ -110,11 +110,11 @@ const Home = () => {
                 {/* Left Column - Text */}
                 <div className="text-center lg:text-left">
                   <FloatingElement duration={6} delay={0.5} className="inline-block">
-                    <h1 className="text-4xl font-extrabold text-white sm:text-5xl sm:tracking-tight lg:text-6xl bg-clip-text bg-gradient-to-r from-white to-white/90">
+                    <h1 className="text-4xl font-extrabold text-white sm:text-5xl sm:tracking-tight lg:text-6xl drop-shadow-sm">
                       Professional Invoices in Seconds
                     </h1>
                   </FloatingElement>
-                  <p className="mt-6 max-w-lg text-xl text-white opacity-80">
+                  <p className="mt-6 max-w-lg text-xl text-white font-medium drop-shadow-sm">
                     Create, share, and track invoices easily with GreenVoice's all-in-one platform.
                   </p>
                   <div className="mt-10 max-w-sm mx-auto lg:mx-0 sm:flex sm:space-x-4">
@@ -126,16 +126,16 @@ const Home = () => {
                     >
                       Sign In
                     </ShimmerButton>
-                    <Button 
-                      variant="outline"
-                      className="w-full sm:w-auto mt-4 sm:mt-0 flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md text-primary bg-white dark:bg-[#1C2333] dark:text-white dark:border-[#2B3245] hover:bg-gray-50 dark:hover:bg-[#2B3245] sm:px-8"
+                    <ShimmerButton 
+                      variant="secondary"
+                      className="w-full sm:w-auto mt-4 sm:mt-0 bg-white text-primary hover:bg-gray-50 dark:bg-white dark:text-primary"
                       onClick={() => {
                         const element = document.getElementById('features');
                         element?.scrollIntoView({ behavior: 'smooth' });
                       }}
                     >
                       Learn More
-                    </Button>
+                    </ShimmerButton>
                   </div>
                 </div>
                 

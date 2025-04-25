@@ -213,9 +213,10 @@ const QuickInvoice = () => {
                   <FormLabel>Client's Email</FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="client@example.com" 
+                      placeholder="recipient@example.com" 
                       type="email"
                       autoComplete="email"
+                      className="bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700"
                       {...field} 
                     />
                   </FormControl>
@@ -232,7 +233,8 @@ const QuickInvoice = () => {
                   <FormLabel>Item Name</FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="Product or service" 
+                      placeholder="Product or service name" 
+                      className="bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700"
                       {...field} 
                     />
                   </FormControl>
