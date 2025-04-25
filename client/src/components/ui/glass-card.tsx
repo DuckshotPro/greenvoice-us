@@ -7,6 +7,7 @@ interface GlassCardProps {
   className?: string;
   hoverEffect?: boolean;
   glowColor?: string;
+  onClick?: () => void;
 }
 
 export const GlassCard: React.FC<GlassCardProps> = ({
@@ -14,11 +15,13 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   className = '',
   hoverEffect = true,
   glowColor = 'rgba(0, 152, 136, 0.3)', // Default to our primary teal color
+  onClick
 }) => {
   return (
     <motion.div
       className={cn(
         'relative overflow-hidden rounded-xl bg-gradient-to-b from-white/20 to-white/5 dark:from-gray-800/40 dark:to-gray-900/60 backdrop-blur-md border border-white/20 dark:border-gray-800/40 shadow-xl',
+        onClick ? 'cursor-pointer' : '',
         className,
       )}
       initial={{ opacity: 0.9 }}
@@ -28,6 +31,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
       } : {}}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
+      onClick={onClick}
     >
       {/* Ambient glow effect */}
       <div 
@@ -65,13 +69,15 @@ export const GradientCard: React.FC<GlassCardProps & { gradient?: string }> = ({
   className = '',
   hoverEffect = true,
   glowColor = 'rgba(0, 152, 136, 0.4)',
-  gradient = 'bg-gradient-to-br from-primary/30 to-blue-600/20 dark:from-primary/20 dark:to-indigo-900/30'
+  gradient = 'bg-gradient-to-br from-primary/30 to-blue-600/20 dark:from-primary/20 dark:to-indigo-900/30',
+  onClick
 }) => {
   return (
     <motion.div
       className={cn(
         'relative overflow-hidden rounded-xl backdrop-blur-md border border-white/20 dark:border-gray-800/30 shadow-xl',
         gradient,
+        onClick ? 'cursor-pointer' : '',
         className,
       )}
       initial={{ opacity: 0.9 }}
@@ -81,6 +87,7 @@ export const GradientCard: React.FC<GlassCardProps & { gradient?: string }> = ({
       } : {}}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
+      onClick={onClick}
     >
       {/* Ambient shimmer effect */}
       <motion.div

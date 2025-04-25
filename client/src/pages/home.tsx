@@ -347,174 +347,256 @@ const Home = () => {
 
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-500">Total Invoices</CardTitle>
-              </CardHeader>
-              <CardContent>
+            <GlassCard glowColor="rgba(0, 152, 136, 0.3)">
+              <div className="p-4">
+                <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Total Invoices</div>
                 <div className="flex items-baseline justify-between">
-                  <div className="text-3xl font-bold">{isLoading ? '-' : invoiceCount}</div>
-                  <div className="p-2 rounded-full bg-primary/10">
-                    <ScrollText className="h-4 w-4 text-primary" />
+                  <div className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600 dark:from-primary dark:to-indigo-400">
+                    {isLoading ? '-' : invoiceCount}
                   </div>
+                  <FloatingElement duration={3}>
+                    <div className="p-2 rounded-full bg-primary/10 dark:bg-primary/20">
+                      <ScrollText className="h-5 w-5 text-primary" />
+                    </div>
+                  </FloatingElement>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </GlassCard>
             
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-500">Paid Invoices</CardTitle>
-              </CardHeader>
-              <CardContent>
+            <GlassCard glowColor="rgba(22, 163, 74, 0.3)">
+              <div className="p-4">
+                <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Paid Invoices</div>
                 <div className="flex items-baseline justify-between">
-                  <div className="text-3xl font-bold">{isLoading ? '-' : paidCount}</div>
-                  <div className="p-2 rounded-full bg-green-100">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
+                  <div className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-500 to-emerald-500 dark:from-green-400 dark:to-emerald-600">
+                    {isLoading ? '-' : paidCount}
                   </div>
+                  <FloatingElement duration={3} delay={0.5}>
+                    <div className="p-2 rounded-full bg-green-100 dark:bg-green-900/30">
+                      <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    </div>
+                  </FloatingElement>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </GlassCard>
             
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-500">Pending</CardTitle>
-              </CardHeader>
-              <CardContent>
+            <GlassCard glowColor="rgba(245, 158, 11, 0.3)">
+              <div className="p-4">
+                <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Pending</div>
                 <div className="flex items-baseline justify-between">
-                  <div className="text-3xl font-bold">{isLoading ? '-' : pendingCount}</div>
-                  <div className="p-2 rounded-full bg-amber-100">
-                    <Clock className="h-4 w-4 text-amber-600" />
+                  <div className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-500 to-yellow-500 dark:from-amber-400 dark:to-yellow-600">
+                    {isLoading ? '-' : pendingCount}
                   </div>
+                  <FloatingElement duration={3} delay={0.2}>
+                    <div className="p-2 rounded-full bg-amber-100 dark:bg-amber-900/30">
+                      <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                    </div>
+                  </FloatingElement>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </GlassCard>
             
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-500">Completion Rate</CardTitle>
-              </CardHeader>
-              <CardContent>
+            <GlassCard glowColor="rgba(59, 130, 246, 0.3)">
+              <div className="p-4">
+                <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Completion Rate</div>
                 <div className="space-y-2">
                   <div className="flex items-baseline justify-between">
-                    <div className="text-3xl font-bold">{isLoading ? '-' : `${Math.round(completionRate)}%`}</div>
-                    <div className="p-2 rounded-full bg-blue-100">
-                      <BarChart2 className="h-4 w-4 text-blue-600" />
+                    <div className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-500 dark:from-blue-400 dark:to-indigo-600">
+                      {isLoading ? '-' : `${Math.round(completionRate)}%`}
                     </div>
+                    <FloatingElement duration={3} delay={0.7}>
+                      <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/30">
+                        <BarChart2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      </div>
+                    </FloatingElement>
                   </div>
-                  <Progress value={completionRate} className="h-2" />
+                  <Progress value={completionRate} className="h-2 bg-blue-100 dark:bg-blue-900/30">
+                    <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full" />
+                  </Progress>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </GlassCard>
           </div>
 
           {/* Quick Actions */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-            <Card className="border-dashed border-2 border-primary/50 bg-primary/5 h-full">
-              <CardContent className="p-6 h-full flex flex-col items-center justify-center text-center">
-                <div className="p-3 rounded-full bg-primary/10 mb-4">
-                  <PlusCircle className="h-8 w-8 text-primary" />
-                </div>
-                <CardTitle className="text-xl mb-2">Ready to Invoice?</CardTitle>
-                <CardDescription className="mb-4">
+            <GradientCard 
+              className="h-full overflow-visible"
+              gradient="bg-gradient-to-br from-primary/20 to-blue-600/10 dark:from-primary/10 dark:to-indigo-900/20"
+              onClick={() => window.location.href = "/create-invoice"}
+            >
+              <div className="p-6 h-full flex flex-col items-center justify-center text-center">
+                <FloatingElement duration={4} delay={0.3}>
+                  <div className="p-3 rounded-full bg-primary/10 dark:bg-primary/20 mb-4 shadow-lg">
+                    <PlusCircle className="h-8 w-8 text-primary" />
+                  </div>
+                </FloatingElement>
+                <h3 className="text-xl font-semibold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600 dark:from-primary dark:to-indigo-400">
+                  Ready to Invoice?
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
                   Create a new invoice with pre-filled information
-                </CardDescription>
-                <Button asChild className="mt-auto bg-gradient-to-r from-primary to-primary/80">
-                  <Link href="/create-invoice">
-                    Create New Invoice
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
+                </p>
+                <ShimmerButton 
+                  className="mt-auto px-5 py-2"
+                  onClick={() => {
+                    window.location.href = "/create-invoice";
+                  }}
+                >
+                  Create New Invoice
+                </ShimmerButton>
+              </div>
+            </GradientCard>
             
-            <Button asChild variant="outline" className="h-auto py-6 flex flex-col items-center justify-center gap-2">
-              <Link href="/create-invoice">
-                <PlusCircle className="h-6 w-6 mb-1" />
-                <span>New Invoice</span>
-              </Link>
-            </Button>
+            <GlassCard 
+              className="flex flex-col items-center justify-center p-4 text-center"
+              onClick={() => window.location.href = "/create-invoice"}
+            >
+              <div className="p-3 rounded-full bg-primary/10 dark:bg-primary/20 mb-3">
+                <PlusCircle className="h-6 w-6 text-primary" />
+              </div>
+              <span className="font-medium">New Invoice</span>
+            </GlassCard>
             
-            <Button asChild variant="outline" className="h-auto py-6 flex flex-col items-center justify-center gap-2">
-              <Link href="/history">
-                <FileText className="h-6 w-6 mb-1" />
-                <span>View History</span>
-              </Link>
-            </Button>
+            <GlassCard 
+              className="flex flex-col items-center justify-center p-4 text-center"
+              onClick={() => window.location.href = "/history"}
+              glowColor="rgba(99, 102, 241, 0.3)"
+            >
+              <div className="p-3 rounded-full bg-indigo-100 dark:bg-indigo-900/20 mb-3">
+                <FileText className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <span className="font-medium">View History</span>
+            </GlassCard>
             
-            <Button asChild variant="outline" className="h-auto py-6 flex flex-col items-center justify-center gap-2">
-              <Link href="/analytics">
-                <FileBarChart2 className="h-6 w-6 mb-1" />
-                <span>Analytics</span>
-              </Link>
-            </Button>
+            <GlassCard 
+              className="flex flex-col items-center justify-center p-4 text-center"
+              onClick={() => window.location.href = "/analytics"}
+              glowColor="rgba(59, 130, 246, 0.3)"
+            >
+              <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900/20 mb-3">
+                <FileBarChart2 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              </div>
+              <span className="font-medium">Analytics</span>
+            </GlassCard>
             
-            <Button asChild variant="outline" className="h-auto py-6 flex flex-col items-center justify-center gap-2">
-              <Link href="/roadmap">
-                <MapPin className="h-6 w-6 mb-1" />
-                <span>Roadmap</span>
-              </Link>
-            </Button>
+            <GlassCard 
+              className="flex flex-col items-center justify-center p-4 text-center"
+              onClick={() => window.location.href = "/roadmap"}
+              glowColor="rgba(245, 158, 11, 0.3)"
+            >
+              <div className="p-3 rounded-full bg-amber-100 dark:bg-amber-900/20 mb-3">
+                <MapPin className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+              </div>
+              <span className="font-medium">Roadmap</span>
+            </GlassCard>
             
-            <Button asChild variant="outline" className="h-auto py-6 flex flex-col items-center justify-center gap-2">
-              <Link href="/settings">
-                <Settings className="h-6 w-6 mb-1" />
-                <span>Settings</span>
-              </Link>
-            </Button>
+            <GlassCard 
+              className="flex flex-col items-center justify-center p-4 text-center"
+              onClick={() => window.location.href = "/settings"}
+              glowColor="rgba(107, 114, 128, 0.3)"
+            >
+              <div className="p-3 rounded-full bg-gray-100 dark:bg-gray-800 mb-3">
+                <Settings className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+              </div>
+              <span className="font-medium">Settings</span>
+            </GlassCard>
           </div>
         </div>
 
         {/* Start New Invoice Section */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <ScrollText className="h-5 w-5 mr-2 text-primary" />
-              Start a New Invoice
-            </CardTitle>
-            <CardDescription>
-              Quickly create a new invoice and get started immediately
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Client Information</label>
-                <Button asChild variant="outline" className="w-full justify-start" size="lg">
-                  <Link href="/create-invoice">
-                    <PlusCircle className="h-4 w-4 mr-2" />
-                    Add Client Details
-                  </Link>
-                </Button>
+        <GradientCard 
+          className="mb-8 relative" 
+          gradient="bg-gradient-to-br from-gray-50/80 to-white/80 dark:from-gray-900/80 dark:to-[#151f33]/80"
+        >
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <AnimatedBlob 
+              color="#009888" 
+              size={400} 
+              top="-20%" 
+              right="-5%" 
+              opacity={0.03}
+              duration={25}
+            />
+            <AnimatedBlob 
+              color="#2563EB" 
+              size={300} 
+              bottom="-15%" 
+              left="-5%" 
+              opacity={0.02}
+              duration={30}
+              delay={1}
+            />
+          </div>
+          
+          <div className="relative z-10 p-6">
+            <div className="mb-6">
+              <div className="flex items-center mb-2">
+                <div className="p-1.5 rounded-full bg-primary/10 dark:bg-primary/20 mr-3">
+                  <ScrollText className="h-5 w-5 text-primary" />
+                </div>
+                <h3 className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600 dark:from-primary dark:to-indigo-400">
+                  Start a New Invoice
+                </h3>
               </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Invoice Items</label>
-                <Button asChild variant="outline" className="w-full justify-start" size="lg">
-                  <Link href="/create-invoice">
-                    <PlusCircle className="h-4 w-4 mr-2" />
-                    Add Invoice Items
-                  </Link>
-                </Button>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Payment Terms</label>
-                <Button asChild variant="outline" className="w-full justify-start" size="lg">
-                  <Link href="/create-invoice">
-                    <PlusCircle className="h-4 w-4 mr-2" />
-                    Set Payment Terms
-                  </Link>
-                </Button>
-              </div>
+              <p className="text-gray-600 dark:text-gray-300 ml-10">
+                Quickly create a new invoice and get started immediately
+              </p>
             </div>
-          </CardContent>
-          <CardFooter className="flex justify-end">
-            <Button asChild>
-              <Link href="/create-invoice">
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <GlassCard 
+                className="p-4 h-full"
+                onClick={() => window.location.href = "/create-invoice"}
+              >
+                <label className="text-sm font-medium text-gray-600 dark:text-gray-300 block mb-3">Client Information</label>
+                <div className="flex items-center p-3 bg-white/50 dark:bg-gray-800/30 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary dark:hover:border-primary transition-colors cursor-pointer">
+                  <div className="p-1.5 rounded-full bg-primary/10 dark:bg-primary/20 mr-2">
+                    <PlusCircle className="h-4 w-4 text-primary" />
+                  </div>
+                  <span>Add Client Details</span>
+                </div>
+              </GlassCard>
+              
+              <GlassCard 
+                className="p-4 h-full"
+                onClick={() => window.location.href = "/create-invoice"}
+                glowColor="rgba(59, 130, 246, 0.3)"
+              >
+                <label className="text-sm font-medium text-gray-600 dark:text-gray-300 block mb-3">Invoice Items</label>
+                <div className="flex items-center p-3 bg-white/50 dark:bg-gray-800/30 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 transition-colors cursor-pointer">
+                  <div className="p-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 mr-2">
+                    <PlusCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <span>Add Invoice Items</span>
+                </div>
+              </GlassCard>
+              
+              <GlassCard 
+                className="p-4 h-full"
+                onClick={() => window.location.href = "/create-invoice"}
+                glowColor="rgba(99, 102, 241, 0.3)"
+              >
+                <label className="text-sm font-medium text-gray-600 dark:text-gray-300 block mb-3">Payment Terms</label>
+                <div className="flex items-center p-3 bg-white/50 dark:bg-gray-800/30 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-indigo-500 dark:hover:border-indigo-500 transition-colors cursor-pointer">
+                  <div className="p-1.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 mr-2">
+                    <PlusCircle className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <span>Set Payment Terms</span>
+                </div>
+              </GlassCard>
+            </div>
+            
+            <div className="flex justify-end mt-6">
+              <ShimmerButton
+                onClick={() => {
+                  window.location.href = "/create-invoice";
+                }}
+              >
                 Start Creating <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </CardFooter>
-        </Card>
+              </ShimmerButton>
+            </div>
+          </div>
+        </GradientCard>
 
         {/* Recent Invoices */}
         <div>
