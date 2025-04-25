@@ -5,6 +5,7 @@
 @tailwind utilities;
 
 @layer utilities {
+  /* 3D Effect Utilities */
   .perspective-1000 {
     perspective: 1000px;
   }
@@ -35,6 +36,95 @@
     100% {
       transform: translateY(0px);
     }
+  }
+  
+  /* Standardized Card Styling Classes */
+  .card-3d {
+    @apply transform-style-3d transition-transform duration-300 hover:scale-[1.02] hover:rotate-y-5 hover:rotate-x-2 rounded-xl overflow-hidden;
+  }
+  
+  .card-3d-wrapper {
+    @apply transform perspective-1000 animate-float-slow shadow-xl;
+  }
+  
+  .card-shadow-top-highlight {
+    @apply absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-blue-500 to-primary/50;
+  }
+  
+  .card-background-gradient {
+    @apply absolute inset-0 bg-gradient-to-tr from-primary/5 to-transparent pointer-events-none;
+  }
+  
+  .card-elevated-shadow {
+    @apply absolute inset-0 bg-primary/30 dark:bg-primary/20 rounded-xl blur-md opacity-70 -z-10 translate-y-4;
+  }
+  
+  .card-base-shadow {
+    @apply absolute inset-0 bg-gradient-to-br from-primary/40 via-blue-500/20 to-white rounded-xl -z-10 translate-y-2;
+  }
+  
+  /* Standardized Padding and Spacing - System */
+  .pad-xs {
+    @apply p-2;
+  }
+  
+  .pad-sm {
+    @apply p-4;
+  }
+  
+  .pad-md {
+    @apply p-6;
+  }
+  
+  .pad-lg {
+    @apply p-8;
+  }
+  
+  .pad-xl {
+    @apply p-10;
+  }
+  
+  /* Padding with consistent horizontal/vertical ratio */
+  .pad-card {
+    @apply px-6 py-4;
+  }
+  
+  .pad-card-sm {
+    @apply px-4 py-3;
+  }
+  
+  .pad-card-lg {
+    @apply px-8 py-6;
+  }
+  
+  /* Spacing classes */
+  .space-stack-sm {
+    @apply mb-2;
+  }
+  
+  .space-stack-md {
+    @apply mb-4;
+  }
+  
+  .space-stack-lg {
+    @apply mb-6;
+  }
+  
+  .space-stack-xl {
+    @apply mb-8;
+  }
+  
+  /* Gap spacing */
+  .gap-standard {
+    @apply gap-4;
+  }
+  
+  .gap-compact {
+    @apply gap-2;
+  }
+  
+  .gap-loose {
+    @apply gap-6;
   }
 }
 

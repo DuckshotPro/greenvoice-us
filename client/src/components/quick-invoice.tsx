@@ -193,90 +193,34 @@ const QuickInvoice = () => {
   };
 
   return (
-    <div className="transform perspective-1000 animate-float-slow shadow-xl">
-      <div className="relative h-full transform-style-3d transition-transform duration-300 transform">
-        <div className="absolute inset-0 bg-primary/30 dark:bg-primary/20 rounded-xl blur-md opacity-70 -z-10 translate-y-4"></div>
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/40 via-blue-500/20 to-white rounded-xl -z-10 translate-y-2"></div>
-        <Card className="w-full border-primary/20 bg-white dark:bg-[#1C2333] shadow-md relative transform-style-3d transition-transform duration-300 hover:scale-[1.02] hover:rotate-y-5 hover:rotate-x-2 rounded-xl overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-transparent pointer-events-none"></div>
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-blue-500 to-primary/50"></div>
-          <CardHeader className="pb-3 border-b border-primary/10">
-            <CardTitle className="text-xl md:text-2xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600 dark:from-primary dark:to-indigo-400">
-              Quick Invoice Generator
-            </CardTitle>
-            <CardDescription className="text-center">
-              Create and send a simple invoice in seconds
-            </CardDescription>
-          </CardHeader>
-      <CardContent className="pt-6">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="clientEmail"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Client's Email</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="recipient@example.com" 
-                      type="email"
-                      autoComplete="email"
-                      className="bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700"
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="itemName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Item Name</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Product or service name" 
-                      className="bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700"
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <div className="flex gap-2">
+    <div className="card-3d-container shadow-lg">
+      <Card className="w-full border-primary/20 bg-white dark:bg-gray-800 shadow-md relative overflow-hidden">
+        <CardHeader className="pad-card-sm border-b border-primary/10">
+          <CardTitle className="text-xl md:text-2xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600 dark:from-primary dark:to-indigo-400">
+            Quick Invoice Generator
+          </CardTitle>
+          <CardDescription className="text-center">
+            Create and send a simple invoice in seconds
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent className="pad-card">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 gap-standard">
               <FormField
                 control={form.control}
-                name="amount"
+                name="clientEmail"
                 render={({ field }) => (
-                  <FormItem className="flex-1">
-                    <FormLabel>Amount</FormLabel>
+                  <FormItem>
+                    <FormLabel>Client's Email</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          type="number"
-                          placeholder="0.00"
-                          className="pl-9 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700"
-                          {...field}
-                          onChange={(e) => {
-                            // Parse as a number with 2 decimal places
-                            const value = parseFloat(e.target.value);
-                            field.onChange(isNaN(value) ? 0 : value);
-                          }}
-                          onFocus={(e) => {
-                            // Select all text when focusing if value is 0
-                            if (parseFloat(e.target.value) === 0) {
-                              e.target.select();
-                            }
-                          }}
-                        />
-                      </div>
+                      <Input 
+                        placeholder="recipient@example.com" 
+                        type="email"
+                        autoComplete="email"
+                        className="bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700"
+                        {...field} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -285,207 +229,259 @@ const QuickInvoice = () => {
               
               <FormField
                 control={form.control}
-                name="currency"
+                name="itemName"
                 render={({ field }) => (
-                  <FormItem className="w-24">
-                    <FormLabel>Currency</FormLabel>
-                    <Select
-                      defaultValue={field.value}
-                      onValueChange={field.onChange}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="USD" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="USD">USD</SelectItem>
-                        <SelectItem value="EUR">EUR</SelectItem>
-                        <SelectItem value="GBP">GBP</SelectItem>
-                        <SelectItem value="CAD">CAD</SelectItem>
-                        <SelectItem value="AUD">AUD</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <FormItem>
+                    <FormLabel>Item Name</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Product or service name" 
+                        className="bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700"
+                        {...field} 
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </div>
-            
-            <Button type="submit" className="w-full bg-gradient-to-r from-primary to-primary/80">
-              <Send className="h-4 w-4 mr-2" /> Send Invoice
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-      <CardFooter className="flex justify-between items-center border-t pt-4 text-sm text-muted-foreground">
-        <span>{user ? "Invoice will be saved to your account" : "Create an account to track invoices"}</span>
-        <Button variant="link" onClick={() => navigate("/create-invoice")}>
-          Advanced Options <ArrowRight className="ml-1 h-3 w-3" />
-        </Button>
-      </CardFooter>
+              
+              <div className="flex gap-2">
+                <FormField
+                  control={form.control}
+                  name="amount"
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <FormLabel>Amount</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            type="number"
+                            placeholder="0.00"
+                            className="pl-9 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700"
+                            {...field}
+                            onChange={(e) => {
+                              // Parse as a number with 2 decimal places
+                              const value = parseFloat(e.target.value);
+                              field.onChange(isNaN(value) ? 0 : value);
+                            }}
+                            onFocus={(e) => {
+                              // Select all text when focusing if value is 0
+                              if (parseFloat(e.target.value) === 0) {
+                                e.target.select();
+                              }
+                            }}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="currency"
+                  render={({ field }) => (
+                    <FormItem className="w-24">
+                      <FormLabel>Currency</FormLabel>
+                      <Select
+                        defaultValue={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="USD" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="USD">USD</SelectItem>
+                          <SelectItem value="EUR">EUR</SelectItem>
+                          <SelectItem value="GBP">GBP</SelectItem>
+                          <SelectItem value="CAD">CAD</SelectItem>
+                          <SelectItem value="AUD">AUD</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <Button type="submit" className="w-full bg-gradient-to-r from-primary to-primary/80">
+                <Send className="h-4 w-4 mr-2" /> Send Invoice
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+        
+        <CardFooter className="flex justify-between items-center border-t pad-card-sm text-sm text-muted-foreground">
+          <span>{user ? "Invoice will be saved to your account" : "Create an account to track invoices"}</span>
+          <Button variant="link" onClick={() => navigate("/create-invoice")}>
+            Advanced Options <ArrowRight className="ml-1 h-3 w-3" />
+          </Button>
+        </CardFooter>
 
-      {/* Ad Dialog */}
-      <Dialog open={adDialogOpen} onOpenChange={setAdDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {invoiceSent 
-                ? "Invoice Sent Successfully!" 
-                : adWatched 
-                  ? "Ready to Send" 
-                  : "Watch an Ad to Continue"}
-            </DialogTitle>
-            <DialogDescription>
-              {invoiceSent 
-                ? "Your invoice has been sent to the recipient's email." 
-                : adWatched
-                  ? "Thank you for watching. Your invoice is ready to be sent."
-                  : "Free users need to watch a short ad before sending invoices."}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col items-center justify-center p-4">
-            {invoiceSent ? (
-              <div className="text-center py-6">
-                <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-                <p className="text-lg font-medium mb-2">Thank you for using GreenVoice!</p>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Upgrade to premium to skip ads and access advanced features.
-                </p>
-                <div className="flex gap-2 justify-center">
+        {/* Ad Dialog */}
+        <Dialog open={adDialogOpen} onOpenChange={setAdDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                {invoiceSent 
+                  ? "Invoice Sent Successfully!" 
+                  : adWatched 
+                    ? "Ready to Send" 
+                    : "Watch an Ad to Continue"}
+              </DialogTitle>
+              <DialogDescription>
+                {invoiceSent 
+                  ? "Your invoice has been sent to the recipient's email." 
+                  : adWatched
+                    ? "Thank you for watching. Your invoice is ready to be sent."
+                    : "Free users need to watch a short ad before sending invoices."}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col items-center justify-center p-4">
+              {invoiceSent ? (
+                <div className="text-center py-6">
+                  <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+                  <p className="text-lg font-medium mb-2">Thank you for using GreenVoice!</p>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Upgrade to premium to skip ads and access advanced features.
+                  </p>
+                  <div className="flex gap-2 justify-center">
+                    <Button 
+                      variant="outline" 
+                      onClick={resetAdDialog}
+                    >
+                      Close
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        resetAdDialog();
+                        navigate("/premium-page");
+                      }}
+                    >
+                      Upgrade Now
+                    </Button>
+                  </div>
+                </div>
+              ) : adWatched ? (
+                <div className="text-center py-6">
+                  <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+                  <p className="text-lg font-medium mb-4">Ad watched successfully!</p>
                   <Button 
-                    variant="outline" 
-                    onClick={resetAdDialog}
+                    onClick={() => handleSendInvoice(form.getValues())}
+                    disabled={sendingInvoice}
+                    className="w-full bg-gradient-to-r from-primary to-primary/80"
                   >
-                    Close
-                  </Button>
-                  <Button 
-                    onClick={() => {
-                      resetAdDialog();
-                      navigate("/premium-page");
-                    }}
-                  >
-                    Upgrade Now
+                    {sendingInvoice ? "Sending..." : "Send Invoice Now"}
                   </Button>
                 </div>
-              </div>
-            ) : adWatched ? (
-              <div className="text-center py-6">
-                <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-                <p className="text-lg font-medium mb-4">Ad watched successfully!</p>
-                <Button 
-                  onClick={() => handleSendInvoice(form.getValues())}
-                  disabled={sendingInvoice}
-                  className="w-full bg-gradient-to-r from-primary to-primary/80"
-                >
-                  {sendingInvoice ? "Sending..." : "Send Invoice Now"}
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-4 w-full">
-                <div className="relative">
-                  {/* Ad Container */}
-                  <div className="bg-white dark:bg-gray-800 rounded-md aspect-video flex flex-col overflow-hidden border shadow-md">
-                    {/* Ad Header */}
-                    <div className="bg-gradient-to-r from-primary to-primary/80 text-white py-1 px-3 flex justify-between items-center">
-                      <span className="text-xs font-medium">GreenVoice Ad</span>
-                      {adProgress >= 100 && (
-                        <button 
-                          className="text-white hover:bg-white/20 rounded-sm h-5 w-5 flex items-center justify-center"
-                          onClick={() => setAdWatched(true)}
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      )}
-                    </div>
-                    
-                    {/* Ad Content */}
-                    <div className="flex-grow flex items-center justify-center p-4 relative">
-                      {/* Ad Image/Content */}
-                      <div className="text-center z-10">
-                        <img 
-                          src="/Green%20Voice%20Logo1.avif" 
-                          alt="GreenVoice" 
-                          className="h-20 w-auto mx-auto mb-4"
-                        />
-                        <h3 className="text-lg font-bold text-primary">Upgrade to Premium</h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                          Send unlimited invoices without ads
-                        </p>
-                        {adProgress >= 100 ? (
-                          <Button
-                            size="sm"
-                            className="bg-gradient-to-r from-primary to-primary/80"
-                            onClick={() => {
-                              resetAdDialog();
-                              navigate("/premium-page");
-                            }}
+              ) : (
+                <div className="space-y-4 w-full">
+                  <div className="relative">
+                    {/* Ad Container */}
+                    <div className="bg-white dark:bg-gray-800 rounded-md aspect-video flex flex-col overflow-hidden border shadow-md">
+                      {/* Ad Header */}
+                      <div className="bg-gradient-to-r from-primary to-primary/80 text-white py-1 px-3 flex justify-between items-center">
+                        <span className="text-xs font-medium">GreenVoice Ad</span>
+                        {adProgress >= 100 && (
+                          <button 
+                            className="text-white hover:bg-white/20 rounded-sm h-5 w-5 flex items-center justify-center"
+                            onClick={() => setAdWatched(true)}
                           >
-                            Learn More
-                          </Button>
-                        ) : (
-                          <div className="w-48 mx-auto mt-4">
-                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                              <div 
-                                className="bg-primary h-2.5 rounded-full transition-all duration-200" 
-                                style={{ width: `${adProgress}%` }}
-                              ></div>
-                            </div>
-                            <p className="text-xs mt-2 text-muted-foreground">
-                              Ad: {Math.ceil(5 * (1 - adProgress / 100))}s remaining
-                            </p>
-                          </div>
+                            <X className="h-3 w-3" />
+                          </button>
                         )}
                       </div>
                       
-                      {/* Watermark */}
-                      <div className="absolute top-3 right-3 opacity-50">
-                        <span className="text-xs text-gray-400">Ad</span>
+                      {/* Ad Content */}
+                      <div className="flex-grow flex items-center justify-center p-4 relative">
+                        {/* Ad Image/Content */}
+                        <div className="text-center z-10">
+                          <img 
+                            src="/Green%20Voice%20Logo1.avif" 
+                            alt="GreenVoice" 
+                            className="h-20 w-auto mx-auto mb-4"
+                          />
+                          <h3 className="text-lg font-bold text-primary">Upgrade to Premium</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                            Send unlimited invoices without ads
+                          </p>
+                          {adProgress >= 100 ? (
+                            <Button
+                              size="sm"
+                              className="bg-gradient-to-r from-primary to-primary/80"
+                              onClick={() => {
+                                resetAdDialog();
+                                navigate("/premium-page");
+                              }}
+                            >
+                              Learn More
+                            </Button>
+                          ) : (
+                            <div className="w-48 mx-auto mt-4">
+                              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                                <div 
+                                  className="bg-primary h-2.5 rounded-full transition-all duration-200" 
+                                  style={{ width: `${adProgress}%` }}
+                                ></div>
+                              </div>
+                              <p className="text-xs mt-2 text-muted-foreground">
+                                Ad: {Math.ceil(5 * (1 - adProgress / 100))}s remaining
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Watermark */}
+                        <div className="absolute top-3 right-3 opacity-50">
+                          <span className="text-xs text-gray-400">Ad</span>
+                        </div>
                       </div>
                     </div>
+                    
+                    {adProgress === 0 && (
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
+                        <Button 
+                          className="bg-primary hover:bg-primary/90"
+                          size="lg"
+                          onClick={startAdPlayback}
+                        >
+                          <Play className="h-5 w-5 mr-2" />
+                          Watch Ad to Continue
+                        </Button>
+                      </div>
+                    )}
                   </div>
                   
-                  {adProgress === 0 && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
-                      <Button 
-                        className="bg-primary hover:bg-primary/90"
-                        size="lg"
-                        onClick={startAdPlayback}
-                      >
-                        <Play className="h-5 w-5 mr-2" />
-                        Watch Ad to Continue
-                      </Button>
-                    </div>
-                  )}
+                  <div className="flex justify-between">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={resetAdDialog}
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      Cancel
+                    </Button>
+                    <Button 
+                      size="sm"
+                      className="bg-gradient-to-r from-primary to-primary/80"
+                      onClick={() => {
+                        resetAdDialog();
+                        navigate("/premium-page");
+                      }}
+                    >
+                      Skip ads with Premium
+                    </Button>
+                  </div>
                 </div>
-                
-                <div className="flex justify-between">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={resetAdDialog}
-                  >
-                    <X className="h-4 w-4 mr-1" />
-                    Cancel
-                  </Button>
-                  <Button 
-                    size="sm"
-                    className="bg-gradient-to-r from-primary to-primary/80"
-                    onClick={() => {
-                      resetAdDialog();
-                      navigate("/premium-page");
-                    }}
-                  >
-                    Skip ads with Premium
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-        </Card>
-      </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      </Card>
     </div>
   );
 };
