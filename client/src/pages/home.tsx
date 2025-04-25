@@ -599,22 +599,57 @@ const Home = () => {
         </GradientCard>
 
         {/* Recent Invoices */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Recent Invoices</h2>
-            <Button asChild variant="outline" size="sm">
-              <Link href="/history">
-                View All <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
-            </Button>
+        <GradientCard 
+          className="p-6 relative"
+          gradient="bg-gradient-to-br from-white/90 to-gray-50/90 dark:from-[#151f33]/90 dark:to-[#0E1525]/90"
+        >
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <AnimatedBlob 
+              color="#009888" 
+              size={300} 
+              top="20%" 
+              right="-10%" 
+              opacity={0.03}
+              duration={30}
+            />
+            <AnimatedBlob 
+              color="#333333" 
+              size={200} 
+              bottom="10%" 
+              left="-5%" 
+              opacity={0.02}
+              duration={25}
+              delay={2}
+            />
           </div>
+          
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center">
+                <div className="p-1.5 rounded-full bg-primary/10 dark:bg-primary/20 mr-3">
+                  <FileText className="h-5 w-5 text-primary" />
+                </div>
+                <h2 className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600 dark:from-primary dark:to-indigo-400">
+                  Recent Invoices
+                </h2>
+              </div>
+              
+              <ShimmerButton 
+                className="px-3 py-1 text-sm"
+                onClick={() => {
+                  window.location.href = "/history";
+                }}
+              >
+                View All <ArrowRight className="ml-1 h-3 w-3" />
+              </ShimmerButton>
+            </div>
 
-          <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-4">
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="draft">Draft</TabsTrigger>
-              <TabsTrigger value="paid">Paid</TabsTrigger>
-            </TabsList>
+            <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="relative z-10">
+              <TabsList className="mb-4 p-1 bg-white/50 dark:bg-gray-800/30 border border-gray-200/50 dark:border-gray-700/30">
+                <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-white dark:data-[state=active]:bg-primary">All</TabsTrigger>
+                <TabsTrigger value="draft" className="data-[state=active]:bg-primary data-[state=active]:text-white dark:data-[state=active]:bg-primary">Draft</TabsTrigger>
+                <TabsTrigger value="paid" className="data-[state=active]:bg-primary data-[state=active]:text-white dark:data-[state=active]:bg-primary">Paid</TabsTrigger>
+              </TabsList>
             
             <TabsContent value="all">
               {isLoading ? (
@@ -780,6 +815,7 @@ const Home = () => {
             </TabsContent>
           </Tabs>
         </div>
+      </GradientCard>
       </main>
 
       <Footer />
