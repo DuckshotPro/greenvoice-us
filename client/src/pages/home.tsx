@@ -119,6 +119,7 @@ const Home = () => {
                   </p>
                   <div className="mt-10 max-w-sm mx-auto lg:mx-0 sm:flex sm:space-x-4">
                     <ShimmerButton
+                      variant="primary"
                       className="w-full sm:w-auto"
                       onClick={() => {
                         window.location.href = "/auth";
@@ -259,6 +260,7 @@ const Home = () => {
                 </p>
                 <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
                   <ShimmerButton
+                    variant="primary"
                     className="px-8 py-3 rounded-lg"
                     onClick={() => {
                       window.location.href = "/auth";
@@ -451,6 +453,7 @@ const Home = () => {
                   Create a new invoice with pre-filled information
                 </p>
                 <ShimmerButton 
+                  variant="primary"
                   className="mt-auto px-5 py-2"
                   onClick={() => {
                     window.location.href = "/create-invoice";
@@ -608,6 +611,7 @@ const Home = () => {
             
             <div className="flex justify-end mt-6">
               <ShimmerButton
+                variant="primary"
                 onClick={() => {
                   window.location.href = "/create-invoice";
                 }}
@@ -655,6 +659,7 @@ const Home = () => {
               </div>
               
               <ShimmerButton 
+                variant="primary"
                 className="px-3 py-1 text-sm"
                 onClick={() => {
                   window.location.href = "/history";
