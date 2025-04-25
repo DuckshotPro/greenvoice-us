@@ -12,6 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FeatureBox } from '@/components/ui/feature-box';
+import { AnimatedGradientBg, AnimatedBlob, FloatingElement, AnimatedAccentCard, ShimmerButton } from '@/components/ui/animated-background';
+import { GlassCard, GradientCard, FeatureCard } from '@/components/ui/glass-card';
 import { Invoice, formatCurrency } from '@/types/invoice';
 import { 
   PlusCircle, 
@@ -70,26 +72,58 @@ const Home = () => {
 
         <main className="flex-grow">
           {/* Hero Section */}
-          <section className="bg-gradient-to-r from-primary to-accent py-16">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <section className="relative bg-gradient-to-r from-primary to-accent py-16 overflow-hidden">
+            {/* Animated Background */}
+            <div className="absolute inset-0 pointer-events-none">
+              <AnimatedBlob 
+                color="#ffffff" 
+                size={600} 
+                top="-20%" 
+                right="-10%" 
+                opacity={0.07}
+                duration={25}
+              />
+              <AnimatedBlob 
+                color="#ffffff" 
+                size={400} 
+                bottom="-10%" 
+                left="-5%" 
+                opacity={0.05}
+                duration={30}
+                delay={1}
+              />
+              <AnimatedBlob 
+                color="#ffffff" 
+                size={300} 
+                top="30%" 
+                right="20%" 
+                opacity={0.04}
+                duration={20}
+                delay={2}
+              />
+            </div>
+            
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 {/* Left Column - Text */}
                 <div className="text-center lg:text-left">
-                  <h1 className="text-4xl font-extrabold text-white sm:text-5xl sm:tracking-tight lg:text-6xl">
-                    Professional Invoices in Seconds
-                  </h1>
+                  <FloatingElement duration={6} delay={0.5} className="inline-block">
+                    <h1 className="text-4xl font-extrabold text-white sm:text-5xl sm:tracking-tight lg:text-6xl bg-clip-text bg-gradient-to-r from-white to-white/90">
+                      Professional Invoices in Seconds
+                    </h1>
+                  </FloatingElement>
                   <p className="mt-6 max-w-lg text-xl text-white opacity-80">
                     Create, share, and track invoices easily with GreenVoice's all-in-one platform.
                   </p>
                   <div className="mt-10 max-w-sm mx-auto lg:mx-0 sm:flex sm:space-x-4">
-                    <Button 
-                      asChild
-                      className="w-full sm:w-auto flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-accent hover:bg-accent/90 sm:px-8"
+                    <ShimmerButton
+                      className="w-full sm:w-auto"
+                      onClick={() => {
+                        window.location.href = "/auth";
+                      }}
                     >
-                      <Link href="/auth">
-                        Sign In
-                      </Link>
-                    </Button>
+                      Sign In
+                    </ShimmerButton>
                     <Button 
                       variant="outline"
                       className="w-full sm:w-auto mt-4 sm:mt-0 flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md text-primary bg-white dark:bg-[#1C2333] dark:text-white dark:border-[#2B3245] hover:bg-gray-50 dark:hover:bg-[#2B3245] sm:px-8"
@@ -105,17 +139,24 @@ const Home = () => {
                 
                 {/* Right Column - Quick Invoice */}
                 <div className="mt-8 lg:mt-0">
-                  <QuickInvoice />
+                  <FloatingElement duration={5} delay={0.2}>
+                    <AnimatedAccentCard>
+                      <QuickInvoice />
+                    </AnimatedAccentCard>
+                  </FloatingElement>
                 </div>
               </div>
             </div>
           </section>
 
           {/* Features Section */}
-          <section id="features" className="py-16 bg-card dark:bg-[#1C2333]">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <section id="features" className="relative py-16 bg-card dark:bg-[#1C2333] overflow-hidden">
+            {/* Background elements */}
+            <AnimatedGradientBg className="opacity-30" />
+            
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
               <div className="text-center">
-                <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white sm:text-4xl">
+                <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white sm:text-4xl bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600 dark:from-primary dark:to-indigo-400">
                   All-in-One Invoice Solution
                 </h2>
                 <p className="mt-4 max-w-2xl text-xl text-gray-500 dark:text-gray-300 mx-auto">
@@ -124,49 +165,117 @@ const Home = () => {
               </div>
 
               <div className="mt-12 grid gap-8 md:grid-cols-3">
-                <FeatureBox 
-                  icon={<FileText className="h-6 w-6 text-greenvoice-primary" />}
-                  title="Professional Templates"
-                  description="Create beautiful, professional invoices that make a great impression on your clients."
-                  iconBackground="bg-greenvoice-primary/10"
-                />
+                <FloatingElement duration={4} delay={0.2}>
+                  <FeatureCard 
+                    icon={<FileText className="h-6 w-6 text-primary" />}
+                    title="Professional Templates"
+                    description="Create beautiful, professional invoices that make a great impression on your clients."
+                    glowColor="rgba(0, 152, 136, 0.3)"
+                  />
+                </FloatingElement>
 
-                <FeatureBox 
-                  icon={<Share className="h-6 w-6 text-greenvoice-primary" />}
-                  title="Multi-Format Sharing"
-                  description="Share invoices via PDF, image, email, or directly to social platforms with just one click."
-                  iconBackground="bg-greenvoice-primary/10"
-                />
+                <FloatingElement duration={4} delay={0.4}>
+                  <FeatureCard 
+                    icon={<Share className="h-6 w-6 text-blue-500" />}
+                    title="Multi-Format Sharing"
+                    description="Share invoices via PDF, image, email, or directly to social platforms with just one click."
+                    glowColor="rgba(59, 130, 246, 0.3)"
+                  />
+                </FloatingElement>
 
-                <FeatureBox 
-                  icon={<PlusCircle className="h-6 w-6 text-greenvoice-primary" />}
-                  title="Quick & Easy"
-                  description="Create and send invoices in seconds with our intuitive interface and real-time preview."
-                  iconBackground="bg-greenvoice-primary/10"
-                />
+                <FloatingElement duration={4} delay={0.6}>
+                  <FeatureCard 
+                    icon={<PlusCircle className="h-6 w-6 text-indigo-500" />}
+                    title="Quick & Easy"
+                    description="Create and send invoices in seconds with our intuitive interface and real-time preview."
+                    glowColor="rgba(99, 102, 241, 0.3)"
+                  />
+                </FloatingElement>
+              </div>
+              
+              <div className="mt-16 grid gap-8 md:grid-cols-3">
+                <FloatingElement duration={4} delay={0.5}>
+                  <FeatureCard 
+                    icon={<CalendarClock className="h-6 w-6 text-amber-500" />}
+                    title="Scheduled Invoices"
+                    description="Set it and forget it! Schedule invoices to be sent automatically at the perfect time."
+                    glowColor="rgba(245, 158, 11, 0.3)"
+                  />
+                </FloatingElement>
+
+                <FloatingElement duration={4} delay={0.7}>
+                  <FeatureCard 
+                    icon={<RefreshCw className="h-6 w-6 text-emerald-500" />}
+                    title="Recurring Billing"
+                    description="Automate your regular invoices with customizable recurring templates on your schedule."
+                    glowColor="rgba(16, 185, 129, 0.3)"
+                  />
+                </FloatingElement>
+
+                <FloatingElement duration={4} delay={0.9}>
+                  <FeatureCard 
+                    icon={<BarChart2 className="h-6 w-6 text-purple-500" />}
+                    title="Detailed Analytics"
+                    description="Gain insights into your business with comprehensive invoice analytics and reports."
+                    glowColor="rgba(139, 92, 246, 0.3)"
+                  />
+                </FloatingElement>
               </div>
             </div>
           </section>
 
           {/* CTA Section */}
-          <section className="bg-gray-50 dark:bg-[#0E1525] py-16">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <section className="relative bg-gray-50 dark:bg-[#0E1525] py-16 overflow-hidden">
+            {/* Animated Background Elements */}
+            <div className="absolute inset-0 pointer-events-none">
+              <AnimatedBlob 
+                color="#009888" 
+                size={500} 
+                top="-15%" 
+                right="-5%" 
+                opacity={0.07}
+                duration={25}
+              />
+              <AnimatedBlob 
+                color="#2563EB" 
+                size={400} 
+                bottom="-10%" 
+                left="-5%" 
+                opacity={0.06}
+                duration={30}
+                delay={1}
+              />
+            </div>
+            
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
               <div className="text-center">
-                <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white sm:text-4xl">
+                <h2 className="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600 dark:from-primary dark:to-indigo-400 sm:text-4xl inline-block">
                   Ready to Streamline Your Invoicing?
                 </h2>
-                <p className="mt-4 max-w-2xl text-xl text-gray-500 dark:text-gray-300 mx-auto">
+                <p className="mt-4 max-w-2xl text-xl text-gray-600 dark:text-gray-300 mx-auto">
                   Join thousands of businesses who trust GreenVoice for their invoicing needs.
                 </p>
-                <div className="mt-8">
-                  <Button 
-                    asChild
-                    className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary/90"
+                <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <ShimmerButton
+                    className="px-8 py-3 rounded-lg"
+                    onClick={() => {
+                      window.location.href = "/auth";
+                    }}
                   >
-                    <Link href="/auth">
-                      Sign In <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
+                    Get Started <ArrowRight className="ml-2 h-4 w-4 inline" />
+                  </ShimmerButton>
+                  
+                  <GradientCard className="sm:w-auto py-4 px-6 cursor-pointer hover:scale-105 transition-transform duration-300"
+                    onClick={() => {
+                      window.location.href = "/roadmap";
+                    }}
+                  >
+                    <div className="flex items-center gap-2 font-medium text-gray-800 dark:text-gray-200">
+                      <MapPin className="h-4 w-4 text-primary" />
+                      <span>View Our Roadmap</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </div>
+                  </GradientCard>
                 </div>
               </div>
             </div>
@@ -182,8 +291,29 @@ const Home = () => {
   return (
     <div className="bg-gray-100 dark:bg-[#0E1525] min-h-screen flex flex-col">
       <Header />
+      
+      {/* Background blobs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <AnimatedBlob 
+          color="#009888" 
+          size={800} 
+          top="-20%" 
+          right="-15%" 
+          opacity={0.04}
+          duration={50}
+        />
+        <AnimatedBlob 
+          color="#2563EB" 
+          size={700} 
+          bottom="-25%" 
+          left="-10%" 
+          opacity={0.03}
+          duration={60}
+          delay={3}
+        />
+      </div>
 
-      <main className="flex-grow container mx-auto px-4 py-8">
+      <main className="flex-grow container mx-auto px-4 py-8 relative z-10">
         {/* Welcome Header */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-6">
