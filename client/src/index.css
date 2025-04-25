@@ -16,6 +16,34 @@ html:not(.dark),
   background-color: #F7F7F7;
 }
 
+/* Brand color variables for direct use */
+:root {
+  --greenvoice-primary: #009888; /* Bluish Jade Stone Green */
+  --greenvoice-secondary: #333333; /* Dark Grey */
+  --greenvoice-accent: #007A6E; /* Slightly darker version of primary for hover states */
+  --greenvoice-light: #E6F7F5; /* Very light version of primary for backgrounds */
+}
+
+/* Custom brand styles */
+.text-brand-gradient {
+  background: linear-gradient(135deg, var(--greenvoice-primary) 0%, #00B5A5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.bg-brand-gradient {
+  background: linear-gradient(135deg, var(--greenvoice-primary) 0%, #00B5A5 100%);
+}
+
+.border-brand {
+  border-color: var(--greenvoice-primary);
+}
+
+.glow-brand {
+  box-shadow: 0 0 15px 2px rgba(0, 152, 136, 0.3);
+}
+
 @layer base {
   :root {
     --background: #F7F7F7;
