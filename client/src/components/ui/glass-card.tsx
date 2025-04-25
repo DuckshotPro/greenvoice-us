@@ -126,15 +126,15 @@ export const FeatureCard: React.FC<{
 }) => {
   return (
     <GlassCard className={cn('p-6', className)} glowColor={glowColor}>
-      <div className="flex items-start space-x-4">
-        <div className="flex-shrink-0 mt-1">
-          <div className="w-10 h-10 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary">
+      <div className="flex items-start space-x-5">
+        <div className="flex-shrink-0">
+          <div className="w-12 h-12 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary shadow-sm">
             {icon}
           </div>
         </div>
         <div>
-          <h3 className="text-lg font-semibold mb-2">{title}</h3>
-          <p className="text-gray-600 dark:text-gray-300">{description}</p>
+          <h3 className="text-lg font-bold font-nunito text-primary dark:text-primary mb-2.5">{title}</h3>
+          <p className="text-gray-700 dark:text-gray-300 font-montserrat text-sm leading-relaxed">{description}</p>
         </div>
       </div>
     </GlassCard>
