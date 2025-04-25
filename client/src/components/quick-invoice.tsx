@@ -256,7 +256,7 @@ const QuickInvoice = () => {
                         <Input
                           type="number"
                           placeholder="0.00"
-                          className="pl-9"
+                          className="pl-9 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700"
                           {...field}
                           onChange={(e) => {
                             // Parse as a number with 2 decimal places
