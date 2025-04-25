@@ -35,7 +35,9 @@ import {
 } from 'lucide-react';
 
 const Home = () => {
-  const { user, isPremium } = useAuth();
+  const { user, isPremium, isAdmin } = useAuth();
+  // For Pro+ features, we'll check if user is admin (enterprise tier)
+  const isPremiumPlus = isPremium && isAdmin;
   const [activeTab, setActiveTab] = useState('all');
   
   // Fetch recent invoices only if user is logged in
@@ -347,7 +349,10 @@ const Home = () => {
 
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <Card3D accentColor="#009888">
+            <Card3D 
+              accentColor="#009888"
+              isPremiumPlus={isPremiumPlus}
+            >
               <div className="p-4">
                 <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Total Invoices</div>
                 <div className="flex items-baseline justify-between">
@@ -363,7 +368,10 @@ const Home = () => {
               </div>
             </Card3D>
             
-            <Card3D accentColor="#22c55e">
+            <Card3D 
+              accentColor="#22c55e"
+              isPremiumPlus={isPremiumPlus}
+            >
               <div className="p-4">
                 <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Paid Invoices</div>
                 <div className="flex items-baseline justify-between">
@@ -379,7 +387,10 @@ const Home = () => {
               </div>
             </Card3D>
             
-            <Card3D accentColor="#eab308">
+            <Card3D 
+              accentColor="#eab308"
+              isPremiumPlus={isPremiumPlus}
+            >
               <div className="p-4">
                 <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Pending</div>
                 <div className="flex items-baseline justify-between">
@@ -395,7 +406,10 @@ const Home = () => {
               </div>
             </Card3D>
             
-            <Card3D accentColor="#3b82f6">
+            <Card3D 
+              accentColor="#3b82f6"
+              isPremiumPlus={isPremiumPlus}
+            >
               <div className="p-4">
                 <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Completion Rate</div>
                 <div className="space-y-2">
@@ -451,6 +465,7 @@ const Home = () => {
               className="flex flex-col items-center justify-center p-4 text-center"
               onClick={() => window.location.href = "/create-invoice"}
               accentColor="#009888"
+              isPremiumPlus={isPremiumPlus}
             >
               <div className="p-3 rounded-full bg-primary/10 dark:bg-primary/20 mb-3">
                 <PlusCircle className="h-6 w-6 text-primary" />
@@ -462,6 +477,7 @@ const Home = () => {
               className="flex flex-col items-center justify-center p-4 text-center"
               onClick={() => window.location.href = "/history"}
               accentColor="#6366f1"
+              isPremiumPlus={isPremiumPlus}
             >
               <div className="p-3 rounded-full bg-indigo-100 dark:bg-indigo-900/20 mb-3">
                 <FileText className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
@@ -473,6 +489,7 @@ const Home = () => {
               className="flex flex-col items-center justify-center p-4 text-center"
               onClick={() => window.location.href = "/analytics"}
               accentColor="#3b82f6"
+              isPremiumPlus={isPremiumPlus}
             >
               <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900/20 mb-3">
                 <FileBarChart2 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
@@ -484,6 +501,7 @@ const Home = () => {
               className="flex flex-col items-center justify-center p-4 text-center"
               onClick={() => window.location.href = "/roadmap"}
               accentColor="#f59e0b"
+              isPremiumPlus={isPremiumPlus}
             >
               <div className="p-3 rounded-full bg-amber-100 dark:bg-amber-900/20 mb-3">
                 <MapPin className="h-6 w-6 text-amber-600 dark:text-amber-400" />
@@ -495,6 +513,7 @@ const Home = () => {
               className="flex flex-col items-center justify-center p-4 text-center"
               onClick={() => window.location.href = "/settings"}
               accentColor="#6b7280"
+              isPremiumPlus={isPremiumPlus}
             >
               <div className="p-3 rounded-full bg-gray-100 dark:bg-gray-800 mb-3">
                 <Settings className="h-6 w-6 text-gray-600 dark:text-gray-400" />

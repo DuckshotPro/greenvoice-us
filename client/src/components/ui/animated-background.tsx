@@ -268,14 +268,18 @@ export const GlassCard: React.FC<{
   );
 };
 
-// 3D Card with floating effect and shadow as shown in the screenshot
+/**
+ * Card3D component creates an elevated card with 3D effects and dynamic shadows
+ * The card appears to float slightly and has an accent color bar along the top
+ * On hover, it will raise up slightly and show a deeper shadow
+ */
 export const Card3D: React.FC<{
   children: React.ReactNode;
   className?: string;
   backgroundColor?: string;
   accentColor?: string;
   onClick?: () => void;
-  isPremiumPlus?: boolean;
+  isPremiumPlus?: boolean; // Kept for backward compatibility
   glowColor?: string;
 }> = ({ 
   children, 
@@ -283,36 +287,10 @@ export const Card3D: React.FC<{
   backgroundColor = 'bg-white dark:bg-gray-800',
   accentColor = '#009888',
   onClick,
-  isPremiumPlus = true, // Default to true for development, will be controlled by user subscription
-  glowColor = 'rgba(0, 152, 136, 0.3)'
+  isPremiumPlus = true, // No longer used but kept for compatibility
+  glowColor = 'rgba(0, 0, 0, 0.12)'
 }) => {
-  // If not premium plus, render a regular GlassCard
-  if (!isPremiumPlus) {
-    return (
-      <div className="relative">
-        {/* Pro+ badge */}
-        <div className="absolute -top-2 -right-2 z-20">
-          <div className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-[10px] px-2 py-0.5 rounded-full font-semibold shadow-lg">
-            PRO+
-          </div>
-        </div>
-        
-        <div className={`relative rounded-xl ${backgroundColor} p-0.5 transition-all duration-300 ${className}`}>
-          <div
-            className="absolute top-0 left-0 h-1 w-full rounded-t-xl"
-            style={{ backgroundColor: accentColor, opacity: 0.9 }}
-          />
-          <div className="h-full w-full rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden relative z-10"
-            onClick={onClick}
-          >
-            {children}
-          </div>
-        </div>
-      </div>
-    );
-  }
-  
-  // Premium Plus users get the full 3D effect
+  // Full 3D effect for everyone
   return (
     <motion.div 
       className={`
@@ -328,11 +306,11 @@ export const Card3D: React.FC<{
       }}
       whileHover={{ 
         y: -5,
-        boxShadow: '0 20px 25px rgba(0, 0, 0, 0.12)' 
+        boxShadow: `0 20px 25px ${glowColor}` 
       }}
       onClick={onClick}
     >
-      {/* Accent line on top or side */}
+      {/* Accent line on top */}
       <div 
         className="absolute top-0 left-0 h-1 w-full rounded-t-xl"
         style={{ backgroundColor: accentColor, opacity: 0.9 }}
