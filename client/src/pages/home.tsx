@@ -351,7 +351,7 @@ const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <Card3D 
               accentColor="#009888"
-              isPremiumPlus={isPremiumPlus}
+              backgroundColor="bg-white dark:bg-gray-800"
             >
               <div className="p-4">
                 <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Total Invoices</div>
@@ -370,7 +370,7 @@ const Home = () => {
             
             <Card3D 
               accentColor="#22c55e"
-              isPremiumPlus={isPremiumPlus}
+              backgroundColor="bg-white dark:bg-gray-800"
             >
               <div className="p-4">
                 <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Paid Invoices</div>
@@ -389,7 +389,7 @@ const Home = () => {
             
             <Card3D 
               accentColor="#eab308"
-              isPremiumPlus={isPremiumPlus}
+              backgroundColor="bg-white dark:bg-gray-800"
             >
               <div className="p-4">
                 <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Pending</div>
@@ -408,7 +408,7 @@ const Home = () => {
             
             <Card3D 
               accentColor="#3b82f6"
-              isPremiumPlus={isPremiumPlus}
+              backgroundColor="bg-white dark:bg-gray-800"
             >
               <div className="p-4">
                 <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Completion Rate</div>
@@ -465,7 +465,7 @@ const Home = () => {
               className="flex flex-col items-center justify-center p-4 text-center"
               onClick={() => window.location.href = "/create-invoice"}
               accentColor="#009888"
-              isPremiumPlus={isPremiumPlus}
+              backgroundColor="bg-white dark:bg-gray-800"
             >
               <div className="p-3 rounded-full bg-primary/10 dark:bg-primary/20 mb-3">
                 <PlusCircle className="h-6 w-6 text-primary" />
@@ -477,7 +477,7 @@ const Home = () => {
               className="flex flex-col items-center justify-center p-4 text-center"
               onClick={() => window.location.href = "/history"}
               accentColor="#6366f1"
-              isPremiumPlus={isPremiumPlus}
+              backgroundColor="bg-white dark:bg-gray-800"
             >
               <div className="p-3 rounded-full bg-indigo-100 dark:bg-indigo-900/20 mb-3">
                 <FileText className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
@@ -489,7 +489,7 @@ const Home = () => {
               className="flex flex-col items-center justify-center p-4 text-center"
               onClick={() => window.location.href = "/analytics"}
               accentColor="#3b82f6"
-              isPremiumPlus={isPremiumPlus}
+              backgroundColor="bg-white dark:bg-gray-800"
             >
               <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900/20 mb-3">
                 <FileBarChart2 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
@@ -501,7 +501,7 @@ const Home = () => {
               className="flex flex-col items-center justify-center p-4 text-center"
               onClick={() => window.location.href = "/roadmap"}
               accentColor="#f59e0b"
-              isPremiumPlus={isPremiumPlus}
+              backgroundColor="bg-white dark:bg-gray-800"
             >
               <div className="p-3 rounded-full bg-amber-100 dark:bg-amber-900/20 mb-3">
                 <MapPin className="h-6 w-6 text-amber-600 dark:text-amber-400" />
@@ -513,7 +513,7 @@ const Home = () => {
               className="flex flex-col items-center justify-center p-4 text-center"
               onClick={() => window.location.href = "/settings"}
               accentColor="#6b7280"
-              isPremiumPlus={isPremiumPlus}
+              backgroundColor="bg-white dark:bg-gray-800"
             >
               <div className="p-3 rounded-full bg-gray-100 dark:bg-gray-800 mb-3">
                 <Settings className="h-6 w-6 text-gray-600 dark:text-gray-400" />

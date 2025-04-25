@@ -312,12 +312,14 @@ export function ShareAnalyticsDashboard() {
             </TabsContent>
             
             <TabsContent value="shares">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Share Methods Detailed</CardTitle>
-                  <CardDescription>Breakdown of share methods by count</CardDescription>
-                </CardHeader>
-                <CardContent>
+              <Card3D
+                accentColor="#8884d8"
+                backgroundColor="bg-white dark:bg-gray-800"
+              >
+                <div className="p-6">
+                  <h3 className="text-lg font-semibold mb-1">Share Methods Detailed</h3>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">Breakdown of share methods by count</p>
+                  
                   {formattedMethodData.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
                       <p className="text-muted-foreground">No share data available</p>
@@ -352,17 +354,19 @@ export function ShareAnalyticsDashboard() {
                       </ResponsiveContainer>
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </Card3D>
             </TabsContent>
             
             <TabsContent value="views">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Invoice Views Detail</CardTitle>
-                  <CardDescription>View metrics for shared invoices</CardDescription>
-                </CardHeader>
-                <CardContent>
+              <Card3D
+                accentColor="#82ca9d"
+                backgroundColor="bg-white dark:bg-gray-800"
+              >
+                <div className="p-6">
+                  <h3 className="text-lg font-semibold mb-1">Invoice Views Detail</h3>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">View metrics for shared invoices</p>
+                  
                   {formattedViewData.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
                       <p className="text-muted-foreground">No view data available</p>
@@ -394,8 +398,8 @@ export function ShareAnalyticsDashboard() {
                       </ResponsiveContainer>
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </Card3D>
             </TabsContent>
           </Tabs>
         )}
