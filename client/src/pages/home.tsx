@@ -110,11 +110,11 @@ const Home = () => {
                 {/* Left Column - Text */}
                 <div className="text-center lg:text-left">
                   <FloatingElement duration={6} delay={0.5} className="inline-block">
-                    <h1 className="text-4xl font-extrabold text-white sm:text-5xl sm:tracking-tight lg:text-6xl drop-shadow-sm">
+                    <h1 className="text-4xl font-extrabold text-white sm:text-5xl sm:tracking-tight lg:text-6xl drop-shadow-md">
                       Professional Invoices in Seconds
                     </h1>
                   </FloatingElement>
-                  <p className="mt-6 max-w-lg text-xl text-white font-medium drop-shadow-sm">
+                  <p className="mt-6 max-w-lg text-xl text-white font-medium drop-shadow-md bg-black/20 backdrop-blur-sm py-3 px-4 rounded-lg inline-block">
                     Create, share, and track invoices easily with GreenVoice's all-in-one platform.
                   </p>
                   <div className="mt-10 max-w-sm mx-auto lg:mx-0 sm:flex sm:space-x-4">
