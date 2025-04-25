@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FeatureBox } from '@/components/ui/feature-box';
-import { AnimatedGradientBg, AnimatedBlob, FloatingElement, AnimatedAccentCard, ShimmerButton } from '@/components/ui/animated-background';
+import { AnimatedGradientBg, AnimatedBlob, FloatingElement, AnimatedAccentCard, ShimmerButton, Card3D } from '@/components/ui/animated-background';
 import { GlassCard, GradientCard, FeatureCard } from '@/components/ui/glass-card';
 import { Invoice, formatCurrency } from '@/types/invoice';
 import { 
@@ -347,7 +347,7 @@ const Home = () => {
 
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <GlassCard glowColor="rgba(0, 152, 136, 0.3)">
+            <Card3D accentColor="#009888">
               <div className="p-4">
                 <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Total Invoices</div>
                 <div className="flex items-baseline justify-between">
@@ -355,15 +355,15 @@ const Home = () => {
                     {isLoading ? '-' : invoiceCount}
                   </div>
                   <FloatingElement duration={3}>
-                    <div className="p-2 rounded-full bg-primary/10 dark:bg-primary/20">
+                    <div className="p-2 rounded-full bg-primary/10 dark:bg-primary/20 shadow-md">
                       <ScrollText className="h-5 w-5 text-primary" />
                     </div>
                   </FloatingElement>
                 </div>
               </div>
-            </GlassCard>
+            </Card3D>
             
-            <GlassCard glowColor="rgba(22, 163, 74, 0.3)">
+            <Card3D accentColor="#22c55e">
               <div className="p-4">
                 <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Paid Invoices</div>
                 <div className="flex items-baseline justify-between">
@@ -371,15 +371,15 @@ const Home = () => {
                     {isLoading ? '-' : paidCount}
                   </div>
                   <FloatingElement duration={3} delay={0.5}>
-                    <div className="p-2 rounded-full bg-green-100 dark:bg-green-900/30">
+                    <div className="p-2 rounded-full bg-green-100 dark:bg-green-900/30 shadow-md">
                       <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
                     </div>
                   </FloatingElement>
                 </div>
               </div>
-            </GlassCard>
+            </Card3D>
             
-            <GlassCard glowColor="rgba(245, 158, 11, 0.3)">
+            <Card3D accentColor="#eab308">
               <div className="p-4">
                 <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Pending</div>
                 <div className="flex items-baseline justify-between">
@@ -387,15 +387,15 @@ const Home = () => {
                     {isLoading ? '-' : pendingCount}
                   </div>
                   <FloatingElement duration={3} delay={0.2}>
-                    <div className="p-2 rounded-full bg-amber-100 dark:bg-amber-900/30">
+                    <div className="p-2 rounded-full bg-amber-100 dark:bg-amber-900/30 shadow-md">
                       <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                     </div>
                   </FloatingElement>
                 </div>
               </div>
-            </GlassCard>
+            </Card3D>
             
-            <GlassCard glowColor="rgba(59, 130, 246, 0.3)">
+            <Card3D accentColor="#3b82f6">
               <div className="p-4">
                 <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Completion Rate</div>
                 <div className="space-y-2">
@@ -404,7 +404,7 @@ const Home = () => {
                       {isLoading ? '-' : `${Math.round(completionRate)}%`}
                     </div>
                     <FloatingElement duration={3} delay={0.7}>
-                      <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/30">
+                      <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/30 shadow-md">
                         <BarChart2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                       </div>
                     </FloatingElement>
@@ -414,7 +414,7 @@ const Home = () => {
                   </Progress>
                 </div>
               </div>
-            </GlassCard>
+            </Card3D>
           </div>
 
           {/* Quick Actions */}
@@ -447,59 +447,60 @@ const Home = () => {
               </div>
             </GradientCard>
             
-            <GlassCard 
+            <Card3D 
               className="flex flex-col items-center justify-center p-4 text-center"
               onClick={() => window.location.href = "/create-invoice"}
+              accentColor="#009888"
             >
               <div className="p-3 rounded-full bg-primary/10 dark:bg-primary/20 mb-3">
                 <PlusCircle className="h-6 w-6 text-primary" />
               </div>
               <span className="font-medium">New Invoice</span>
-            </GlassCard>
+            </Card3D>
             
-            <GlassCard 
+            <Card3D 
               className="flex flex-col items-center justify-center p-4 text-center"
               onClick={() => window.location.href = "/history"}
-              glowColor="rgba(99, 102, 241, 0.3)"
+              accentColor="#6366f1"
             >
               <div className="p-3 rounded-full bg-indigo-100 dark:bg-indigo-900/20 mb-3">
                 <FileText className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
               </div>
               <span className="font-medium">View History</span>
-            </GlassCard>
+            </Card3D>
             
-            <GlassCard 
+            <Card3D 
               className="flex flex-col items-center justify-center p-4 text-center"
               onClick={() => window.location.href = "/analytics"}
-              glowColor="rgba(59, 130, 246, 0.3)"
+              accentColor="#3b82f6"
             >
               <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900/20 mb-3">
                 <FileBarChart2 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
               <span className="font-medium">Analytics</span>
-            </GlassCard>
+            </Card3D>
             
-            <GlassCard 
+            <Card3D 
               className="flex flex-col items-center justify-center p-4 text-center"
               onClick={() => window.location.href = "/roadmap"}
-              glowColor="rgba(245, 158, 11, 0.3)"
+              accentColor="#f59e0b"
             >
               <div className="p-3 rounded-full bg-amber-100 dark:bg-amber-900/20 mb-3">
                 <MapPin className="h-6 w-6 text-amber-600 dark:text-amber-400" />
               </div>
               <span className="font-medium">Roadmap</span>
-            </GlassCard>
+            </Card3D>
             
-            <GlassCard 
+            <Card3D 
               className="flex flex-col items-center justify-center p-4 text-center"
               onClick={() => window.location.href = "/settings"}
-              glowColor="rgba(107, 114, 128, 0.3)"
+              accentColor="#6b7280"
             >
               <div className="p-3 rounded-full bg-gray-100 dark:bg-gray-800 mb-3">
                 <Settings className="h-6 w-6 text-gray-600 dark:text-gray-400" />
               </div>
               <span className="font-medium">Settings</span>
-            </GlassCard>
+            </Card3D>
           </div>
         </div>
 

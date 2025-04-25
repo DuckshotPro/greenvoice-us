@@ -267,3 +267,84 @@ export const GlassCard: React.FC<{
     </motion.div>
   );
 };
+
+// 3D Card with floating effect and shadow as shown in the screenshot
+export const Card3D: React.FC<{
+  children: React.ReactNode;
+  className?: string;
+  backgroundColor?: string;
+  accentColor?: string;
+  onClick?: () => void;
+  isPremiumPlus?: boolean;
+  glowColor?: string;
+}> = ({ 
+  children, 
+  className = '',
+  backgroundColor = 'bg-white dark:bg-gray-800',
+  accentColor = '#009888',
+  onClick,
+  isPremiumPlus = true, // Default to true for development, will be controlled by user subscription
+  glowColor = 'rgba(0, 152, 136, 0.3)'
+}) => {
+  // If not premium plus, render a regular GlassCard
+  if (!isPremiumPlus) {
+    return (
+      <div className="relative">
+        {/* Pro+ badge */}
+        <div className="absolute -top-2 -right-2 z-20">
+          <div className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-[10px] px-2 py-0.5 rounded-full font-semibold shadow-lg">
+            PRO+
+          </div>
+        </div>
+        
+        <div className={`relative rounded-xl ${backgroundColor} p-0.5 transition-all duration-300 ${className}`}>
+          <div
+            className="absolute top-0 left-0 h-1 w-full rounded-t-xl"
+            style={{ backgroundColor: accentColor, opacity: 0.9 }}
+          />
+          <div className="h-full w-full rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden relative z-10"
+            onClick={onClick}
+          >
+            {children}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Premium Plus users get the full 3D effect
+  return (
+    <motion.div 
+      className={`
+        relative rounded-xl
+        ${backgroundColor}
+        p-0.5
+        transition-all duration-300
+        ${className}
+      `}
+      initial={{ 
+        y: 0,
+        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.08)' 
+      }}
+      whileHover={{ 
+        y: -5,
+        boxShadow: '0 20px 25px rgba(0, 0, 0, 0.12)' 
+      }}
+      onClick={onClick}
+    >
+      {/* Accent line on top or side */}
+      <div 
+        className="absolute top-0 left-0 h-1 w-full rounded-t-xl"
+        style={{ backgroundColor: accentColor, opacity: 0.9 }}
+      />
+      
+      {/* Shadow effect - hidden by default, shown on hover */}
+      <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-[90%] h-[10px] bg-black/5 dark:bg-black/20 blur-xl rounded-full opacity-70 z-0" />
+      
+      {/* Subtle 3D border effect */}
+      <div className="h-full w-full rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden relative z-10">
+        {children}
+      </div>
+    </motion.div>
+  );
+};
