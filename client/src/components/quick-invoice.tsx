@@ -193,11 +193,11 @@ const QuickInvoice = () => {
   };
 
   return (
-    <div className="transform perspective-1000 animate-float-slow shadow-xl">
-      <div className="relative h-full transform-style-3d transition-transform duration-300 transform">
+    <div className="shadow-xl">
+      <div className="relative h-full">
         <div className="absolute inset-0 bg-primary/30 dark:bg-primary/20 rounded-xl blur-md opacity-70 -z-10 translate-y-4"></div>
         <div className="absolute inset-0 bg-gradient-to-br from-primary/40 via-blue-500/20 to-white rounded-xl -z-10 translate-y-2"></div>
-        <Card className="w-full border-primary/20 bg-white dark:bg-[#1C2333] shadow-md relative transform-style-3d transition-transform duration-300 hover:scale-[1.02] hover:rotate-y-5 hover:rotate-x-2 rounded-xl overflow-hidden">
+        <Card className="w-full border-primary/20 bg-white dark:bg-[#1C2333] shadow-md relative transition-transform duration-300 hover:scale-[1.02] rounded-xl overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-transparent pointer-events-none"></div>
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-blue-500 to-primary/50"></div>
           <CardHeader className="pb-3 border-b border-primary/10">

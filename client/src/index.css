@@ -5,36 +5,31 @@
 @tailwind utilities;
 
 @layer utilities {
-  .perspective-1000 {
-    perspective: 1000px;
+  /* Subtle hover effects instead of float animations */
+  .hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
   
-  .transform-style-3d {
-    transform-style: preserve-3d;
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   }
   
-  .rotate-y-5 {
-    transform: rotateY(5deg);
+  .hover-scale {
+    transition: transform 0.3s ease;
   }
   
-  .rotate-x-2 {
-    transform: rotateX(2deg);
+  .hover-scale:hover {
+    transform: scale(1.02);
   }
   
-  .animate-float-slow {
-    animation: float 6s ease-in-out infinite;
+  /* Card shadow effects */
+  .card-shadow {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   }
   
-  @keyframes float {
-    0% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-10px);
-    }
-    100% {
-      transform: translateY(0px);
-    }
+  .card-shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   }
 }
 
