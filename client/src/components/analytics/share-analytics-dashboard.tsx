@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, BarChart4, PieChart } from "lucide-react";
 import { format } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPC, Pie, Cell, Legend, LineChart, Line } from 'recharts';
+import { Card3D } from "@/components/ui/animated-background";
 
 // Share analytics data types
 interface ShareMethodData {
@@ -189,12 +190,14 @@ export function ShareAnalyticsDashboard() {
             
             <TabsContent value="overview" className="space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Share Methods</CardTitle>
-                    <CardDescription>How invoices are being shared</CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-0">
+                <Card3D
+                  accentColor="#8884d8"
+                  backgroundColor="bg-white dark:bg-gray-800"
+                >
+                  <div className="p-6">
+                    <h3 className="text-lg font-semibold mb-1">Share Methods</h3>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">How invoices are being shared</p>
+                    
                     {formattedMethodData.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-8 text-center">
                         <p className="text-muted-foreground">No share data available</p>
@@ -227,15 +230,17 @@ export function ShareAnalyticsDashboard() {
                         </ResponsiveContainer>
                       </div>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </Card3D>
                 
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Top Invoices by Views</CardTitle>
-                    <CardDescription>Most viewed invoices</CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-0">
+                <Card3D
+                  accentColor="#82ca9d"
+                  backgroundColor="bg-white dark:bg-gray-800"
+                >
+                  <div className="p-6">
+                    <h3 className="text-lg font-semibold mb-1">Top Invoices by Views</h3>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">Most viewed invoices</p>
+                    
                     {formattedViewData.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-8 text-center">
                         <p className="text-muted-foreground">No view data available</p>
@@ -261,56 +266,60 @@ export function ShareAnalyticsDashboard() {
                             <XAxis dataKey="invoiceId" />
                             <YAxis allowDecimals={false} />
                             <Tooltip />
-                            <Bar dataKey="views" name="Views" fill="#8884d8" />
+                            <Bar dataKey="views" name="Views" fill="#82ca9d" />
                           </BarChart>
                         </ResponsiveContainer>
                       </div>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </Card3D>
               </div>
               
               <div className="grid grid-cols-1 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Analytics Summary</CardTitle>
-                    <CardDescription>Key metrics for your invoices</CardDescription>
-                  </CardHeader>
-                  <CardContent>
+                <Card3D
+                  accentColor="#009888"
+                  backgroundColor="bg-white dark:bg-gray-800"
+                >
+                  <div className="p-6">
+                    <h3 className="text-lg font-semibold mb-1">Analytics Summary</h3>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">Key metrics for your invoices</p>
+                    
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="bg-muted/50 p-4 rounded-lg">
-                        <p className="text-sm font-medium text-muted-foreground mb-1">Total Shares</p>
-                        <p className="text-2xl font-bold">
+                      <div className="bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 p-4 rounded-lg shadow-sm">
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Total Shares</p>
+                        <p className="text-2xl font-bold text-primary">
                           {formattedMethodData.reduce((acc, curr) => acc + curr.value, 0)}
                         </p>
                       </div>
-                      <div className="bg-muted/50 p-4 rounded-lg">
-                        <p className="text-sm font-medium text-muted-foreground mb-1">Total Views</p>
-                        <p className="text-2xl font-bold">
+                      <div className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 dark:from-blue-500/20 dark:to-blue-500/10 p-4 rounded-lg shadow-sm">
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Total Views</p>
+                        <p className="text-2xl font-bold text-blue-500">
                           {formattedViewData.reduce((acc, curr) => acc + curr.views, 0)}
                         </p>
                       </div>
-                      <div className="bg-muted/50 p-4 rounded-lg">
-                        <p className="text-sm font-medium text-muted-foreground mb-1">Share Methods</p>
-                        <p className="text-2xl font-bold">{formattedMethodData.length}</p>
+                      <div className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 dark:from-purple-500/20 dark:to-purple-500/10 p-4 rounded-lg shadow-sm">
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Share Methods</p>
+                        <p className="text-2xl font-bold text-purple-500">{formattedMethodData.length}</p>
                       </div>
-                      <div className="bg-muted/50 p-4 rounded-lg">
-                        <p className="text-sm font-medium text-muted-foreground mb-1">Viewed Invoices</p>
-                        <p className="text-2xl font-bold">{formattedViewData.length}</p>
+                      <div className="bg-gradient-to-br from-amber-500/10 to-amber-500/5 dark:from-amber-500/20 dark:to-amber-500/10 p-4 rounded-lg shadow-sm">
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Viewed Invoices</p>
+                        <p className="text-2xl font-bold text-amber-500">{formattedViewData.length}</p>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </Card3D>
               </div>
             </TabsContent>
             
             <TabsContent value="shares">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Share Methods Detailed</CardTitle>
-                  <CardDescription>Breakdown of share methods by count</CardDescription>
-                </CardHeader>
-                <CardContent>
+              <Card3D
+                accentColor="#8884d8"
+                backgroundColor="bg-white dark:bg-gray-800"
+              >
+                <div className="p-6">
+                  <h3 className="text-lg font-semibold mb-1">Share Methods Detailed</h3>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">Breakdown of share methods by count</p>
+                  
                   {formattedMethodData.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
                       <p className="text-muted-foreground">No share data available</p>
@@ -345,17 +354,19 @@ export function ShareAnalyticsDashboard() {
                       </ResponsiveContainer>
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </Card3D>
             </TabsContent>
             
             <TabsContent value="views">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Invoice Views Detail</CardTitle>
-                  <CardDescription>View metrics for shared invoices</CardDescription>
-                </CardHeader>
-                <CardContent>
+              <Card3D
+                accentColor="#82ca9d"
+                backgroundColor="bg-white dark:bg-gray-800"
+              >
+                <div className="p-6">
+                  <h3 className="text-lg font-semibold mb-1">Invoice Views Detail</h3>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">View metrics for shared invoices</p>
+                  
                   {formattedViewData.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
                       <p className="text-muted-foreground">No view data available</p>
@@ -387,8 +398,8 @@ export function ShareAnalyticsDashboard() {
                       </ResponsiveContainer>
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </Card3D>
             </TabsContent>
           </Tabs>
         )}

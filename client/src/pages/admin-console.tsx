@@ -65,30 +65,36 @@ const AdminConsole = () => {
   }
 
   // Get health status for the database
-  const { data: dbHealth, isLoading: loadingDbHealth, refetch: refetchDbHealth } = useQuery({
+  const { data: dbHealthResponse, isLoading: loadingDbHealth, refetch: refetchDbHealth, error: dbHealthError } = useQuery({
     queryKey: ['/api/admin/db-health'],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/admin/db-health");
       return await res.json();
-    }
+    },
+    retry: 1
   });
+  
+  // Extract the actual db health from the response
+  const dbHealth = dbHealthResponse?.dbHealth;
 
   // Get system information
-  const { data: systemInfo, isLoading: loadingSystemInfo, refetch: refetchSystemInfo } = useQuery({
+  const { data: systemInfo, isLoading: loadingSystemInfo, refetch: refetchSystemInfo, error: systemInfoError } = useQuery({
     queryKey: ['/api/admin/system'],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/admin/system");
       return await res.json();
-    }
+    },
+    retry: 1
   });
 
   // Get logs information
-  const { data: logs, isLoading: loadingLogs, refetch: refetchLogs } = useQuery({
+  const { data: logs, isLoading: loadingLogs, refetch: refetchLogs, error: logsError } = useQuery({
     queryKey: ['/api/admin/logs'],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/admin/logs");
       return await res.json();
-    }
+    },
+    retry: 1
   });
 
   // Process scheduled invoices and recurring templates
@@ -221,19 +227,15 @@ const AdminConsole = () => {
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Users</span>
-                        <span className="font-medium">{dbHealth.counts.users}</span>
+                        <span className="font-medium">{dbHealth.users || 'N/A'}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Invoices</span>
-                        <span className="font-medium">{dbHealth.counts.invoices}</span>
+                        <span className="font-medium">{dbHealth.invoices || 0}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span>Share Analytics</span>
-                        <span className="font-medium">{dbHealth.counts.shareAnalytics}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Subscription Plans</span>
-                        <span className="font-medium">{dbHealth.counts.subscriptionPlans}</span>
+                        <span>Response Time</span>
+                        <span className="font-medium">{dbHealth.responseTimeMs || 0} ms</span>
                       </div>
                     </div>
                   </div>
@@ -273,19 +275,19 @@ const AdminConsole = () => {
                       <div className="flex justify-between text-sm">
                         <span>Memory Usage</span>
                         <span className="font-medium">
-                          {Math.round(systemInfo.memoryUsage.usedMB)} / {Math.round(systemInfo.memoryUsage.totalMB)} MB
+                          {systemInfo.memory ? `${systemInfo.memory.used} / ${systemInfo.memory.total} MB` : 'N/A'}
                         </span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span>CPU Load</span>
-                        <span className="font-medium">
-                          {systemInfo.cpuLoad.map((load: number) => Math.round(load * 100) / 100).join(', ')}
-                        </span>
+                        <span>Platform</span>
+                        <span className="font-medium">{systemInfo.platform || 'Unknown'}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Uptime</span>
                         <span className="font-medium">
-                          {Math.floor(systemInfo.uptime / 86400)}d {Math.floor((systemInfo.uptime % 86400) / 3600)}h
+                          {systemInfo.uptime ? 
+                            `${Math.floor(systemInfo.uptime / 86400)}d ${Math.floor((systemInfo.uptime % 86400) / 3600)}h` : 
+                            'Unknown'}
                         </span>
                       </div>
                     </div>
@@ -321,15 +323,17 @@ const AdminConsole = () => {
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Total Users</span>
-                        <span className="font-medium">{dbHealth.counts.users}</span>
+                        <span className="font-medium">{dbHealth.users || 0}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span>Premium Users</span>
-                        <span className="font-medium">{dbHealth.counts.premiumUsers || "N/A"}</span>
+                        <span>Total Invoices</span>
+                        <span className="font-medium">{dbHealth.invoices || 0}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span>Active Today</span>
-                        <span className="font-medium">{dbHealth.counts.activeToday || "N/A"}</span>
+                        <span>System Status</span>
+                        <Badge variant={dbHealth.status === "healthy" ? "default" : "destructive"}>
+                          {dbHealth.status === "healthy" ? "Healthy" : "Error"}
+                        </Badge>
                       </div>
                     </div>
                     
@@ -400,16 +404,16 @@ const AdminConsole = () => {
                     <h3 className="text-lg font-medium mb-2">Memory</h3>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div className="font-medium">Total Memory</div>
-                      <div>{Math.round(systemInfo.memoryUsage.totalMB)} MB</div>
+                      <div>{systemInfo.memoryUsage?.totalMB ? Math.round(systemInfo.memoryUsage.totalMB) : 'N/A'} {systemInfo.memoryUsage?.totalMB ? 'MB' : ''}</div>
                       
                       <div className="font-medium">Free Memory</div>
-                      <div>{Math.round(systemInfo.memoryUsage.freeMB)} MB</div>
+                      <div>{systemInfo.memoryUsage?.freeMB ? Math.round(systemInfo.memoryUsage.freeMB) : 'N/A'} {systemInfo.memoryUsage?.freeMB ? 'MB' : ''}</div>
                       
                       <div className="font-medium">Used Memory</div>
-                      <div>{Math.round(systemInfo.memoryUsage.usedMB)} MB</div>
+                      <div>{systemInfo.memoryUsage?.usedMB ? Math.round(systemInfo.memoryUsage.usedMB) : 'N/A'} {systemInfo.memoryUsage?.usedMB ? 'MB' : ''}</div>
                       
                       <div className="font-medium">Memory Usage</div>
-                      <div>{Math.round(systemInfo.memoryUsage.usedPercent * 100)}%</div>
+                      <div>{systemInfo.memoryUsage?.usedPercent ? Math.round(systemInfo.memoryUsage.usedPercent * 100) : 'N/A'}{systemInfo.memoryUsage?.usedPercent ? '%' : ''}</div>
                     </div>
                   </div>
                   
@@ -418,14 +422,18 @@ const AdminConsole = () => {
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div className="font-medium">Uptime</div>
                       <div>
-                        {Math.floor(systemInfo.uptime / 86400)}d {Math.floor((systemInfo.uptime % 86400) / 3600)}h {Math.floor((systemInfo.uptime % 3600) / 60)}m
+                        {systemInfo.uptime ? 
+                          `${Math.floor(systemInfo.uptime / 86400)}d ${Math.floor((systemInfo.uptime % 86400) / 3600)}h ${Math.floor((systemInfo.uptime % 3600) / 60)}m`
+                          : 'N/A'}
                       </div>
                       
                       <div className="font-medium">CPU Cores</div>
-                      <div>{systemInfo.cpuCount}</div>
+                      <div>{systemInfo.cpuCount || 'N/A'}</div>
                       
                       <div className="font-medium">CPU Load (1m, 5m, 15m)</div>
-                      <div>{systemInfo.cpuLoad.map((load: number) => Math.round(load * 100) / 100).join(', ')}</div>
+                      <div>{systemInfo.cpuLoad && Array.isArray(systemInfo.cpuLoad) 
+                        ? systemInfo.cpuLoad.map((load: number) => Math.round(load * 100) / 100).join(', ')
+                        : 'N/A'}</div>
                     </div>
                   </div>
                 </div>
@@ -473,15 +481,15 @@ const AdminConsole = () => {
                     <div key={i} className="h-6 bg-gray-200 rounded w-full"></div>
                   ))}
                 </div>
-              ) : logs && logs.entries ? (
+              ) : logs && logs.logs ? (
                 <div className="space-y-1 max-h-[600px] overflow-y-auto font-mono text-xs">
-                  {logs.entries.map((entry: any, index: number) => (
+                  {logs.logs.map((entry: any, index: number) => (
                     <div 
                       key={index}
                       className={`p-2 rounded ${
                         entry.level === 'ERROR' 
                           ? 'bg-red-50 text-red-800' 
-                          : entry.level === 'WARN' 
+                          : entry.level === 'WARNING' 
                           ? 'bg-yellow-50 text-yellow-800' 
                           : entry.level === 'INFO' 
                           ? 'bg-blue-50 text-blue-800' 
@@ -496,7 +504,7 @@ const AdminConsole = () => {
                           variant={
                             entry.level === 'ERROR' 
                               ? 'destructive' 
-                              : entry.level === 'WARN' 
+                              : entry.level === 'WARNING' 
                               ? 'secondary' 
                               : entry.level === 'INFO' 
                               ? 'default' 
@@ -509,7 +517,7 @@ const AdminConsole = () => {
                         <span className="flex-grow">{entry.message}</span>
                       </div>
                       {entry.details && (
-                        <div className="mt-1 pl-24 text-gray-600">
+                        <div className="mt-1 pl-24 text-gray-600 break-words">
                           {typeof entry.details === 'object' 
                             ? JSON.stringify(entry.details) 
                             : entry.details}

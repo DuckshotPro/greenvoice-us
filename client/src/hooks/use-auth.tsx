@@ -17,6 +17,7 @@ type AuthContextType = {
   registerMutation: UseMutationResult<User, Error, RegisterData>;
   watchAdMutation: UseMutationResult<{premiumDaysRemaining: number}, Error, void>;
   isPremium: boolean;
+  isAdmin: boolean;
 };
 
 type LoginData = {
@@ -51,6 +52,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     (user.subscriptionPlan !== 'free' && !!user.subscriptionExpiry && new Date(user.subscriptionExpiry) > new Date()) ||
     // User has temporary premium days from watching ads
     (!!user.premiumDaysRemaining && user.premiumDaysRemaining > 0)
+  );
+  
+  // Determine if user has admin access
+  const isAdmin: boolean = !!user && (
+    user.subscriptionPlan === "enterprise" || 
+    !!(user.email && (user.email.includes("admin") || user.email.includes("greenvoice")))
   );
 
   const loginMutation = useMutation({
@@ -155,6 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         registerMutation,
         watchAdMutation,
         isPremium,
+        isAdmin,
       }}
     >
       {children}

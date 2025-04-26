@@ -3,6 +3,8 @@ import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { LogIn, Crown, HelpCircle, ShieldCheck } from 'lucide-react';
+import { BrandLogo } from '@/components/ui/brand-logo';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,7 +23,7 @@ import { Menu } from 'lucide-react';
 const Header = () => {
   const [location] = useLocation();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const { user, logoutMutation, isPremium } = useAuth();
+  const { user, logoutMutation, isPremium, isAdmin } = useAuth();
 
   // Navigation links
   const navLinks = [
@@ -30,6 +32,7 @@ const Header = () => {
     { href: '/history', label: 'History' },
     { href: '/analytics', label: 'Analytics' },
     { href: '/branding', label: 'Branding' },
+    { href: '/roadmap', label: 'Roadmap' },
     { href: '/settings', label: 'Settings' },
   ];
 
@@ -41,13 +44,13 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white shadow-sm">
+    <header className="bg-background shadow-sm border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center">
-              <Link href="/" className="text-primary font-bold text-xl">
-                Invoice<span className="text-accent">Flow</span>
+              <Link href="/" className="flex items-center">
+                <BrandLogo size="md" showText={true} />
               </Link>
             </div>
             
@@ -58,8 +61,8 @@ const Header = () => {
                   href={link.href}
                   className={`${
                     isActive(link.href)
-                      ? 'border-primary text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                      ? 'border-primary text-primary font-nunito'
+                      : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground font-montserrat'
                   } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
                 >
                   {link.label}
@@ -69,6 +72,11 @@ const Header = () => {
           </div>
           
           <div className="flex items-center space-x-2">
+            {/* Theme toggle */}
+            <div className="hidden sm:block">
+              <ThemeToggle />
+            </div>
+            
             {/* Premium badge/button */}
             {user && (
               <Link href="/premium">
@@ -87,7 +95,7 @@ const Header = () => {
               <>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full bg-primary text-white">
+                    <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full bg-primary text-primary-foreground font-nunito">
                       {user.username ? user.username.substring(0, 2).toUpperCase() : 'U'}
                     </Button>
                   </DropdownMenuTrigger>
@@ -118,7 +126,7 @@ const Header = () => {
                         Help & FAQ
                       </Link>
                     </DropdownMenuItem>
-                    {user && user.subscriptionPlan === "enterprise" && (
+                    {isAdmin && (
                       <DropdownMenuItem asChild>
                         <Link href="/admin" className="flex items-center">
                           <ShieldCheck className="mr-2 h-4 w-4 text-green-500" />
@@ -134,7 +142,7 @@ const Header = () => {
                 </DropdownMenu>
               </>
             ) : (
-              <Button asChild className="flex items-center">
+              <Button asChild variant="gradient" className="flex items-center font-nunito">
                 <Link href="/auth">
                   <LogIn className="mr-2 h-4 w-4" />
                   Login
@@ -151,7 +159,7 @@ const Header = () => {
                   size="icon"
                   className="inline-flex items-center justify-center"
                 >
-                  <Menu className="h-6 w-6 text-gray-400" />
+                  <Menu className="h-6 w-6 text-muted-foreground" />
                   <span className="sr-only">Open main menu</span>
                 </Button>
               </SheetTrigger>
@@ -163,8 +171,8 @@ const Header = () => {
                       href={link.href}
                       className={`${
                         isActive(link.href)
-                          ? 'bg-primary/10 text-primary'
-                          : 'text-gray-600 hover:bg-gray-50'
+                          ? 'bg-primary/10 text-primary font-nunito'
+                          : 'text-muted-foreground hover:bg-secondary font-montserrat'
                       } px-3 py-2 rounded-md text-base font-medium`}
                       onClick={() => setIsSheetOpen(false)}
                     >
@@ -194,8 +202,8 @@ const Header = () => {
                     Help & FAQ
                   </Link>
                   
-                  {/* Admin Console Link - only for enterprise users */}
-                  {user && user.subscriptionPlan === "enterprise" && (
+                  {/* Admin Console Link */}
+                  {isAdmin && (
                     <Link
                       href="/admin"
                       className="flex items-center px-3 py-2 rounded-md text-base font-medium text-green-700 bg-green-50"
@@ -206,10 +214,18 @@ const Header = () => {
                     </Link>
                   )}
                   
+                  {/* Theme toggle for mobile */}
+                  <div className="px-3 py-2 rounded-md">
+                    <div className="flex items-center">
+                      <span className="text-base font-medium mr-2">Theme</span>
+                      <ThemeToggle />
+                    </div>
+                  </div>
+                  
                   {/* Mobile logout */}
                   {user && (
                     <Button
-                      variant="outline"
+                      variant="gradient"
                       className="w-full justify-start"
                       onClick={() => {
                         handleLogout();

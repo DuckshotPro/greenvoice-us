@@ -34,17 +34,18 @@ import { z } from 'zod';
 import { FileText, FileCheck, Calendar, Mail, Github, Facebook, AlignJustify } from 'lucide-react';
 import { SiFacebook, SiGoogle, SiGithub } from 'react-icons/si';
 import { useToast } from '@/hooks/use-toast';
+import { BrandLogo } from '@/components/ui/brand-logo';
 
 const loginSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string().min(5, 'Password must be at least 5 characters'),
   rememberMe: z.boolean().optional(),
 });
 
 const registerSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
   email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string().min(5, 'Password must be at least 5 characters'),
   fullName: z.string().optional(),
 });
 
@@ -110,26 +111,36 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4" data-auth-container>
       <div className="grid w-full max-w-6xl gap-6 lg:grid-cols-2">
         {/* Left side: Auth forms */}
         <div className="flex flex-col justify-center">
-          <Card className="w-full max-w-md mx-auto">
+          <Card className="w-full max-w-md mx-auto" data-auth-form>
             <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl font-bold">
+              <CardTitle className="text-2xl font-nunito font-bold text-greenvoice-primary">
                 {activeTab === 'login' ? 'Sign in to your account' : 'Create an account'}
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="font-montserrat text-muted-foreground">
                 {activeTab === 'login' 
                   ? 'Enter your credentials to access your account' 
-                  : 'Fill in the details to create your InvoiceFlow account'}
+                  : 'Fill in the details to create your GreenVoice account'}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-6">
-                  <TabsTrigger value="login">Login</TabsTrigger>
-                  <TabsTrigger value="register">Register</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 mb-6 dark:bg-secondary">
+                  <TabsTrigger 
+                    value="login" 
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[var(--primary)] data-[state=active]:to-[#00c4af] data-[state=active]:text-white font-montserrat"
+                  >
+                    Login
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="register" 
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[var(--primary)] data-[state=active]:to-[#00c4af] data-[state=active]:text-white font-montserrat"
+                  >
+                    Register
+                  </TabsTrigger>
                 </TabsList>
                 <TabsContent value="login">
                   <Form {...loginForm}>
@@ -139,9 +150,13 @@ export default function AuthPage() {
                         name="username"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Username</FormLabel>
+                            <FormLabel className="font-montserrat">Username</FormLabel>
                             <FormControl>
-                              <Input placeholder="Enter your username" {...field} />
+                              <Input 
+                                placeholder="Enter your username" 
+                                className="focus-visible:ring-greenvoice-primary/50" 
+                                {...field} 
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -152,9 +167,9 @@ export default function AuthPage() {
                         name="password"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Password</FormLabel>
+                            <FormLabel className="font-montserrat">Password</FormLabel>
                             <FormControl>
-                              <Input type="password" placeholder="••••••••" {...field} />
+                              <Input className="focus-visible:ring-greenvoice-primary/50" type="password" placeholder="••••••••" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -169,6 +184,7 @@ export default function AuthPage() {
                               <Checkbox
                                 checked={field.value}
                                 onCheckedChange={field.onChange}
+                                className="data-[state=checked]:bg-greenvoice-primary data-[state=checked]:border-greenvoice-primary"
                               />
                             </FormControl>
                             <div className="space-y-1 leading-none">
@@ -184,7 +200,8 @@ export default function AuthPage() {
                       />
                       <Button 
                         type="submit" 
-                        className="w-full"
+                        variant="gradient"
+                        className="w-full font-nunito"
                         disabled={loginMutation.isPending}
                       >
                         {loginMutation.isPending ? 'Signing in...' : 'Sign in'}
@@ -241,9 +258,9 @@ export default function AuthPage() {
                         name="username"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Username</FormLabel>
+                            <FormLabel className="font-montserrat">Username</FormLabel>
                             <FormControl>
-                              <Input placeholder="Choose a username" {...field} />
+                              <Input className="focus-visible:ring-greenvoice-primary/50" placeholder="Choose a username" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -254,9 +271,9 @@ export default function AuthPage() {
                         name="email"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Email</FormLabel>
+                            <FormLabel className="font-montserrat">Email</FormLabel>
                             <FormControl>
-                              <Input type="email" placeholder="you@example.com" {...field} />
+                              <Input className="focus-visible:ring-greenvoice-primary/50" type="email" placeholder="you@example.com" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -267,9 +284,9 @@ export default function AuthPage() {
                         name="fullName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Full Name (Optional)</FormLabel>
+                            <FormLabel className="font-montserrat">Full Name (Optional)</FormLabel>
                             <FormControl>
-                              <Input placeholder="John Doe" {...field} />
+                              <Input className="focus-visible:ring-greenvoice-primary/50" placeholder="John Doe" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -280,9 +297,9 @@ export default function AuthPage() {
                         name="password"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Password</FormLabel>
+                            <FormLabel className="font-montserrat">Password</FormLabel>
                             <FormControl>
-                              <Input type="password" placeholder="Create a password" {...field} />
+                              <Input className="focus-visible:ring-greenvoice-primary/50" type="password" placeholder="Create a password" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -290,7 +307,8 @@ export default function AuthPage() {
                       />
                       <Button 
                         type="submit" 
-                        className="w-full"
+                        variant="gradient"
+                        className="w-full font-nunito"
                         disabled={registerMutation.isPending}
                       >
                         {registerMutation.isPending ? 'Creating account...' : 'Create account'}
@@ -345,51 +363,53 @@ export default function AuthPage() {
         </div>
 
         {/* Right side: App info */}
-        <div className="hidden lg:flex lg:flex-col justify-center">
-          <div className="space-y-8">
+        <div className="hidden lg:flex lg:flex-col justify-center" data-auth-hero>
+          <div className="space-y-8 bg-accent dark:bg-secondary p-8 rounded-xl">
             <div>
-              <h1 className="text-3xl font-bold text-primary mb-2">InvoiceFlow</h1>
-              <p className="text-xl text-gray-600">The professional invoice solution for freelancers and businesses</p>
+              <div className="mb-4">
+                <BrandLogo size="xl" showText={true} />
+              </div>
+              <p className="text-xl text-gray-600 dark:text-gray-300 font-montserrat">The professional invoice solution for freelancers and businesses</p>
             </div>
             
             <div className="grid gap-4">
               <div className="flex items-start gap-4">
-                <div className="bg-primary/10 p-3 rounded-full">
-                  <FileText className="h-6 w-6 text-primary" />
+                <div className="bg-greenvoice-primary/10 p-3 rounded-full">
+                  <FileText className="h-6 w-6 text-greenvoice-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold">Professional Invoices</h3>
-                  <p className="text-gray-500">Create beautiful invoices with our easy-to-use templates</p>
+                  <h3 className="font-nunito font-bold text-greenvoice-primary">Professional Invoices</h3>
+                  <p className="text-gray-600 dark:text-gray-300 font-montserrat text-sm">Create beautiful invoices with our easy-to-use templates</p>
                 </div>
               </div>
               
               <div className="flex items-start gap-4">
-                <div className="bg-primary/10 p-3 rounded-full">
-                  <Mail className="h-6 w-6 text-primary" />
+                <div className="bg-greenvoice-primary/10 p-3 rounded-full">
+                  <Mail className="h-6 w-6 text-greenvoice-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold">Multiple Sharing Options</h3>
-                  <p className="text-gray-500">Share via email, social media, or generate PDF and images</p>
+                  <h3 className="font-nunito font-bold text-greenvoice-primary">Multiple Sharing Options</h3>
+                  <p className="text-gray-600 dark:text-gray-300 font-montserrat text-sm">Share via email, social media, or generate PDF and images</p>
                 </div>
               </div>
               
               <div className="flex items-start gap-4">
-                <div className="bg-primary/10 p-3 rounded-full">
-                  <Calendar className="h-6 w-6 text-primary" />
+                <div className="bg-greenvoice-primary/10 p-3 rounded-full">
+                  <Calendar className="h-6 w-6 text-greenvoice-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold">Recurring Invoices</h3>
-                  <p className="text-gray-500">Set up recurring invoices for regular clients</p>
+                  <h3 className="font-nunito font-bold text-greenvoice-primary">Recurring Invoices</h3>
+                  <p className="text-gray-600 dark:text-gray-300 font-montserrat text-sm">Set up recurring invoices for regular clients</p>
                 </div>
               </div>
               
               <div className="flex items-start gap-4">
-                <div className="bg-primary/10 p-3 rounded-full">
-                  <FileCheck className="h-6 w-6 text-primary" />
+                <div className="bg-greenvoice-primary/10 p-3 rounded-full">
+                  <FileCheck className="h-6 w-6 text-greenvoice-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold">Analytics & Tracking</h3>
-                  <p className="text-gray-500">Monitor your invoice performance and client engagement</p>
+                  <h3 className="font-nunito font-bold text-greenvoice-primary">Analytics & Tracking</h3>
+                  <p className="text-gray-600 dark:text-gray-300 font-montserrat text-sm">Monitor your invoice performance and client engagement</p>
                 </div>
               </div>
             </div>

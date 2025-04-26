@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, doublePrecision, date, pgEnum, varchar, numeric } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, doublePrecision, date, pgEnum } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -82,42 +82,42 @@ export const invoices = pgTable("invoices", {
   issueDate: text("issue_date").notNull(),
   dueDate: text("due_date").notNull(),
   currency: text("currency").notNull().default("USD"),
-
+  
   // Sender details
   senderName: text("sender_name").notNull(),
   senderEmail: text("sender_email").notNull(),
   senderAddress: text("sender_address").notNull(),
   senderPhone: text("sender_phone").notNull(),
-
+  
   // Client details
   clientName: text("client_name").notNull(),
   clientEmail: text("client_email").notNull(),
   clientAddress: text("client_address").notNull(),
-
+  
   // Financial details
   subtotal: doublePrecision("subtotal").notNull(),
   taxRate: doublePrecision("tax_rate").notNull().default(0),
   taxAmount: doublePrecision("tax_amount").notNull().default(0),
   total: doublePrecision("total").notNull(),
-
+  
   // Additional info
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
-
+  
   // Invoice status
   status: invoiceStatusEnum("status").default("draft"),
-
+  
   // Scheduled sending info
   scheduledSendDate: timestamp("scheduled_send_date"),
   sentAt: timestamp("sent_at"),
-
+  
   // Recurring template reference (if this is an invoice generated from a recurring template)
   recurringTemplateId: integer("recurring_template_id"),
 
   // Payment info
   paidAt: timestamp("paid_at"),
   paymentMethod: text("payment_method"),
-
+  
   // Sharing info
   shareableLink: text("shareable_link"),
 });
@@ -127,26 +127,26 @@ export const recurringTemplates = pgTable("recurring_templates", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   name: text("name").notNull(),
-
+  
   // Base invoice data (template)
   invoicePrefix: text("invoice_prefix").notNull(), // For generating invoice numbers
   currency: text("currency").notNull().default("USD"),
-
+  
   // Sender details
   senderName: text("sender_name").notNull(),
   senderEmail: text("sender_email").notNull(),
   senderAddress: text("sender_address").notNull(),
   senderPhone: text("sender_phone").notNull(),
-
+  
   // Client details
   clientName: text("client_name").notNull(),
   clientEmail: text("client_email").notNull(),
   clientAddress: text("client_address").notNull(),
-
+  
   // Financial template
   taxRate: doublePrecision("tax_rate").notNull().default(0),
   notes: text("notes"),
-
+  
   // Recurring settings
   frequency: recurringFrequencyEnum("frequency").notNull(),
   startDate: timestamp("start_date").notNull(),
@@ -154,7 +154,7 @@ export const recurringTemplates = pgTable("recurring_templates", {
   nextInvoiceDate: timestamp("next_invoice_date").notNull(),
   dayOfMonth: integer("day_of_month"), // For monthly/quarterly/yearly
   dayOfWeek: integer("day_of_week"), // For weekly (0 = Sunday, 6 = Saturday)
-
+  
   // Status
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
@@ -362,7 +362,7 @@ export const insertUtmTrackingSchema = createInsertSchema(utmTracking).omit({
 });
 
 export type ShareAnalytics = typeof shareAnalytics.$inferSelect;
-export type InsertShareAnalytics = typeof shareAnalytics.$inferInsert;
+export type InsertShareAnalytics = z.infer<typeof insertShareAnalyticsSchema>;
 export type UtmTracking = typeof utmTracking.$inferSelect;
 export type InsertUtmTracking = z.infer<typeof insertUtmTrackingSchema>;
 
@@ -375,6 +375,18 @@ export type InsertSubscriptionTransaction = z.infer<typeof insertSubscriptionTra
 
 export type AdReward = typeof adRewards.$inferSelect;
 export type InsertAdReward = z.infer<typeof insertAdRewardSchema>;
+
+// Ad view interface for tracking ad views
+export interface AdView {
+  id: string;
+  userId: number | null;
+  adType: string;
+  sourceAction: string;
+  viewedAt: Date;
+  completed: boolean;
+  completedAt?: Date;
+  duration?: number;
+}
 
 // Extended types for front-end use
 export const invoiceWithItemsSchema = insertInvoiceSchema.extend({
@@ -389,116 +401,3 @@ export const recurringTemplateWithItemsSchema = insertRecurringTemplateSchema.ex
 
 export type InvoiceWithItems = z.infer<typeof invoiceWithItemsSchema>;
 export type RecurringTemplateWithItems = z.infer<typeof recurringTemplateWithItemsSchema>;
-
-// Add your schema definitions here
-// Business metrics schema
-export type BusinessMetric = {
-  id?: string;
-  eventType: string;
-  timestamp: string;
-  userId?: string;
-  invoiceId?: string;
-  amount?: number;
-  currency?: string;
-  featureName?: string;
-  conversionType?: string;
-  journeyName?: string;
-  stepName?: string;
-  duration?: number;
-  successful?: boolean;
-  additionalData?: Record<string, any>;
-};
-
-// Log schema
-export type LogEntry = {
-  id?: string;
-  level: 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL';
-  source: string;
-  message: string;
-  timestamp: string;
-  userId?: string;
-  path?: string;
-  metadata?: Record<string, any>;
-};
-
-// User journey schema
-export type UserJourneyEntry = {
-  id?: string;
-  userId: string;
-  journeyName: string;
-  stepName: string;
-  timestamp: string;
-  timeSpentMs?: number;
-  isComplete: boolean;
-  additionalData?: Record<string, any>;
-};
-
-// Adding Attachment and Payment types (assuming these types are defined elsewhere)
-export type Attachment = {
-  id: string;
-  filename: string;
-  url: string;
-  // Add other relevant attachment properties
-};
-
-export type Payment = {
-  id: string;
-  amount: number;
-  method: string;
-  date: string;
-  // Add other relevant payment properties
-};
-
-export type Invoice = {
-  id: string;
-  userId: string;
-  clientName: string;
-  clientEmail: string;
-  clientAddress?: string;
-  invoiceNumber: string;
-  date: string;
-  dueDate: string;
-  items: InvoiceItem[];
-  notes?: string;
-  terms?: string;
-  status: InvoiceStatus;
-  taxRate?: number;
-  discount?: number;
-  logo?: string;
-  shareId?: string;
-  createdAt: string;
-  updatedAt: string;
-  attachments?: Attachment[];
-  payments?: Payment[];
-};
-
-
-// Placeholder for InvoiceItem and InvoiceStatus types -  replace with your actual types
-export type InvoiceItem = {
-    description: string;
-    quantity: number;
-    amount: number;
-};
-
-export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue';
-
-// Payments table
-export const payments = pgTable('payments', {
-  id: varchar('id', { length: 36 }).primaryKey(), // UUID
-  invoiceId: integer('invoice_id').notNull()
-    .references(() => invoices.id, { onDelete: 'cascade' }),
-  amount: numeric('amount').notNull(),
-  currency: varchar('currency', { length: 3 }).notNull(),
-  paymentMethod: varchar('payment_method', { length: 50 }).notNull(),
-  paymentDate: timestamp('payment_date').notNull(),
-  tipAmount: numeric('tip_amount'),
-  note: text('note'),
-  receiptUrl: text('receipt_url'),
-  transactionId: varchar('transaction_id', { length: 255 }),
-  status: varchar('status', { length: 20 }).notNull()
-    .default('completed'),
-  createdAt: timestamp('created_at').defaultNow(),
-});
-
-export type Payment = typeof payments.$inferSelect;
-export type InsertPayment = typeof payments.$inferInsert;

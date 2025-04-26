@@ -75,9 +75,20 @@ export const extendedTemplateSchema = z.object({
  * Schema for ad view request
  */
 export const adViewSchema = z.object({
-  adId: z.string(),
-  duration: z.number().min(15).max(120), // Duration in seconds
-  completionRate: z.number().min(0).max(100) // Percentage of ad watched
+  adType: z.string().describe("Type of ad being viewed (e.g. 'google_adsense', 'interstitial')"),
+  userId: z.number().optional().describe("User ID if logged in"),
+  sourceAction: z.string().describe("Action that triggered the ad: 'send', 'share', 'export', etc.")
+});
+
+/**
+ * Schema for ad view completion
+ */
+export const adCompleteSchema = z.object({
+  viewId: z.string().describe("ID of the ad view to complete"),
+  userId: z.number().optional().describe("User ID if logged in"),
+  completed: z.boolean().default(true).describe("Whether the ad view was completed successfully"),
+  duration: z.number().optional().describe("How long the ad was viewed in seconds"),
+  completionRate: z.number().min(0).max(100).optional().describe("Percentage of ad watched")
 });
 
 /**

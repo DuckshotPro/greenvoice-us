@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/use-auth";
+import { ThemeProvider } from "@/hooks/use-theme";
 import Layout from "@/components/layout/layout";
 import Home from "@/pages/home";
 import CreateInvoice from "@/pages/create-invoice";
@@ -15,6 +16,7 @@ import History from "@/pages/history";
 import Settings from "@/pages/settings";
 import FaqPage from "@/pages/faq-page";
 import AdminConsole from "@/pages/admin-console";
+import Roadmap from "@/pages/roadmap";
 import NotFound from "@/pages/not-found";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 
@@ -26,6 +28,7 @@ function Router() {
       <Route path="/auth" component={AuthPage} />
       <Route path="/premium" component={PremiumPage} />
       <Route path="/faq" component={FaqPage} />
+      <Route path="/roadmap" component={Roadmap} />
       <ProtectedRoute path="/create-invoice" component={CreateInvoice} />
       <ProtectedRoute path="/analytics" component={AnalyticsDashboard} requirePremium />
       <ProtectedRoute path="/branding" component={BrandingSettings} />
@@ -42,12 +45,14 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Layout>
-          <Router />
-        </Layout>
-        <Toaster />
-      </AuthProvider>
+      <ThemeProvider defaultTheme="light" storageKey="greenvoice-theme">
+        <AuthProvider>
+          <Layout>
+            <Router />
+          </Layout>
+          <Toaster />
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

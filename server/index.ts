@@ -1,15 +1,11 @@
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
+import { registerRoutes } from "./routes/routes";
 import { setupVite, serveStatic, log } from "./utils/vite";
 import { scheduler } from "./services/scheduler";
-import { ErrorLogger, LogLevel, LogCategory, logInfo, logError } from "./lib/error-logger";
+import { ErrorLogger, LogLevel, LogCategory, logInfo, logError } from "./utils/error-logger";
 // Custom frontend router no longer needed
 // import customFrontendRouter from "./custom-frontend";
 import dotenv from "dotenv";
-import attachmentRoutes from './routes/attachment-routes'; // Added import for attachment routes
-import paymentRoutes from './routes/payment-routes'; // Import payment routes
-import { analyticsRoutes } from './routes/analytics-routes'; // Import analytics routes
-import brandingRoutes from './routes/branding-routes'; // Import branding routes
 
 // Load environment variables from .env file
 dotenv.config();
@@ -23,7 +19,7 @@ app.use((req, res, next) => {
   // Allow specific origins including Replit domains
   const allowedOrigins = ['http://localhost:5000', 'https://localhost:5000', 'https://*.replit.dev', 'https://*.repl.co'];
   const origin = req.headers.origin;
-
+  
   if (origin) {
     // Check if the origin matches any of our allowed patterns
     const isAllowed = allowedOrigins.some(allowedOrigin => {
@@ -33,7 +29,7 @@ app.use((req, res, next) => {
       }
       return allowedOrigin === origin;
     });
-
+    
     if (isAllowed) {
       res.header('Access-Control-Allow-Origin', origin);
     } else {
@@ -43,11 +39,11 @@ app.use((req, res, next) => {
   } else {
     res.header('Access-Control-Allow-Origin', '*');
   }
-
+  
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   res.header('Access-Control-Allow-Credentials', 'true');
-
+  
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
@@ -102,7 +98,7 @@ app.use((req, res, next) => {
           slow: duration > 500 ? true : undefined
         }
       );
-
+      
       // Log failed requests (status >= 400)
       if (res.statusCode >= 400) {
         const level = res.statusCode >= 500 ? LogLevel.ERROR : LogLevel.WARNING;
@@ -134,13 +130,10 @@ import { errorHandler, notFoundHandler } from './middleware/error-handler';
 (async () => {
   const server = await registerRoutes(app);
 
-  // Register API routes
-  // app.use('/api', routes); // Removed undefined routes reference
-  app.use('/api/analytics', analyticsRoutes);
-  app.use('/api/branding', brandingRoutes);
-  app.use('/api/attachments', attachmentRoutes); // Added attachment routes
-  app.use('/api/payments', paymentRoutes); // Added payment routes
-  
+  // Don't use the custom frontend router as we now have a working React app
+  // app.use(customFrontendRouter);
+  logInfo('Using standard Vite frontend router', 'ServerStartup');
+
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
@@ -149,19 +142,12 @@ import { errorHandler, notFoundHandler } from './middleware/error-handler';
   } else {
     serveStatic(app);
   }
-
-  // Apply the 404 handler after all routes are registered INCLUDING static routes
+  
+  // Apply the 404 handler after Vite middleware
   app.use(notFoundHandler);
-
+  
   // Apply the global error handler last
   app.use(errorHandler);
-
-  // Register API routes
-  // app.use('/api', routes); // Removed undefined routes reference
-  app.use('/api/analytics', analyticsRoutes);
-  app.use('/api/branding', brandingRoutes);
-  app.use('/api/attachments', attachmentRoutes); // Added attachment routes
-  app.use('/api/payments', paymentRoutes); // Added payment routes
 
   app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
     // Get relevant request information
@@ -172,11 +158,11 @@ import { errorHandler, notFoundHandler } from './middleware/error-handler';
       ip: req.ip,
       userAgent: req.get('User-Agent')
     };
-
+    
     // Determine response status and message
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-
+    
     // Log the error with our structured logger
     logError(
       `Error handling ${req.method} ${req.path}: ${message}`, 
@@ -187,20 +173,16 @@ import { errorHandler, notFoundHandler } from './middleware/error-handler';
         status
       }
     );
-
+    
     // Don't expose error details in production
     const isDevelopment = app.get("env") === "development";
-
+    
     res.status(status).json({ 
       message,
       ...(isDevelopment ? { error: err.message, stack: err.stack } : {})
     });
   });
-
-  // Don't use the custom frontend router as we now have a working React app
-  // app.use(customFrontendRouter);
-  logInfo('Using standard Vite frontend router', 'ServerStartup');
-
+  
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
@@ -217,7 +199,7 @@ import { errorHandler, notFoundHandler } from './middleware/error-handler';
       nodeVersion: process.version,
       adminKeySet: process.env.ADMIN_API_KEY ? true : false
     });
-
+    
     // Start the scheduler to process invoices automatically
     scheduler.start();
     logInfo('Invoice processor scheduler started', 'ServerStartup');

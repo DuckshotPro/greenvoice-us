@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Invoice } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,9 +8,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { getBrandingSettings, BrandingSettings } from "@/lib/branding-service";
 import { handleInputFocus, handleTextareaFocus } from "@/lib/focus-handlers";
 import { Clipboard, Copy, Link, Mail, MessageCircle, Share2, Facebook, Linkedin, Twitter, Check, FileText, Download, Instagram, Smartphone } from "lucide-react";
+import { 
+  SiGithub, SiLinkedin, SiFacebook, SiX, SiInstagram, 
+  SiWhatsapp, SiTelegram, SiSnapchat, SiTiktok, 
+  SiSlack, SiDiscord, SiReddit, SiPaypal, SiApple,
+  SiGoogle, SiAmazon, SiAdobe, SiShopify, 
+  SiWordpress, SiWix, SiSquarespace, SiStripe,
+  SiSalesforce, SiHubspot, SiMailchimp
+} from "react-icons/si";
 import generatePdf from "@/lib/pdf-generator";
+// Import our GreenVoice logo
+import greenVoiceLogo from "../../assets/green-voice-logo.png";
 
 interface ShareOptionsProps {
   invoice: Invoice;
@@ -30,6 +41,22 @@ export function ShareOptions({ invoice, isLoading = false, onClose }: ShareOptio
   const [emailMessage, setEmailMessage] = useState(`Please find your invoice attached.`);
   const [linkCopied, setLinkCopied] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [brandingSettings, setBrandingSettings] = useState<BrandingSettings | null>(null);
+  const [selectedBranding, setSelectedBranding] = useState<string>("none");
+  
+  // Fetch branding settings when component mounts
+  useEffect(() => {
+    const fetchBranding = async () => {
+      try {
+        const settings = await getBrandingSettings();
+        setBrandingSettings(settings);
+      } catch (error) {
+        console.error("Failed to fetch branding settings:", error);
+      }
+    };
+    
+    fetchBranding();
+  }, []);
 
   // Generate the shareable URL
   const getShareableUrl = (source?: string) => {
@@ -57,7 +84,7 @@ export function ShareOptions({ invoice, isLoading = false, onClose }: ShareOptio
         body: JSON.stringify({
           invoiceId: invoice.id,
           shareMethod: method,
-          recipientEmail: email || null,
+          recipient_email: email || null,
           metadata: {
             shared_at: new Date().toISOString(),
             invoice_number: invoice.invoiceNumber,
@@ -224,6 +251,58 @@ export function ShareOptions({ invoice, isLoading = false, onClose }: ShareOptio
     }
   };
 
+  // Handle sharing with company logo/branding
+  const shareWithBranding = (platform: string) => {
+    if (!selectedBranding || selectedBranding === "none") {
+      // If no branding is selected, use regular share
+      shareToSocial(platform);
+      return;
+    }
+    
+    // Otherwise, track the branded share
+    trackShare(`branded_${platform}`);
+    
+    // For now, we're just showing a toast with the branding info
+    // In a full implementation, this would create a custom share card with branding
+    toast({
+      title: "Branded Share",
+      description: `Sharing to ${platform} with ${selectedBranding} branding`,
+    });
+    
+    // Still use the regular sharing mechanism
+    shareToSocial(platform);
+  };
+  
+  // Custom GreenVoice icon component
+  const GreenVoiceIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <div className={`relative flex items-center justify-center ${props.className}`}>
+      <img 
+        src={greenVoiceLogo} 
+        alt="GreenVoice Logo" 
+        className="object-contain w-full h-full"
+        style={{ maxWidth: '100%', maxHeight: '100%' }}
+      />
+    </div>
+  );
+
+  // Define company logo options for branded sharing
+  const companyLogos = [
+    // Add GreenVoice as the first option
+    { id: "greenvoice", name: "GreenVoice", icon: GreenVoiceIcon, color: "#4CAF50", isCustom: true },
+    { id: "facebook", name: "Facebook", icon: SiFacebook, color: "#4267B2" },
+    { id: "google", name: "Google", icon: SiGoogle, color: "#4285F4" },
+    { id: "amazon", name: "Amazon", icon: SiAmazon, color: "#FF9900" },
+    { id: "apple", name: "Apple", icon: SiApple, color: "#A2AAAD" },
+    { id: "twitter", name: "Twitter/X", icon: SiX, color: "#000000" },
+    { id: "linkedin", name: "LinkedIn", icon: SiLinkedin, color: "#0A66C2" },
+    { id: "stripe", name: "Stripe", icon: SiStripe, color: "#635BFF" },
+    { id: "salesforce", name: "Salesforce", icon: SiSalesforce, color: "#00A1E0" },
+    { id: "shopify", name: "Shopify", icon: SiShopify, color: "#7AB55C" },
+    { id: "hubspot", name: "HubSpot", icon: SiHubspot, color: "#FF7A59" },
+    { id: "mailchimp", name: "Mailchimp", icon: SiMailchimp, color: "#FFE01B" },
+    { id: "adobe", name: "Adobe", icon: SiAdobe, color: "#FF0000" }
+  ];
+
   return (
     <Card className="w-full max-w-lg">
       <CardHeader>
@@ -237,7 +316,7 @@ export function ShareOptions({ invoice, isLoading = false, onClose }: ShareOptio
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="link" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="link">
               <Link className="mr-2 h-4 w-4" />
               Link
@@ -249,6 +328,10 @@ export function ShareOptions({ invoice, isLoading = false, onClose }: ShareOptio
             <TabsTrigger value="social">
               <MessageCircle className="mr-2 h-4 w-4" />
               Social
+            </TabsTrigger>
+            <TabsTrigger value="branded">
+              <GreenVoiceIcon className="mr-2 h-4 w-4" />
+              Branded
             </TabsTrigger>
             <TabsTrigger value="export">
               <FileText className="mr-2 h-4 w-4" />
@@ -405,6 +488,95 @@ export function ShareOptions({ invoice, isLoading = false, onClose }: ShareOptio
             </p>
           </TabsContent>
           
+          {/* Branded sharing options */}
+          <TabsContent value="branded" className="space-y-4">
+            <div className="space-y-4 mt-4">
+              <div>
+                <Label htmlFor="brandingSelect">Select Company Branding</Label>
+                <div className="grid grid-cols-3 gap-2 mt-2">
+                  <Button
+                    key="none"
+                    variant={selectedBranding === "none" ? "default" : "outline"}
+                    className="flex flex-col items-center justify-center p-3 h-auto text-xs"
+                    onClick={() => setSelectedBranding("none")}
+                  >
+                    <div className="rounded-full bg-muted p-2 mb-1">
+                      <span className="text-muted-foreground">None</span>
+                    </div>
+                    <span>No Logo</span>
+                  </Button>
+                  
+                  {companyLogos.map((company) => {
+                    const IconComponent = company.icon;
+                    return (
+                      <Button
+                        key={company.id}
+                        variant={selectedBranding === company.id ? "default" : "outline"}
+                        className="flex flex-col items-center justify-center p-3 h-auto"
+                        onClick={() => setSelectedBranding(company.id)}
+                      >
+                        <div className="rounded-full bg-white p-2 mb-1">
+                          <IconComponent style={{ color: company.color }} className="h-6 w-6" />
+                        </div>
+                        <span className="text-xs">{company.name}</span>
+                      </Button>
+                    );
+                  })}
+                </div>
+              </div>
+              
+              <div className="mt-6">
+                <h3 className="text-lg font-medium mb-2">Share with {selectedBranding !== "none" ? companyLogos.find(c => c.id === selectedBranding)?.name || "" : "No"} Branding</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    className="flex items-center justify-center space-x-2"
+                    onClick={() => shareWithBranding("linkedin")}
+                    disabled={isLoading}
+                  >
+                    <SiLinkedin className="h-5 w-5 text-[#0A66C2]" />
+                    <span>LinkedIn</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex items-center justify-center space-x-2"
+                    onClick={() => shareWithBranding("twitter")}
+                    disabled={isLoading}
+                  >
+                    <SiX className="h-5 w-5" />
+                    <span>Twitter/X</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex items-center justify-center space-x-2"
+                    onClick={() => shareWithBranding("facebook")}
+                    disabled={isLoading}
+                  >
+                    <SiFacebook className="h-5 w-5 text-[#4267B2]" />
+                    <span>Facebook</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex items-center justify-center space-x-2"
+                    onClick={() => shareWithBranding("email")}
+                    disabled={isLoading}
+                  >
+                    <Mail className="h-5 w-5 text-[#D44638]" />
+                    <span>Email</span>
+                  </Button>
+                </div>
+                
+                <div className="mt-4 p-3 bg-muted rounded-md">
+                  <p className="text-sm text-muted-foreground">
+                    {selectedBranding === "none" 
+                      ? "Select a company brand to enhance your invoice sharing with professional logos" 
+                      : `Your invoice will be shared with ${companyLogos.find(c => c.id === selectedBranding)?.name} branding, enhancing your professional presence.`}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+          
           {/* Export options */}
           <TabsContent value="export" className="space-y-4">
             <div className="mt-4">
@@ -470,6 +642,18 @@ export function ShareOptions({ invoice, isLoading = false, onClose }: ShareOptio
           >
             <Download className="mr-2 h-4 w-4" />
             Export PDF
+          </Button>
+        ) : activeTab === "branded" ? (
+          <Button
+            onClick={() => shareWithBranding(selectedBranding !== "none" ? selectedBranding : "generic")}
+            disabled={isLoading}
+            className="gap-2"
+          >
+            {selectedBranding !== "none" && companyLogos.find(c => c.id === selectedBranding)?.icon && React.createElement(
+              companyLogos.find(c => c.id === selectedBranding)?.icon as any, 
+              { className: "h-4 w-4" }
+            )}
+            Share with Branding
           </Button>
         ) : (
           <Button
