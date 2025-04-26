@@ -788,27 +788,27 @@ export class DatabaseStorage implements IStorage {
    * Store an attachment record
    */
   async storeAttachment(attachment: Attachment): Promise<void> {
-  try {
-    const client = await this.getClient();
-    await client.query(
-      `INSERT INTO attachments (
-        id, invoice_id, file_name, file_type, file_size, url, thumbnail_url, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-      [
-        attachment.id,
-        attachment.invoiceId,
-        attachment.fileName,
-        attachment.fileType,
-        attachment.fileSize,
-        attachment.url,
-        attachment.thumbnailUrl,
-        attachment.createdAt
-      ]
-    );
-  } catch (error) {
-    throw new Error(`Failed to store attachment: ${error.message}`);
+    try {
+      const client = await this.getClient();
+      await client.query(
+        `INSERT INTO attachments (
+          id, invoice_id, file_name, file_type, file_size, url, thumbnail_url, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [
+          attachment.id,
+          attachment.invoiceId,
+          attachment.fileName,
+          attachment.fileType,
+          attachment.fileSize,
+          attachment.url,
+          attachment.thumbnailUrl,
+          attachment.createdAt
+        ]
+      );
+    } catch (error) {
+      throw new Error(`Failed to store attachment: ${error.message}`);
+    }
   }
-},
 
 /**
  * Get all attachments for an invoice
@@ -833,7 +833,7 @@ async getAttachmentsByInvoiceId(invoiceId: string): Promise<Attachment[]> {
   } catch (error) {
     throw new Error(`Failed to get attachments: ${error.message}`);
   }
-},
+}
 
 /**
  * Get an attachment by ID
@@ -862,7 +862,7 @@ async getAttachmentById(attachmentId: string): Promise<Attachment | null> {
   } catch (error) {
     throw new Error(`Failed to get attachment: ${error.message}`);
   }
-},
+}
 
 /**
  * Delete an attachment
@@ -877,7 +877,7 @@ async deleteAttachment(attachmentId: string): Promise<void> {
   } catch (error) {
     throw new Error(`Failed to delete attachment: ${error.message}`);
   }
-},
+}
 
 /**
  * Store a payment record
@@ -908,7 +908,7 @@ async storePayment(payment: Payment): Promise<void> {
   } catch (error) {
     throw new Error(`Failed to store payment: ${error.message}`);
   }
-},
+}
 
 /**
  * Get all payments for an invoice
@@ -937,7 +937,7 @@ async getPaymentsByInvoiceId(invoiceId: string): Promise<Payment[]> {
   } catch (error) {
     throw new Error(`Failed to get payments: ${error.message}`);
   }
-},
+}
 
 /**
  * Update invoice status
@@ -953,3 +953,7 @@ async updateInvoiceStatus(invoiceId: string, status: string): Promise<void> {
     throw new Error(`Failed to update invoice status: ${error.message}`);
   }
 }
+
+} // Closing brace for DatabaseStorage class
+
+export const storage = new DatabaseStorage();

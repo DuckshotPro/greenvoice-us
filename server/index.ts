@@ -8,6 +8,8 @@ import { ErrorLogger, LogLevel, LogCategory, logInfo, logError } from "./lib/err
 import dotenv from "dotenv";
 import attachmentRoutes from './routes/attachment-routes'; // Added import for attachment routes
 import paymentRoutes from './routes/payment-routes'; // Import payment routes
+import { analyticsRoutes } from './routes/analytics-routes'; // Import analytics routes
+import brandingRoutes from './routes/branding-routes'; // Import branding routes
 
 // Load environment variables from .env file
 dotenv.config();
@@ -132,11 +134,34 @@ import { errorHandler, notFoundHandler } from './middleware/error-handler';
 (async () => {
   const server = await registerRoutes(app);
 
-  // Apply the 404 handler after all routes are registered
+  // Register API routes
+  // app.use('/api', routes); // Removed undefined routes reference
+  app.use('/api/analytics', analyticsRoutes);
+  app.use('/api/branding', brandingRoutes);
+  app.use('/api/attachments', attachmentRoutes); // Added attachment routes
+  app.use('/api/payments', paymentRoutes); // Added payment routes
+  
+  // importantly only setup vite in development and after
+  // setting up all the other routes so the catch-all route
+  // doesn't interfere with the other routes
+  if (app.get("env") === "development") {
+    await setupVite(app, server);
+  } else {
+    serveStatic(app);
+  }
+
+  // Apply the 404 handler after all routes are registered INCLUDING static routes
   app.use(notFoundHandler);
 
   // Apply the global error handler last
   app.use(errorHandler);
+
+  // Register API routes
+  // app.use('/api', routes); // Removed undefined routes reference
+  app.use('/api/analytics', analyticsRoutes);
+  app.use('/api/branding', brandingRoutes);
+  app.use('/api/attachments', attachmentRoutes); // Added attachment routes
+  app.use('/api/payments', paymentRoutes); // Added payment routes
 
   app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
     // Get relevant request information
@@ -176,15 +201,6 @@ import { errorHandler, notFoundHandler } from './middleware/error-handler';
   // app.use(customFrontendRouter);
   logInfo('Using standard Vite frontend router', 'ServerStartup');
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
-
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
@@ -207,10 +223,3 @@ import { errorHandler, notFoundHandler } from './middleware/error-handler';
     logInfo('Invoice processor scheduler started', 'ServerStartup');
   });
 })();
-
-// Register API routes
-app.use('/api', routes);
-app.use('/api/analytics', analyticsRoutes);
-app.use('/api/branding', brandingRoutes);
-app.use('/api/attachments', attachmentRoutes); // Added attachment routes
-app.use('/api/payments', paymentRoutes); // Added payment routes
