@@ -75,7 +75,7 @@ const Home = () => {
         <main className="flex-grow">
           {/* Hero Section */}
           <section className="relative bg-gradient-to-r from-primary to-accent py-16 overflow-hidden">
-            {/* Animated Background */}
+            {/* Static Background Elements */}
             <div className="absolute inset-0 pointer-events-none">
               <AnimatedBlob 
                 color="#ffffff" 
@@ -83,7 +83,6 @@ const Home = () => {
                 top="-20%" 
                 right="-10%" 
                 opacity={0.07}
-                duration={25}
               />
               <AnimatedBlob 
                 color="#ffffff" 
@@ -91,8 +90,6 @@ const Home = () => {
                 bottom="-10%" 
                 left="-5%" 
                 opacity={0.05}
-                duration={30}
-                delay={1}
               />
               <AnimatedBlob 
                 color="#ffffff" 
@@ -100,8 +97,6 @@ const Home = () => {
                 top="30%" 
                 right="20%" 
                 opacity={0.04}
-                duration={20}
-                delay={2}
               />
             </div>
             
@@ -109,11 +104,11 @@ const Home = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 {/* Left Column - Text */}
                 <div className="text-center lg:text-left">
-                  <FloatingElement duration={6} delay={0.5} className="inline-block">
+                  <div className="inline-block">
                     <h1 className="text-4xl font-extrabold text-white sm:text-5xl sm:tracking-tight lg:text-6xl drop-shadow-md">
                       Professional Invoices in Seconds
                     </h1>
-                  </FloatingElement>
+                  </div>
                   <p className="mt-6 max-w-lg text-xl text-white font-medium drop-shadow-md bg-black/20 backdrop-blur-sm py-3 px-4 rounded-lg inline-block">
                     Create, share, and track invoices easily with GreenVoice's all-in-one platform.
                   </p>
@@ -142,11 +137,11 @@ const Home = () => {
                 
                 {/* Right Column - Quick Invoice */}
                 <div className="mt-8 lg:mt-0">
-                  <FloatingElement duration={5} delay={0.2}>
+                  <div className="hover-lift">
                     <AnimatedAccentCard>
                       <QuickInvoice />
                     </AnimatedAccentCard>
-                  </FloatingElement>
+                  </div>
                 </div>
               </div>
             </div>
@@ -168,68 +163,68 @@ const Home = () => {
               </div>
 
               <div className="mt-12 grid gap-8 md:grid-cols-3">
-                <FloatingElement duration={4} delay={0.2}>
+                <div className="hover-lift">
                   <FeatureCard 
                     icon={<FileText className="h-6 w-6 text-primary" />}
                     title="Professional Templates"
                     description="Create beautiful, professional invoices that make a great impression on your clients."
                     glowColor="rgba(0, 152, 136, 0.3)"
                   />
-                </FloatingElement>
+                </div>
 
-                <FloatingElement duration={4} delay={0.4}>
+                <div className="hover-lift">
                   <FeatureCard 
                     icon={<Share className="h-6 w-6 text-blue-500" />}
                     title="Multi-Format Sharing"
                     description="Share invoices via PDF, image, email, or directly to social platforms with just one click."
                     glowColor="rgba(59, 130, 246, 0.3)"
                   />
-                </FloatingElement>
+                </div>
 
-                <FloatingElement duration={4} delay={0.6}>
+                <div className="hover-lift">
                   <FeatureCard 
                     icon={<PlusCircle className="h-6 w-6 text-indigo-500" />}
                     title="Quick & Easy"
                     description="Create and send invoices in seconds with our intuitive interface and real-time preview."
                     glowColor="rgba(99, 102, 241, 0.3)"
                   />
-                </FloatingElement>
+                </div>
               </div>
               
               <div className="mt-16 grid gap-8 md:grid-cols-3">
-                <FloatingElement duration={4} delay={0.5}>
+                <div className="hover-lift">
                   <FeatureCard 
                     icon={<CalendarClock className="h-6 w-6 text-amber-500" />}
                     title="Scheduled Invoices"
                     description="Set it and forget it! Schedule invoices to be sent automatically at the perfect time."
                     glowColor="rgba(245, 158, 11, 0.3)"
                   />
-                </FloatingElement>
+                </div>
 
-                <FloatingElement duration={4} delay={0.7}>
+                <div className="hover-lift">
                   <FeatureCard 
                     icon={<RefreshCw className="h-6 w-6 text-emerald-500" />}
                     title="Recurring Billing"
                     description="Automate your regular invoices with customizable recurring templates on your schedule."
                     glowColor="rgba(16, 185, 129, 0.3)"
                   />
-                </FloatingElement>
+                </div>
 
-                <FloatingElement duration={4} delay={0.9}>
+                <div className="hover-lift">
                   <FeatureCard 
                     icon={<BarChart2 className="h-6 w-6 text-purple-500" />}
                     title="Detailed Analytics"
                     description="Gain insights into your business with comprehensive invoice analytics and reports."
                     glowColor="rgba(139, 92, 246, 0.3)"
                   />
-                </FloatingElement>
+                </div>
               </div>
             </div>
           </section>
 
           {/* CTA Section */}
           <section className="relative bg-gray-50 dark:bg-[#0E1525] py-16 overflow-hidden">
-            {/* Animated Background Elements */}
+            {/* Static Background Elements */}
             <div className="absolute inset-0 pointer-events-none">
               <AnimatedBlob 
                 color="#009888" 
@@ -237,7 +232,6 @@ const Home = () => {
                 top="-15%" 
                 right="-5%" 
                 opacity={0.07}
-                duration={25}
               />
               <AnimatedBlob 
                 color="#2563EB" 
@@ -245,8 +239,6 @@ const Home = () => {
                 bottom="-10%" 
                 left="-5%" 
                 opacity={0.06}
-                duration={30}
-                delay={1}
               />
             </div>
             
@@ -304,7 +296,6 @@ const Home = () => {
           top="-20%" 
           right="-15%" 
           opacity={0.04}
-          duration={50}
         />
         <AnimatedBlob 
           color="#2563EB" 
@@ -312,8 +303,6 @@ const Home = () => {
           bottom="-25%" 
           left="-10%" 
           opacity={0.03}
-          duration={60}
-          delay={3}
         />
       </div>
 
@@ -361,11 +350,11 @@ const Home = () => {
                   <div className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600 dark:from-primary dark:to-indigo-400">
                     {isLoading ? '-' : invoiceCount}
                   </div>
-                  <FloatingElement duration={3}>
+                  <div className="icon-bounce">
                     <div className="p-2 rounded-full bg-primary/10 dark:bg-primary/20 shadow-md">
                       <ScrollText className="h-5 w-5 text-primary" />
                     </div>
-                  </FloatingElement>
+                  </div>
                 </div>
               </div>
             </Card3D>
@@ -380,11 +369,11 @@ const Home = () => {
                   <div className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-500 to-emerald-500 dark:from-green-400 dark:to-emerald-600">
                     {isLoading ? '-' : paidCount}
                   </div>
-                  <FloatingElement duration={3} delay={0.5}>
+                  <div className="icon-bounce">
                     <div className="p-2 rounded-full bg-green-100 dark:bg-green-900/30 shadow-md">
                       <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
                     </div>
-                  </FloatingElement>
+                  </div>
                 </div>
               </div>
             </Card3D>
