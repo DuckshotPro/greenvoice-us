@@ -388,11 +388,11 @@ const Home = () => {
                   <div className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-500 to-yellow-500 dark:from-amber-400 dark:to-yellow-600">
                     {isLoading ? '-' : pendingCount}
                   </div>
-                  <FloatingElement duration={3} delay={0.2}>
+                  <div className="icon-bounce">
                     <div className="p-2 rounded-full bg-amber-100 dark:bg-amber-900/30 shadow-md">
                       <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                     </div>
-                  </FloatingElement>
+                  </div>
                 </div>
               </div>
             </Card3D>
@@ -408,11 +408,11 @@ const Home = () => {
                     <div className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-500 dark:from-blue-400 dark:to-indigo-600">
                       {isLoading ? '-' : `${Math.round(completionRate)}%`}
                     </div>
-                    <FloatingElement duration={3} delay={0.7}>
+                    <div className="icon-bounce">
                       <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/30 shadow-md">
                         <BarChart2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                       </div>
-                    </FloatingElement>
+                    </div>
                   </div>
                   <Progress value={completionRate} className="h-2 bg-blue-100 dark:bg-blue-900/30">
                     <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full" />
@@ -430,11 +430,11 @@ const Home = () => {
               onClick={() => window.location.href = "/create-invoice"}
             >
               <div className="p-6 h-full flex flex-col items-center justify-center text-center">
-                <FloatingElement duration={4} delay={0.3}>
+                <div className="icon-bounce">
                   <div className="p-3 rounded-full bg-primary/10 dark:bg-primary/20 mb-4 shadow-lg">
                     <PlusCircle className="h-8 w-8 text-primary" />
                   </div>
-                </FloatingElement>
+                </div>
                 <h3 className="text-xl font-semibold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600 dark:from-primary dark:to-indigo-400">
                   Ready to Invoice?
                 </h3>
@@ -527,7 +527,6 @@ const Home = () => {
               top="-20%" 
               right="-5%" 
               opacity={0.03}
-              duration={25}
             />
             <AnimatedBlob 
               color="#2563EB" 
@@ -535,8 +534,6 @@ const Home = () => {
               bottom="-15%" 
               left="-5%" 
               opacity={0.02}
-              duration={30}
-              delay={1}
             />
           </div>
           
@@ -623,7 +620,6 @@ const Home = () => {
               top="20%" 
               right="-10%" 
               opacity={0.03}
-              duration={30}
             />
             <AnimatedBlob 
               color="#333333" 
@@ -631,8 +627,6 @@ const Home = () => {
               bottom="10%" 
               left="-5%" 
               opacity={0.02}
-              duration={25}
-              delay={2}
             />
           </div>
           

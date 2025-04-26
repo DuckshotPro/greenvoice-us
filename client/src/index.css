@@ -31,6 +31,25 @@
   .card-shadow-lg {
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   }
+  
+  /* Icon bounce effect for replacing FloatingElement animations */
+  .icon-bounce {
+    transition: transform 0.3s ease;
+  }
+  
+  .icon-bounce:hover {
+    transform: translateY(-3px);
+    animation: icon-bounce 0.5s ease;
+  }
+  
+  @keyframes icon-bounce {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
+  }
 }
 
 /* Basic dark mode body and HTML */
