@@ -13,9 +13,17 @@ export const subscriptionPlanEnum = pgEnum('subscription_plan', ['free', 'basic'
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+  password: text("password"),  // Allow null for OAuth users
   email: text("email").notNull().default(''),
   fullName: text("full_name"),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  profileImageUrl: text("profile_image_url"),
+  // OAuth fields
+  oauthId: text("oauth_id"),
+  oauthProvider: text("oauth_provider"), // google, facebook, github
+  oauthData: jsonb("oauth_data"), // Additional OAuth data
+  // Subscription and premium info
   subscriptionPlan: subscriptionPlanEnum("subscription_plan").default("free"),
   subscriptionExpiry: timestamp("subscription_expiry"),
   premiumDaysRemaining: integer("premium_days_remaining").default(0),

@@ -21,7 +21,18 @@ export interface IStorage {
   // User methods
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByOAuthId(oauthId: string, provider: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  createUserFromOAuth(oauthData: {
+    oauthId: string;
+    oauthProvider: string;
+    username: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    profileImageUrl?: string;
+    subscriptionPlan?: string;
+  }): Promise<User>;
   updateUser(id: number, userData: Partial<InsertUser>): Promise<User | undefined>;
   updateUserSubscription(id: number, plan: string, expiryDate: Date): Promise<User | undefined>;
   updateUserPremiumDays(id: number, daysToAdd: number): Promise<User | undefined>;
@@ -116,8 +127,47 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async getUserByOAuthId(oauthId: string, provider: string): Promise<User | undefined> {
+    const [user] = await db.select()
+      .from(users)
+      .where(
+        and(
+          eq(users.oauthId, oauthId),
+          eq(users.oauthProvider, provider)
+        )
+      );
+    return user;
+  }
+
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+  
+  async createUserFromOAuth(oauthData: {
+    oauthId: string;
+    oauthProvider: string;
+    username: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    profileImageUrl?: string;
+    subscriptionPlan?: string;
+  }): Promise<User> {
+    // Create a new user with OAuth details
+    const [user] = await db.insert(users).values({
+      username: oauthData.username,
+      email: oauthData.email,
+      firstName: oauthData.firstName || null,
+      lastName: oauthData.lastName || null,
+      profileImageUrl: oauthData.profileImageUrl || null,
+      oauthId: oauthData.oauthId,
+      oauthProvider: oauthData.oauthProvider,
+      subscriptionPlan: oauthData.subscriptionPlan as any || 'free',
+      // No password for OAuth users
+      password: null,
+    }).returning();
+    
     return user;
   }
 
