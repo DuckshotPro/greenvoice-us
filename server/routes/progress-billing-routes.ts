@@ -8,7 +8,7 @@ import {
   progressContractWithMilestonesSchema,
   milestoneStatusEnum
 } from '@shared/schema';
-import { eq, and, desc, isNull } from 'drizzle-orm';
+import { eq, and, desc, isNull, sql } from 'drizzle-orm';
 import { requireAuth } from '../middleware/auth';
 import { validateBody, validateParams, validateQuery } from '../middleware/validation';
 import { 
@@ -44,7 +44,7 @@ router.post(
       
       // Insert all milestones with their contract ID
       if (milestones && milestones.length > 0) {
-        const milestonesWithContractId = milestones.map((milestone, index) => ({
+        const milestonesWithContractId = milestones.map((milestone: any, index: number) => ({
           ...milestone,
           contractId: newContract.id,
           orderIndex: index + 1, // Set the order index based on array position
@@ -88,7 +88,7 @@ router.get(
         .offset(offset);
       
       const totalCount = await db
-        .select({ count: db.fn.count() })
+        .select({ count: sql`count(*)` })
         .from(progressContracts)
         .where(eq(progressContracts.userId, userId));
       
@@ -181,8 +181,8 @@ router.patch(
           .from(progressMilestones)
           .where(eq(progressMilestones.contractId, contractId));
         
-        const existingIds = new Set(existingMilestones.map(m => m.id));
-        const updatedIds = new Set(milestones.filter(m => m.id).map(m => m.id));
+        const existingIds = new Set(existingMilestones.map((m: any) => m.id));
+        const updatedIds = new Set(milestones.filter((m: any) => m.id).map((m: any) => m.id));
         
         // Handle updates and new additions
         for (let i = 0; i < milestones.length; i++) {
@@ -269,7 +269,7 @@ router.delete(
         .from(progressMilestones)
         .where(and(
           eq(progressMilestones.contractId, contractId),
-          isNull(progressMilestones.invoiceId).not()
+          sql`${progressMilestones.invoiceId} IS NOT NULL`
         ))
         .limit(1);
       
@@ -305,7 +305,7 @@ router.patch(
   requireAuth,
   validateParams(idParamSchema),
   validateBody(z.object({
-    status: milestoneStatusEnum
+    status: z.enum(['pending', 'current', 'completed', 'invoiced', 'paid'])
   })),
   async (req, res) => {
     try {
@@ -358,7 +358,7 @@ router.patch(
       
       res.json(updatedMilestone);
     } catch (error: any) {
-      logError('Error updating milestone status', error);
+      logError('Error updating milestone status', 'ProgressBillingController', error);
       res.status(500).json({ message: 'Failed to update milestone status', error: error.message });
     }
   }
@@ -464,8 +464,8 @@ router.post(
       await db
         .update(progressContracts)
         .set({
-          invoicedValue: contract.invoicedValue + milestone.amount,
-          remainingValue: contract.remainingValue - milestone.amount,
+          invoicedValue: (contract.invoicedValue || 0) + milestone.amount,
+          remainingValue: (contract.remainingValue || 0) - milestone.amount,
           updatedAt: new Date(),
         })
         .where(eq(progressContracts.id, contract.id));
@@ -476,7 +476,7 @@ router.post(
         invoiceNumber: newInvoice.invoiceNumber
       });
     } catch (error: any) {
-      logError('Error generating invoice for milestone', error);
+      logError('Error generating invoice for milestone', 'ProgressBillingController', error);
       res.status(500).json({ message: 'Failed to generate invoice', error: error.message });
     }
   }
@@ -493,8 +493,9 @@ async function getContractWithMilestones(contractId: number, userId?: number) {
     .where(eq(progressContracts.id, contractId));
   
   // If userId is provided, ensure the contract belongs to this user
+  let query = contractQuery;
   if (userId) {
-    contractQuery.where(eq(progressContracts.userId, userId));
+    query = query.where(eq(progressContracts.userId, userId));
   }
   
   const [contract] = await contractQuery.limit(1);
