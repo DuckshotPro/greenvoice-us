@@ -98,18 +98,8 @@ export default function AuthPage() {
     registerMutation.mutate(data);
   };
 
-  // Handle social login/signup
-  const handleSocialLogin = (provider: string) => {
-    // In a real implementation, this would redirect to OAuth provider
-    console.log(`${provider} login requested`);
-    
-    // For now, show a toast notification
-    toast({
-      title: "Social Login",
-      description: `${provider} login will be implemented soon.`,
-      variant: "default",
-    });
-  };
+  // OAuth login is now handled directly by the OAuthButtons component
+  // which redirects to the server's OAuth routes
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4" data-auth-container>
@@ -208,46 +198,7 @@ export default function AuthPage() {
                         {loginMutation.isPending ? 'Signing in...' : 'Sign in'}
                       </Button>
                       
-                      <div className="relative my-4">
-                        <div className="absolute inset-0 flex items-center">
-                          <Separator className="w-full" />
-                        </div>
-                        <div className="relative flex justify-center">
-                          <span className="bg-card px-2 text-muted-foreground text-xs">OR SIGN IN WITH</span>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-3 gap-2">
-                        <Button 
-                          type="button" 
-                          variant="outline"
-                          className="flex items-center justify-center gap-2"
-                          onClick={() => handleSocialLogin("Google")}
-                        >
-                          <SiGoogle className="h-4 w-4 text-red-500" />
-                          <span className="sr-only md:not-sr-only md:text-xs md:font-normal">Google</span>
-                        </Button>
-                        
-                        <Button 
-                          type="button" 
-                          variant="outline"
-                          className="flex items-center justify-center gap-2"
-                          onClick={() => handleSocialLogin("Facebook")}
-                        >
-                          <SiFacebook className="h-4 w-4 text-blue-600" />
-                          <span className="sr-only md:not-sr-only md:text-xs md:font-normal">Facebook</span>
-                        </Button>
-                        
-                        <Button 
-                          type="button" 
-                          variant="outline"
-                          className="flex items-center justify-center gap-2"
-                          onClick={() => handleSocialLogin("GitHub")}
-                        >
-                          <SiGithub className="h-4 w-4" />
-                          <span className="sr-only md:not-sr-only md:text-xs md:font-normal">GitHub</span>
-                        </Button>
-                      </div>
+                      <OAuthButtons isLoading={loginMutation.isPending} />
                     </form>
                   </Form>
                 </TabsContent>
@@ -315,46 +266,7 @@ export default function AuthPage() {
                         {registerMutation.isPending ? 'Creating account...' : 'Create account'}
                       </Button>
                       
-                      <div className="relative my-4">
-                        <div className="absolute inset-0 flex items-center">
-                          <Separator className="w-full" />
-                        </div>
-                        <div className="relative flex justify-center">
-                          <span className="bg-card px-2 text-muted-foreground text-xs">OR SIGN UP WITH</span>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-3 gap-2">
-                        <Button 
-                          type="button" 
-                          variant="outline"
-                          className="flex items-center justify-center gap-2"
-                          onClick={() => handleSocialLogin("Google")}
-                        >
-                          <SiGoogle className="h-4 w-4 text-red-500" />
-                          <span className="sr-only md:not-sr-only md:text-xs md:font-normal">Google</span>
-                        </Button>
-                        
-                        <Button 
-                          type="button" 
-                          variant="outline"
-                          className="flex items-center justify-center gap-2"
-                          onClick={() => handleSocialLogin("Facebook")}
-                        >
-                          <SiFacebook className="h-4 w-4 text-blue-600" />
-                          <span className="sr-only md:not-sr-only md:text-xs md:font-normal">Facebook</span>
-                        </Button>
-                        
-                        <Button 
-                          type="button" 
-                          variant="outline"
-                          className="flex items-center justify-center gap-2"
-                          onClick={() => handleSocialLogin("GitHub")}
-                        >
-                          <SiGithub className="h-4 w-4" />
-                          <span className="sr-only md:not-sr-only md:text-xs md:font-normal">GitHub</span>
-                        </Button>
-                      </div>
+                      <OAuthButtons isLoading={registerMutation.isPending} />
                     </form>
                   </Form>
                 </TabsContent>
