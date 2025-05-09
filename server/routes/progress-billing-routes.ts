@@ -487,18 +487,20 @@ router.post(
  */
 async function getContractWithMilestones(contractId: number, userId?: number) {
   // Query to get the contract
-  const contractQuery = db
-    .select()
-    .from(progressContracts)
-    .where(eq(progressContracts.id, contractId));
+  // Build the where conditions
+  const conditions = [eq(progressContracts.id, contractId)];
   
   // If userId is provided, ensure the contract belongs to this user
-  let query = contractQuery;
   if (userId) {
-    query = query.where(eq(progressContracts.userId, userId));
+    conditions.push(eq(progressContracts.userId, userId));
   }
   
-  const [contract] = await query.limit(1);
+  // Execute the query with all conditions
+  const [contract] = await db
+    .select()
+    .from(progressContracts)
+    .where(and(...conditions))
+    .limit(1);
   
   if (!contract) {
     return null;

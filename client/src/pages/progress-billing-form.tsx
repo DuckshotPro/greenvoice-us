@@ -349,7 +349,7 @@ export default function ProgressBillingForm() {
 
               <div className="space-y-2">
                 <Label htmlFor="clientEmail">Client Email</Label>
-                <Input 
+                <FormInput 
                   id="clientEmail" 
                   type="email"
                   placeholder="client@example.com"
@@ -360,7 +360,7 @@ export default function ProgressBillingForm() {
 
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="clientAddress">Client Address (Optional)</Label>
-                <Textarea 
+                <FormTextarea 
                   id="clientAddress" 
                   placeholder="Client address"
                   rows={2}
@@ -415,7 +415,7 @@ export default function ProgressBillingForm() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor={`milestones.${index}.name`}>Name</Label>
-                        <Input 
+                        <FormInput 
                           id={`milestones.${index}.name`}
                           placeholder="Milestone name"
                           {...form.register(`milestones.${index}.name`)}
@@ -425,7 +425,7 @@ export default function ProgressBillingForm() {
                       
                       <div className="space-y-2">
                         <Label htmlFor={`milestones.${index}.amount`}>Amount</Label>
-                        <Input 
+                        <FormInput 
                           id={`milestones.${index}.amount`}
                           type="number"
                           min="0"
@@ -438,7 +438,7 @@ export default function ProgressBillingForm() {
                       
                       <div className="space-y-2 md:col-span-2">
                         <Label htmlFor={`milestones.${index}.description`}>Description (Optional)</Label>
-                        <Textarea 
+                        <FormTextarea 
                           id={`milestones.${index}.description`}
                           placeholder="Describe what this milestone covers"
                           rows={2}
