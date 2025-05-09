@@ -44,6 +44,7 @@ import { analyticsRoutes } from "./analytics-routes";
 import brandingRoutes from "./branding-routes";
 import { quickInvoiceRoutes } from "./quick-invoice-routes";
 import { adRoutes } from "./ad-routes";
+import progressBillingRoutes from "./progress-billing-routes";
 import {
   trackShareSchema,
   analyticsQuerySchema,
@@ -92,6 +93,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register ad routes for Google Ads integration
   app.use("/api/ads", adRoutes);
+  
+  // Register progress billing routes for milestone payments
+  app.use("/api/progress-billing", progressBillingRoutes);
   
   // Initialize Stripe with secret key
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {

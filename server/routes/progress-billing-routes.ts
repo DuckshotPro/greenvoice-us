@@ -16,7 +16,7 @@ import {
   paginationSchema
 } from '../middleware/validation-schemas';
 import { activityTrackers } from '../middleware/activity-tracker';
-import { log } from '../utils/error-logger';
+import { logError, logInfo } from '../utils/error-logger';
 
 const router = Router();
 
@@ -58,7 +58,7 @@ router.post(
       
       res.status(201).json(contract);
     } catch (error: any) {
-      log('Error creating progress contract', error);
+      logError('Error creating progress contract', 'ProgressBillingController', error);
       res.status(500).json({ message: 'Failed to create progress contract', error: error.message });
     }
   }
@@ -102,7 +102,7 @@ router.get(
         },
       });
     } catch (error: any) {
-      log('Error fetching progress contracts', error);
+      logError('Error fetching progress contracts', 'ProgressBillingController', error);
       res.status(500).json({ message: 'Failed to fetch progress contracts', error: error.message });
     }
   }
@@ -128,7 +128,7 @@ router.get(
       
       res.json(contract);
     } catch (error: any) {
-      log('Error fetching progress contract', error);
+      logError('Error fetching progress contract', 'ProgressBillingController', error);
       res.status(500).json({ message: 'Failed to fetch progress contract', error: error.message });
     }
   }
@@ -231,7 +231,7 @@ router.patch(
       
       res.json(updatedContract);
     } catch (error: any) {
-      log('Error updating progress contract', error);
+      logError('Error updating progress contract', 'ProgressBillingController', error);
       res.status(500).json({ message: 'Failed to update progress contract', error: error.message });
     }
   }
@@ -291,7 +291,7 @@ router.delete(
       
       res.status(204).end();
     } catch (error: any) {
-      log('Error deleting progress contract', error);
+      logError('Error deleting progress contract', 'ProgressBillingController', error);
       res.status(500).json({ message: 'Failed to delete progress contract', error: error.message });
     }
   }
@@ -358,7 +358,7 @@ router.patch(
       
       res.json(updatedMilestone);
     } catch (error: any) {
-      log('Error updating milestone status', error);
+      logError('Error updating milestone status', error);
       res.status(500).json({ message: 'Failed to update milestone status', error: error.message });
     }
   }
@@ -476,7 +476,7 @@ router.post(
         invoiceNumber: newInvoice.invoiceNumber
       });
     } catch (error: any) {
-      log('Error generating invoice for milestone', error);
+      logError('Error generating invoice for milestone', error);
       res.status(500).json({ message: 'Failed to generate invoice', error: error.message });
     }
   }
