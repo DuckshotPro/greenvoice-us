@@ -35,6 +35,7 @@ import { FileText, FileCheck, Calendar, Mail, Github, Facebook, AlignJustify } f
 import { SiFacebook, SiGoogle, SiGithub } from 'react-icons/si';
 import { useToast } from '@/hooks/use-toast';
 import { BrandLogo } from '@/components/ui/brand-logo';
+import OAuthButtons from '@/components/auth/oauth-buttons';
 
 const loginSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
