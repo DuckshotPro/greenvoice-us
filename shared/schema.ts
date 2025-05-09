@@ -9,6 +9,10 @@ export const invoiceStatusEnum = pgEnum('invoice_status', ['draft', 'scheduled',
 // Subscription plan types
 export const subscriptionPlanEnum = pgEnum('subscription_plan', ['free', 'basic', 'premium', 'enterprise']);
 
+// Progress billing types
+export const progressBillingTypeEnum = pgEnum('progress_billing_type', ['percentage', 'fixed', 'milestone']);
+export const milestoneStatusEnum = pgEnum('milestone_status', ['pending', 'current', 'completed', 'invoiced', 'paid']);
+
 // Business owner/sender
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -121,6 +125,10 @@ export const invoices = pgTable("invoices", {
   
   // Recurring template reference (if this is an invoice generated from a recurring template)
   recurringTemplateId: integer("recurring_template_id"),
+  
+  // Progress billing reference (if this is part of a progress billing contract)
+  progressContractId: integer("progress_contract_id"),
+  milestoneId: integer("milestone_id"),
 
   // Payment info
   paidAt: timestamp("paid_at"),
@@ -239,6 +247,74 @@ export const adRewards = pgTable("ad_rewards", {
   metadata: jsonb("metadata"), // Additional reward data
 });
 
+// Progress billing contract
+export const progressContracts = pgTable("progress_contracts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  
+  // Client & project info
+  clientName: text("client_name").notNull(),
+  clientEmail: text("client_email").notNull(),
+  clientAddress: text("client_address").notNull(),
+  projectName: text("project_name").notNull(),
+  projectDescription: text("project_description"),
+  
+  // Contract details
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date"),
+  contractNumber: text("contract_number").notNull(),
+  totalValue: doublePrecision("total_value").notNull(),
+  remainingValue: doublePrecision("remaining_value").notNull(),
+  invoicedValue: doublePrecision("invoiced_value").default(0),
+  paidValue: doublePrecision("paid_value").default(0),
+  currency: text("currency").notNull().default("USD"),
+  
+  // Progress billing settings
+  billingType: progressBillingTypeEnum("billing_type").notNull().default("milestone"),
+  paymentTerms: text("payment_terms"),
+  taxRate: doublePrecision("tax_rate").default(0),
+  
+  // Status and tracking
+  isActive: boolean("is_active").default(true),
+  isCompleted: boolean("is_completed").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+  attachmentUrls: jsonb("attachment_urls").default([]), // URLs to contract documents
+});
+
+// Milestones for progress billing
+export const progressMilestones = pgTable("progress_milestones", {
+  id: serial("id").primaryKey(),
+  contractId: integer("contract_id").notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  
+  // Milestone details
+  dueDate: timestamp("due_date"),
+  orderIndex: integer("order_index").notNull(), // For ordering milestones
+  
+  // Financial details
+  amount: doublePrecision("amount").notNull(),
+  percentOfTotal: doublePrecision("percent_of_total"), // For percentage-based progress billing
+  
+  // Status and tracking
+  status: milestoneStatusEnum("status").default("pending"),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  invoicedAt: timestamp("invoiced_at"),
+  paidAt: timestamp("paid_at"),
+  invoiceId: integer("invoice_id"), // Reference to the invoice if generated
+  
+  // Additional info
+  deliverables: jsonb("deliverables").default([]), // List of specific deliverables
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const insertInvoiceSchema = createInsertSchema(invoices).omit({
   id: true,
   createdAt: true,
@@ -247,6 +323,8 @@ export const insertInvoiceSchema = createInsertSchema(invoices).omit({
   scheduledSendDate: true,
   sentAt: true,
   recurringTemplateId: true,
+  progressContractId: true, // Omit progress billing fields
+  milestoneId: true,
   paidAt: true,
   paymentMethod: true,
 });
@@ -406,6 +484,43 @@ export const invoiceWithItemsSchema = insertInvoiceSchema.extend({
 export const recurringTemplateWithItemsSchema = insertRecurringTemplateSchema.extend({
   items: z.array(insertTemplateLineItemSchema.omit({ templateId: true })),
 });
+
+// Progress billing schemas
+export const insertProgressContractSchema = createInsertSchema(progressContracts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  completedAt: true,
+  invoicedValue: true,
+  paidValue: true,
+  isCompleted: true,
+});
+
+export const insertProgressMilestoneSchema = createInsertSchema(progressMilestones).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  startedAt: true,
+  completedAt: true,
+  invoicedAt: true,
+  paidAt: true,
+  invoiceId: true,
+  status: true,
+});
+
+// Progress billing types
+export type ProgressContract = typeof progressContracts.$inferSelect;
+export type InsertProgressContract = z.infer<typeof insertProgressContractSchema>;
+
+export type ProgressMilestone = typeof progressMilestones.$inferSelect;
+export type InsertProgressMilestone = z.infer<typeof insertProgressMilestoneSchema>;
+
+// Contract with milestones for frontend use
+export const progressContractWithMilestonesSchema = insertProgressContractSchema.extend({
+  milestones: z.array(insertProgressMilestoneSchema.omit({ contractId: true })),
+});
+
+export type ProgressContractWithMilestones = z.infer<typeof progressContractWithMilestonesSchema>;
 
 export type InvoiceWithItems = z.infer<typeof invoiceWithItemsSchema>;
 export type RecurringTemplateWithItems = z.infer<typeof recurringTemplateWithItemsSchema>;
