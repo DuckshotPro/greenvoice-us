@@ -1,87 +1,100 @@
 import React from 'react';
-import { FaGoogle, FaFacebook, FaGithub } from 'react-icons/fa';
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Button } from '@/components/ui/button';
+import { FcGoogle } from 'react-icons/fc';
+import { SiFacebook, SiGithub } from 'react-icons/si';
+import { Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+/**
+ * Configuration for detecting available OAuth providers
+ */
+const PROVIDERS = [
+  {
+    id: 'google',
+    name: 'Google',
+    icon: FcGoogle,
+    envCheck: () => true, // Google auth is always available with Replit Auth
+    color: 'bg-white hover:bg-slate-100',
+    textColor: 'text-gray-800',
+    borderColor: 'border-gray-300',
+  },
+  {
+    id: 'facebook',
+    name: 'Facebook',
+    icon: SiFacebook,
+    envCheck: () => !!import.meta.env.VITE_FACEBOOK_APP_ID,
+    color: 'bg-[#1877F2] hover:bg-[#0e67d9]',
+    textColor: 'text-white',
+    borderColor: 'border-[#1877F2]',
+  },
+  {
+    id: 'github',
+    name: 'GitHub',
+    icon: SiGithub,
+    envCheck: () => !!import.meta.env.VITE_GITHUB_CLIENT_ID,
+    color: 'bg-[#333] hover:bg-[#000]',
+    textColor: 'text-white',
+    borderColor: 'border-[#333]',
+  },
+];
 
 interface OAuthButtonsProps {
   isLoading?: boolean;
+  className?: string;
 }
 
-const OAuthButtons: React.FC<OAuthButtonsProps> = ({ isLoading = false }) => {
+/**
+ * Renders OAuth login buttons based on available providers
+ * Automatically detects which providers are available from environment variables
+ */
+const OAuthButtons: React.FC<OAuthButtonsProps> = ({ 
+  isLoading = false,
+  className = '' 
+}) => {
   const { toast } = useToast();
-
-  const handleOAuthLogin = (provider: string) => {
-    try {
-      // Redirect to the OAuth provider's login page
-      window.location.href = `/api/auth/${provider}`;
-    } catch (error) {
-      console.error(`Error with ${provider} login:`, error);
-      toast({
-        title: "Authentication Error",
-        description: `Failed to login with ${provider}. Please try again.`,
-        variant: "destructive",
-      });
-    }
+  
+  // Filter to only show buttons for available OAuth providers
+  const availableProviders = PROVIDERS.filter(provider => provider.envCheck());
+  
+  // Handle click on OAuth button
+  const handleOAuthLogin = (providerId: string) => {
+    if (isLoading) return;
+    
+    // Redirect to appropriate OAuth endpoint
+    window.location.href = `/api/auth/${providerId}`;
   };
 
+  if (availableProviders.length === 0) {
+    return null;
+  }
+
   return (
-    <div className="flex flex-col space-y-3 w-full">
-      <div className="relative flex justify-center text-xs uppercase">
+    <div className={`flex flex-col space-y-3 w-full ${className}`}>
+      <div className="relative flex items-center justify-center text-xs uppercase my-2">
         <span className="bg-background px-2 text-muted-foreground">
           Or continue with
         </span>
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
+        <div className="absolute left-0 right-0 w-full border-t border-border" style={{ top: '50%' }}></div>
       </div>
       
-      <div className="grid grid-cols-3 gap-3">
+      {availableProviders.map((provider) => (
         <Button
-          variant="outline"
+          key={provider.id}
           type="button"
+          variant="outline"
+          className={`flex items-center justify-center w-full h-10 gap-2 
+                    ${provider.color} ${provider.textColor} ${provider.borderColor}`}
+          onClick={() => handleOAuthLogin(provider.id)}
           disabled={isLoading}
-          onClick={() => handleOAuthLogin('google')}
-          className="flex items-center justify-center"
         >
           {isLoading ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            <FaGoogle className="mr-2 h-4 w-4 text-red-500" />
+            <provider.icon className="h-5 w-5" />
           )}
-          Google
+          <span>{provider.name}</span>
         </Button>
-
-        <Button
-          variant="outline"
-          type="button"
-          disabled={isLoading}
-          onClick={() => handleOAuthLogin('facebook')}
-          className="flex items-center justify-center"
-        >
-          {isLoading ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <FaFacebook className="mr-2 h-4 w-4 text-blue-600" />
-          )}
-          Facebook
-        </Button>
-
-        <Button
-          variant="outline"
-          type="button"
-          disabled={isLoading}
-          onClick={() => handleOAuthLogin('github')}
-          className="flex items-center justify-center"
-        >
-          {isLoading ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <FaGithub className="mr-2 h-4 w-4" />
-          )}
-          GitHub
-        </Button>
-      </div>
+      ))}
     </div>
   );
 };

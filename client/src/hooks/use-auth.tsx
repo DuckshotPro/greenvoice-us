@@ -1,179 +1,127 @@
-import { createContext, ReactNode, useContext } from "react";
-import {
-  useQuery,
-  useMutation,
-  UseMutationResult,
-} from "@tanstack/react-query";
-import { User } from "@shared/schema";
-import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { createContext, ReactNode, useContext } from 'react';
+import { useQuery, useMutation, UseMutationResult } from '@tanstack/react-query';
+import { User } from '@shared/schema';
+import { queryClient } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 
-type AuthContextType = {
-  user: User | null;
-  isLoading: boolean;
-  error: Error | null;
-  loginMutation: UseMutationResult<User, Error, LoginData>;
-  logoutMutation: UseMutationResult<void, Error, void>;
-  registerMutation: UseMutationResult<User, Error, RegisterData>;
-  watchAdMutation: UseMutationResult<{premiumDaysRemaining: number}, Error, void>;
-  isPremium: boolean;
-  isAdmin: boolean;
-};
-
-type LoginData = {
+// Login form data interface
+interface LoginCredentials {
   username: string;
   password: string;
   rememberMe?: boolean;
-};
+}
 
-type RegisterData = {
+// Registration form data interface
+interface RegisterCredentials {
   username: string;
-  password: string;
   email: string;
+  password: string;
   fullName?: string;
-};
+}
+
+interface AuthContextType {
+  user: User | null;
+  isLoading: boolean;
+  error: Error | null;
+  loginMutation: UseMutationResult<User, Error, LoginCredentials>;
+  registerMutation: UseMutationResult<User, Error, RegisterCredentials>;
+  logout: () => void;
+}
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
+/**
+ * AuthProvider component that wraps the application and provides authentication context
+ */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
+  
+  // Fetch the current user from the server
   const {
     data: user,
     error,
     isLoading,
   } = useQuery<User | null, Error>({
-    queryKey: ["/api/user"],
-    queryFn: getQueryFn({ on401: "returnNull" }),
+    queryKey: ['/api/auth/user'],
+    retry: false,
   });
 
-  // Determine if the user has premium access
-  const isPremium = !!user && (
-    // User has a paid subscription
-    (user.subscriptionPlan !== 'free' && !!user.subscriptionExpiry && new Date(user.subscriptionExpiry) > new Date()) ||
-    // User has temporary premium days from watching ads
-    (!!user.premiumDaysRemaining && user.premiumDaysRemaining > 0)
-  );
-  
-  // Determine if user has admin access
-  const isAdmin: boolean = !!user && (
-    user.subscriptionPlan === "enterprise" || 
-    !!(user.email && (user.email.includes("admin") || user.email.includes("greenvoice")))
-  );
-
+  // Login mutation
   const loginMutation = useMutation({
-    mutationFn: async (credentials: LoginData) => {
-      const res = await apiRequest("POST", "/api/login", credentials);
+    mutationFn: async (credentials: LoginCredentials) => {
+      const res = await apiRequest('POST', '/api/login', credentials);
       return await res.json();
     },
     onSuccess: (user: User) => {
-      queryClient.setQueryData(["/api/user"], user);
+      queryClient.setQueryData(['/api/auth/user'], user);
       toast({
-        title: "Welcome back!",
-        description: `You're now logged in as ${user.username}`,
+        title: 'Login successful',
+        description: `Welcome back${user.username ? ', ' + user.username : ''}!`,
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Login failed",
-        description: error.message || "Invalid credentials",
-        variant: "destructive",
+        title: 'Login failed',
+        description: error.message || 'Invalid username or password',
+        variant: 'destructive',
       });
     },
   });
 
+  // Register mutation
   const registerMutation = useMutation({
-    mutationFn: async (data: RegisterData) => {
-      const res = await apiRequest("POST", "/api/register", data);
+    mutationFn: async (credentials: RegisterCredentials) => {
+      const res = await apiRequest('POST', '/api/register', credentials);
       return await res.json();
     },
     onSuccess: (user: User) => {
-      queryClient.setQueryData(["/api/user"], user);
+      queryClient.setQueryData(['/api/auth/user'], user);
       toast({
-        title: "Account created",
-        description: "Your account has been created successfully!",
+        title: 'Registration successful',
+        description: 'Your account has been created successfully!',
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Registration failed",
-        description: error.message || "Could not create account",
-        variant: "destructive",
+        title: 'Registration failed',
+        description: error.message || 'Could not create account',
+        variant: 'destructive',
       });
     },
   });
 
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      await apiRequest("POST", "/api/logout");
-    },
-    onSuccess: () => {
-      queryClient.setQueryData(["/api/user"], null);
-      toast({
-        title: "Logged out",
-        description: "You have been logged out successfully",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Logout failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+  // Logout helper function
+  const logout = () => {
+    window.location.href = '/api/logout';
+  };
 
-  const watchAdMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/premium/watch-ad");
-      return await res.json();
-    },
-    onSuccess: (data) => {
-      // Update user object with new premium days
-      if (user) {
-        queryClient.setQueryData(["/api/user"], {
-          ...user,
-          premiumDaysRemaining: data.premiumDaysRemaining,
-          lastAdViewTime: new Date().toISOString(),
-        });
-      }
-      
-      toast({
-        title: "Premium access granted!",
-        description: `You now have ${data.premiumDaysRemaining} days of premium access.`,
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Couldn't process ad view",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+  // Create the auth context value
+  const authContextValue: AuthContextType = {
+    user: user || null,
+    isLoading,
+    error,
+    loginMutation,
+    registerMutation,
+    logout,
+  };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user: user || null,
-        isLoading,
-        error,
-        loginMutation,
-        logoutMutation,
-        registerMutation,
-        watchAdMutation,
-        isPremium,
-        isAdmin,
-      }}
-    >
+    <AuthContext.Provider value={authContextValue}>
       {children}
     </AuthContext.Provider>
   );
 }
 
+/**
+ * Hook to access the authentication context
+ */
 export function useAuth() {
   const context = useContext(AuthContext);
+  
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
+  
   return context;
 }
