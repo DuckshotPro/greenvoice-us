@@ -498,7 +498,7 @@ async function getContractWithMilestones(contractId: number, userId?: number) {
     query = query.where(eq(progressContracts.userId, userId));
   }
   
-  const [contract] = await contractQuery.limit(1);
+  const [contract] = await query.limit(1);
   
   if (!contract) {
     return null;

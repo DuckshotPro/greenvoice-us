@@ -17,6 +17,8 @@ import Settings from "@/pages/settings";
 import FaqPage from "@/pages/faq-page";
 import AdminConsole from "@/pages/admin-console";
 import Roadmap from "@/pages/roadmap";
+import ProgressBilling from "@/pages/progress-billing";
+import ProgressBillingForm from "@/pages/progress-billing-form";
 import NotFound from "@/pages/not-found";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 
@@ -34,6 +36,9 @@ function Router() {
       <ProtectedRoute path="/branding" component={BrandingSettings} />
       <ProtectedRoute path="/history" component={History} />
       <ProtectedRoute path="/settings" component={Settings} />
+      <ProtectedRoute path="/progress-billing" component={ProgressBilling} />
+      <ProtectedRoute path="/progress-billing/new" component={ProgressBillingForm} />
+      <ProtectedRoute path="/progress-billing/:id" component={ProgressBillingForm} />
       <ProtectedRoute path="/admin" component={AdminConsole} requireAdmin />
       {/* Public shareable invoice route */}
       <Route path="/share/:shareableLink" component={SharedInvoiceView} />
