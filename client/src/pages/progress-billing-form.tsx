@@ -6,11 +6,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
+import { FormInput } from '@/components/ui/form-input';
+import { FormTextarea } from '@/components/ui/form-textarea';
 import { apiRequest } from '@/lib/queryClient';
 import { Loader2, Plus, Trash2, Save, ArrowLeft, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
@@ -216,7 +216,7 @@ export default function ProgressBillingForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="name">Contract Name</Label>
-                <Input 
+                <FormInput 
                   id="name" 
                   placeholder="Project name or description"
                   {...form.register('name')}
@@ -226,7 +226,7 @@ export default function ProgressBillingForm() {
 
               <div className="space-y-2">
                 <Label htmlFor="contractNumber">Contract Number</Label>
-                <Input 
+                <FormInput 
                   id="contractNumber" 
                   placeholder="Unique identifier"
                   {...form.register('contractNumber')}
@@ -236,7 +236,7 @@ export default function ProgressBillingForm() {
 
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="description">Description</Label>
-                <Textarea 
+                <FormTextarea 
                   id="description" 
                   placeholder="Describe the contract scope"
                   rows={3}
@@ -279,7 +279,7 @@ export default function ProgressBillingForm() {
 
               <div className="space-y-2">
                 <Label htmlFor="totalValue">Total Contract Value</Label>
-                <Input
+                <FormInput
                   id="totalValue"
                   type="number"
                   min="0"
@@ -292,7 +292,7 @@ export default function ProgressBillingForm() {
 
               <div className="space-y-2">
                 <Label htmlFor="currency">Currency</Label>
-                <Input
+                <FormInput
                   id="currency"
                   placeholder="USD"
                   {...form.register('currency')}
@@ -302,7 +302,7 @@ export default function ProgressBillingForm() {
 
               <div className="space-y-2">
                 <Label htmlFor="taxRate">Tax Rate % (Optional)</Label>
-                <Input
+                <FormInput
                   id="taxRate"
                   type="number"
                   min="0"
@@ -339,7 +339,7 @@ export default function ProgressBillingForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="clientName">Client Name</Label>
-                <Input 
+                <FormInput 
                   id="clientName" 
                   placeholder="Client name"
                   {...form.register('clientName')}
