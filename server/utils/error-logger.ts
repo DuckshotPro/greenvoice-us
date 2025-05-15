@@ -136,7 +136,22 @@ export function createTimer(operationName: string): () => void {
 /**
  * Static logger class for maintaining compatibility with existing logger implementation
  */
+/**
+ * Interface for log entry objects
+ */
+export interface LogEntry {
+  timestamp: Date;
+  level: LogLevel;
+  source: string;
+  message: string;
+  details?: any;
+}
+
 export class ErrorLogger {
+  // Array to store log entries
+  private static logEntries: LogEntry[] = [];
+  private static MAX_LOGS = 1000; // Maximum logs to store in memory
+
   /**
    * Log an activity with the specified level, category, and details
    */
@@ -147,8 +162,17 @@ export class ErrorLogger {
     source: string,
     details?: any
   ): void {
-    const timestamp = new Date().toLocaleTimeString();
-    const logMessage = `${timestamp} [logger] ${level === LogLevel.ERROR || level === LogLevel.WARNING ? '⚠️ ' : ''}[${level}][${source}] ${message}`;
+    const timestamp = new Date();
+    const logMessage = `${timestamp.toLocaleTimeString()} [logger] ${level === LogLevel.ERROR || level === LogLevel.WARNING ? '⚠️ ' : ''}[${level}][${source}] ${message}`;
+    
+    // Store log entry in memory
+    this.storeLogEntry({
+      timestamp,
+      level,
+      source,
+      message,
+      details
+    });
     
     switch (level) {
       case LogLevel.ERROR:
@@ -173,5 +197,30 @@ export class ErrorLogger {
         if (details) console.log(details);
         break;
     }
+  }
+  
+  /**
+   * Store a log entry in memory
+   */
+  private static storeLogEntry(entry: LogEntry): void {
+    this.logEntries.push(entry);
+    
+    // Maintain max log size by removing oldest entries
+    if (this.logEntries.length > this.MAX_LOGS) {
+      this.logEntries = this.logEntries.slice(-this.MAX_LOGS);
+    }
+  }
+  
+  /**
+   * Get recent logs, optionally filtered by level
+   */
+  static getRecentLogs(count: number = 100, level?: LogLevel): LogEntry[] {
+    // If level is specified, filter logs by level
+    const filteredLogs = level 
+      ? this.logEntries.filter(log => log.level === level)
+      : this.logEntries;
+      
+    // Return most recent logs based on count
+    return filteredLogs.slice(-count).reverse();
   }
 }
