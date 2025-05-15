@@ -153,6 +153,69 @@ export class ErrorLogger {
   private static MAX_LOGS = 1000; // Maximum logs to store in memory
 
   /**
+   * Sanitize data by removing sensitive information
+   */
+  static sanitizeData(data: Record<string, any>): Record<string, any> {
+    // Create a deep copy to avoid modifying the original
+    const sanitized = JSON.parse(JSON.stringify(data));
+    
+    // List of sensitive fields to mask
+    const sensitiveFields = [
+      'password', 'token', 'secret', 'key', 'authorization', 
+      'auth', 'credential', 'cookie', 'session', 'jwt'
+    ];
+    
+    // Recursively sanitize the object
+    const sanitizeObject = (obj: Record<string, any>) => {
+      if (!obj || typeof obj !== 'object') return;
+      
+      Object.keys(obj).forEach(key => {
+        // Check if the key contains any sensitive information
+        const lowerKey = key.toLowerCase();
+        if (sensitiveFields.some(field => lowerKey.includes(field))) {
+          obj[key] = '[REDACTED]';
+        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+          // Recursively sanitize nested objects
+          sanitizeObject(obj[key]);
+        }
+      });
+    };
+    
+    sanitizeObject(sanitized);
+    return sanitized;
+  }
+  
+  /**
+   * Log performance metrics for endpoints/operations
+   * @param operation Description of the operation being measured
+   * @param durationMs Duration in milliseconds
+   * @param details Additional context about the operation
+   */
+  static logPerformance(operation: string, durationMs: number, details?: Record<string, any>): void {
+    const level = durationMs > 500 ? LogLevel.WARNING : LogLevel.PERFORMANCE;
+    const message = `${operation} took ${durationMs}ms to complete`;
+    
+    this.logActivity(
+      level,
+      LogCategory.SYSTEM,
+      message,
+      'Performance',
+      details
+    );
+    
+    // Also store in the performance metrics system
+    if (durationMs > 500) {
+      this.storeLogEntry({
+        timestamp: new Date(),
+        level,
+        source: 'Performance',
+        message,
+        details
+      });
+    }
+  }
+
+  /**
    * Log an activity with the specified level, category, and details
    */
   static logActivity(

@@ -3,6 +3,7 @@ import { registerRoutes } from "./routes/routes";
 import { setupVite, serveStatic, log } from "./utils/vite";
 import { scheduler } from "./services/scheduler";
 import { ErrorLogger, LogLevel, LogCategory, logInfo, logError } from "./utils/error-logger";
+import { performanceMonitor } from "./utils/performance-monitor";
 // Custom frontend router no longer needed
 // import customFrontendRouter from "./custom-frontend";
 import dotenv from "dotenv";
@@ -11,6 +12,14 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const app = express();
+
+// Initialize performance monitoring
+performanceMonitor.start();
+
+// Apply performance monitoring middleware (before any other middleware)
+app.use(performanceMonitor.trackEndpoint());
+
+// Standard middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
