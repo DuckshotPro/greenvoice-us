@@ -25,6 +25,7 @@ import { ZodError } from "zod";
 import nodemailer from "nodemailer";
 import { InvoiceProcessor } from "../services/invoice-processor";
 import { ErrorLogger, LogLevel, logError, logInfo, logWarning } from "../utils/error-logger";
+import { performanceMonitor } from "../utils/performance-monitor";
 import { log } from "../utils/vite";
 import { setupAuth, requireAuth, requireAdmin } from "../middleware/auth";
 import { validateBody, validateQuery, validateParams } from "../middleware/validation";
@@ -733,6 +734,39 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
     } catch (error) {
       logError(`Error fetching error logs`, 'AdminApi', { error });
       res.status(500).json({ message: "Failed to retrieve error logs" });
+    }
+  });
+  
+  // Get performance metrics
+  app.get("/api/admin/performance", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+      
+      const metrics = await performanceMonitor.getRecentMetrics(limit);
+      
+      logInfo(`Admin retrieved performance metrics`, 'AdminApi', {
+        endpointCount: metrics.endpoints.length,
+        queryCount: metrics.queries.length
+      });
+      
+      res.json(metrics);
+    } catch (error) {
+      logError(`Error fetching performance metrics`, 'AdminApi', { error });
+      res.status(500).json({ message: "Failed to retrieve performance metrics" });
+    }
+  });
+  
+  // Get performance summary
+  app.get("/api/admin/performance/summary", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const summary = await performanceMonitor.getPerformanceSummary();
+      
+      logInfo(`Admin retrieved performance summary`, 'AdminApi');
+      
+      res.json(summary);
+    } catch (error) {
+      logError(`Error fetching performance summary`, 'AdminApi', { error });
+      res.status(500).json({ message: "Failed to retrieve performance summary" });
     }
   });
 

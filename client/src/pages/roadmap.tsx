@@ -130,6 +130,27 @@ const Roadmap = () => {
       icon: <DollarSign className="h-5 w-5" />
     },
     {
+      title: "Backend Optimization",
+      description: "Improve server performance and reduce infrastructure costs",
+      status: "inprogress",
+      estimatedCompletion: "May 2025",
+      icon: <BarChart className="h-5 w-5" />
+    },
+    {
+      title: "Performance Monitoring",
+      description: "Track application metrics and identify optimization opportunities",
+      status: "inprogress",
+      estimatedCompletion: "May 2025",
+      icon: <BarChart className="h-5 w-5" />
+    },
+    {
+      title: "Data Streaming",
+      description: "Implement efficient data loading and reduce bandwidth usage",
+      status: "planned",
+      estimatedCompletion: "Q3 2025",
+      icon: <Globe className="h-5 w-5" />
+    },
+    {
       title: "Team Collaboration",
       description: "Invite team members to collaborate on invoices",
       status: "planned",
