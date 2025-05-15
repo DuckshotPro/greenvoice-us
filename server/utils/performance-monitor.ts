@@ -135,7 +135,7 @@ class PerformanceMonitor {
         queries: this.queryMetrics.slice(-limit)
       };
     } catch (error) {
-      logError('Failed to get recent performance metrics', error, 'PerformanceMonitor');
+      logError('Failed to get recent performance metrics', 'PerformanceMonitor', { error: String(error) });
       return { endpoints: [], queries: [] };
     }
   }
@@ -161,7 +161,7 @@ class PerformanceMonitor {
         timestamp: new Date()
       };
     } catch (error) {
-      logError('Failed to generate performance summary', error, 'PerformanceMonitor');
+      logError('Failed to generate performance summary', 'PerformanceMonitor', { error: String(error) });
       return {};
     }
   }
@@ -252,7 +252,7 @@ class PerformanceMonitor {
       
       logInfo('Successfully flushed endpoint performance metrics', 'PerformanceMonitor');
     } catch (error) {
-      logError('Failed to flush endpoint performance metrics', error, 'PerformanceMonitor');
+      logError('Failed to flush endpoint performance metrics', 'PerformanceMonitor', { error: String(error) });
     }
   }
 
@@ -271,7 +271,7 @@ class PerformanceMonitor {
       
       logInfo('Successfully flushed query performance metrics', 'PerformanceMonitor');
     } catch (error) {
-      logError('Failed to flush query performance metrics', error, 'PerformanceMonitor');
+      logError('Failed to flush query performance metrics', 'PerformanceMonitor', { error: String(error) });
     }
   }
 }
