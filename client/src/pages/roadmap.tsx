@@ -73,6 +73,12 @@ const Roadmap = () => {
       icon: <RefreshCw className="h-5 w-5" />
     },
     {
+      title: "Progress Billing",
+      description: "Create and manage milestone-based contracts with staged payments",
+      status: "completed",
+      icon: <DollarSign className="h-5 w-5" />
+    },
+    {
       title: "Branding Customization",
       description: "Customize invoice appearance with your brand colors and logo",
       status: "completed",
