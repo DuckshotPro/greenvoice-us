@@ -96,6 +96,28 @@ const AdminConsole = () => {
     },
     retry: 1
   });
+  
+  // Get performance metrics
+  const { data: performanceMetrics, isLoading: loadingPerformance, refetch: refetchPerformance, error: performanceError } = useQuery({
+    queryKey: ['/api/admin/performance'],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/admin/performance");
+      return await res.json();
+    },
+    retry: 1,
+    refetchInterval: 30000 // Refresh automatically every 30 seconds
+  });
+  
+  // Get performance summary
+  const { data: performanceSummary, isLoading: loadingSummary, refetch: refetchSummary } = useQuery({
+    queryKey: ['/api/admin/performance/summary'],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/admin/performance/summary");
+      return await res.json();
+    },
+    retry: 1,
+    refetchInterval: 30000 // Refresh automatically every 30 seconds
+  });
 
   // Process scheduled invoices and recurring templates
   const handleProcessAll = async () => {
@@ -127,6 +149,8 @@ const AdminConsole = () => {
     refetchDbHealth();
     refetchSystemInfo();
     refetchLogs();
+    refetchPerformance();
+    refetchSummary();
   };
 
   useEffect(() => {
@@ -192,9 +216,207 @@ const AdminConsole = () => {
       <Tabs defaultValue="dashboard" className="space-y-6">
         <TabsList>
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
           <TabsTrigger value="system">System</TabsTrigger>
           <TabsTrigger value="logs">Logs</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="performance">
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Performance Summary Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart className="h-5 w-5" />
+                  Performance Summary
+                </CardTitle>
+                <CardDescription>
+                  Overall application performance metrics
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loadingSummary ? (
+                  <div className="animate-pulse space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                ) : performanceSummary ? (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Average Response Time</span>
+                        <span className="font-medium">
+                          {Math.round(performanceSummary.averageResponseTime || 0)} ms
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Average Query Time</span>
+                        <span className="font-medium">
+                          {Math.round(performanceSummary.averageQueryTime || 0)} ms
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Total Endpoints Tracked</span>
+                        <span className="font-medium">
+                          {performanceSummary.totalEndpoints || 0}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Total Queries Tracked</span>
+                        <span className="font-medium">
+                          {performanceSummary.totalQueries || 0}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Last Updated</span>
+                        <span className="font-medium">
+                          {performanceSummary.timestamp ? formatDate(performanceSummary.timestamp) : 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-4 text-muted-foreground">
+                    <AlertTriangle className="h-8 w-8 mx-auto mb-2" />
+                    <p>Failed to fetch performance summary</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Top 5 Slowest Endpoints Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5" />
+                  Slowest Endpoints
+                </CardTitle>
+                <CardDescription>
+                  Endpoints with the highest response times
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loadingPerformance ? (
+                  <div className="animate-pulse space-y-2">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <div key={i} className="h-4 bg-gray-200 rounded w-full"></div>
+                    ))}
+                  </div>
+                ) : performanceSummary?.endpointStats ? (
+                  <div className="space-y-2">
+                    {Object.entries(performanceSummary.endpointStats)
+                      .sort((a, b) => b[1].avgTime - a[1].avgTime)
+                      .slice(0, 5)
+                      .map(([endpoint, stats]: [string, any], index) => (
+                        <div key={index} className="flex items-center justify-between text-sm py-1 border-b last:border-0">
+                          <div className="flex-1 truncate mr-2">{endpoint}</div>
+                          <div className="flex gap-2 items-center">
+                            <Badge 
+                              variant={stats.avgTime > 500 ? "destructive" : stats.avgTime > 200 ? "outline" : "default"}
+                            >
+                              {Math.round(stats.avgTime)} ms
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">({stats.count} calls)</span>
+                          </div>
+                        </div>
+                      ))}
+                    {Object.keys(performanceSummary.endpointStats).length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-2">No endpoint metrics available yet</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-4 text-muted-foreground">
+                    <AlertTriangle className="h-8 w-8 mx-auto mb-2" />
+                    <p>Failed to fetch endpoint metrics</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            
+            {/* Recent Endpoint Metrics */}
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Server className="h-5 w-5" />
+                  Recent Endpoint Activity
+                </CardTitle>
+                <CardDescription>
+                  Performance metrics for recent API requests
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loadingPerformance ? (
+                  <div className="animate-pulse space-y-2">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <div key={i} className="h-4 bg-gray-200 rounded w-full"></div>
+                    ))}
+                  </div>
+                ) : performanceMetrics?.endpoints && performanceMetrics.endpoints.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b text-left">
+                          <th className="pb-2 font-medium">Endpoint</th>
+                          <th className="pb-2 font-medium">Method</th>
+                          <th className="pb-2 font-medium">Status</th>
+                          <th className="pb-2 font-medium">Response Time</th>
+                          <th className="pb-2 font-medium">Time</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {performanceMetrics.endpoints
+                          .slice(0, 10)
+                          .map((metric: any, index: number) => (
+                            <tr key={index} className="border-b last:border-0">
+                              <td className="py-2 max-w-[200px] truncate">{metric.endpoint}</td>
+                              <td className="py-2">{metric.method}</td>
+                              <td className="py-2">
+                                <Badge
+                                  variant={
+                                    metric.statusCode < 300
+                                      ? "default"
+                                      : metric.statusCode < 400
+                                      ? "outline"
+                                      : "destructive"
+                                  }
+                                >
+                                  {metric.statusCode}
+                                </Badge>
+                              </td>
+                              <td className="py-2">
+                                <span className={
+                                  metric.responseTime > 500 
+                                    ? "text-destructive font-medium" 
+                                    : metric.responseTime > 200 
+                                    ? "text-amber-500 font-medium" 
+                                    : ""
+                                }>
+                                  {metric.responseTime} ms
+                                </span>
+                              </td>
+                              <td className="py-2 text-muted-foreground">{formatDate(metric.timestamp)}</td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                    <div className="mt-4 text-center">
+                      <Button variant="outline" size="sm" onClick={refetchPerformance}>
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Refresh Metrics
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Server className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                    <p>No endpoint metrics available yet</p>
+                    <p className="text-sm mt-2">Data will appear as the application receives API requests</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
 
         <TabsContent value="dashboard">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
