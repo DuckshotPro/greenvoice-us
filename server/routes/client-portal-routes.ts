@@ -8,7 +8,7 @@ const router = Router();
 
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2023-10-16",
+  apiVersion: "2023-10-16" as any,
 });
 
 // Validation schemas
@@ -58,7 +58,7 @@ router.post("/create-payment-intent", async (req: Request, res: Response) => {
 
     // Track payment initiation analytics
     try {
-      await storage.trackShare({
+      await storage.trackShareAnalytics({
         invoiceId,
         userId: null, // Client portal users are not authenticated
         shareMethod: "payment_initiation",
@@ -119,7 +119,7 @@ router.post("/track-payment", async (req: Request, res: Response) => {
     const { invoiceId, action, paymentIntentId, metadata } = trackPaymentActionSchema.parse(req.body);
 
     // Track the payment action
-    await storage.trackShare({
+    await storage.trackShareAnalytics({
       invoiceId,
       userId: null, // Client portal users are not authenticated
       shareMethod: `payment_${action}`,
@@ -193,7 +193,7 @@ router.post("/webhook", async (req: Request, res: Response) => {
         await storage.updateInvoice(invoiceId, { status: 'paid' });
         
         // Track successful payment
-        await storage.trackShare({
+        await storage.trackShareAnalytics({
           invoiceId,
           userId: null,
           shareMethod: "payment_completed",
@@ -227,7 +227,7 @@ router.post("/webhook", async (req: Request, res: Response) => {
         const invoiceId = parseInt(failedPayment.metadata.invoiceId);
         
         // Track failed payment
-        await storage.trackShare({
+        await storage.trackShareAnalytics({
           invoiceId,
           userId: null,
           shareMethod: "payment_failed",
