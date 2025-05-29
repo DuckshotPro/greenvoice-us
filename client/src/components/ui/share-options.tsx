@@ -72,6 +72,20 @@ export function ShareOptions({ invoice, isLoading = false, onClose }: ShareOptio
     return baseUrl;
   };
 
+  // Generate the client portal URL for payments
+  const getClientPortalUrl = (source?: string) => {
+    if (!invoice.shareableLink) return "";
+    
+    const baseUrl = `${window.location.origin}/client/${invoice.shareableLink}`;
+    
+    // Add UTM parameters for tracking
+    if (source) {
+      return `${baseUrl}?utm_source=${source}&utm_medium=payment_portal&utm_campaign=invoice_payment`;
+    }
+    
+    return baseUrl;
+  };
+
   // Track the share event
   const trackShare = async (method: string, email?: string) => {
     try {

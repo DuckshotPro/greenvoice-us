@@ -19,6 +19,7 @@ import AdminConsole from "@/pages/admin-console";
 import Roadmap from "@/pages/roadmap";
 import ProgressBilling from "@/pages/progress-billing";
 import ProgressBillingForm from "@/pages/progress-billing-form";
+import ClientPortal from "@/pages/client-portal";
 import NotFound from "@/pages/not-found";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 
@@ -42,6 +43,8 @@ function Router() {
       <ProtectedRoute path="/admin" component={AdminConsole} requireAdmin />
       {/* Public shareable invoice route */}
       <Route path="/share/:shareableLink" component={SharedInvoiceView} />
+      {/* Client portal route for invoice payments */}
+      <Route path="/client/:shareableLink" component={ClientPortal} />
       <Route component={NotFound} />
     </Switch>
   );
