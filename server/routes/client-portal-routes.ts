@@ -271,7 +271,7 @@ router.get("/analytics/:invoiceId", async (req: Request, res: Response) => {
     const invoiceId = parseInt(req.params.invoiceId);
 
     // Get payment analytics for this invoice
-    const paymentAnalytics = await storage.getShareAnalytics(invoiceId, "payment");
+    const paymentAnalytics = await storage.getShareAnalytics(invoiceId);
     
     // Calculate metrics
     const totalViews = paymentAnalytics.filter(a => a.eventType === "view").length;

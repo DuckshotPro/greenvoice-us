@@ -1,6 +1,6 @@
-draftraft InvoiceFlow Application
+# InvoiceFlow Application
 
-InvoiceFlow is a comprehensive invoice management platform that enables professional document creation, distribution, and secure financial transactions across multiple digital channels.
+InvoiceFlow is a comprehensive invoice management platform that enables professional document creation, distribution, and secure financial transactions across multiple digital channels with an integrated client payment portal.
 
 ## 📋 Table of Contents
 
@@ -32,12 +32,20 @@ InvoiceFlow provides a complete invoice creation and management solution:
   - Create recurring invoice templates (daily, weekly, monthly, quarterly, yearly)
   - Automatic invoice generation from templates
 
+- **Client Payment Portal**
+  - Secure payment processing with Stripe integration
+  - Professional invoice display for clients
+  - Real-time payment status tracking
+  - PDF download functionality for clients
+  - Complete analytics tracking for payment interactions
+
 - **Comprehensive Sharing Options**
   - Generate and share PDF invoices
   - Email invoicing with customizable messages
   - Social media sharing (Twitter, Facebook, LinkedIn, WhatsApp)
   - Direct link sharing with unique URLs
   - SMS sharing capability
+  - Payment portal links for secure client payments
 
 - **Branding Customization**
   - Custom color schemes for invoices
@@ -57,6 +65,18 @@ InvoiceFlow provides a complete invoice creation and management solution:
   - Track marketing campaign effectiveness
   - Capture source, medium, campaign, content, and term parameters
   - Integrate with the analytics dashboard
+
+- **Progress Billing System**
+  - Break large contracts into manageable milestones
+  - Track milestone completion and payment status
+  - Generate invoices for completed milestones
+  - Client portal access for milestone tracking
+
+- **Performance Monitoring & Optimization**
+  - Real-time server performance tracking
+  - API response time monitoring
+  - Database health monitoring
+  - Cost optimization features
 
 - **Premium Features (Freemium Model)**
   - Ad-based temporary premium access
@@ -221,13 +241,23 @@ RECURRING_TEMPLATES_INTERVAL: 60 * 60 * 1000 // 1 hour
 
 1. **Share Options**:
    - From an invoice, click "Share"
-   - Choose sharing method (link, email, social)
+   - Choose sharing method (link, email, social, payment portal)
    - For email: Enter recipient details and customize message
    - For social: Select platform and share directly
    - For link: Copy the generated link
+   - For payment portal: Share secure payment link with clients
 
-2. **View Tracking**:
+2. **Client Payment Portal**:
+   - Clients receive a secure link to view and pay invoices
+   - Professional invoice display with itemized breakdown
+   - Stripe-powered payment processing
+   - Real-time payment status updates
+   - PDF download capability for clients
+   - Full analytics tracking for payment interactions
+
+3. **View Tracking**:
    - All shared invoices are automatically tracked
+   - Payment portal interactions are monitored
    - UTM parameters are captured for marketing campaign analysis
 
 ### Analytics Dashboard

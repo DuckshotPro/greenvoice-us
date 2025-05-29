@@ -49,6 +49,12 @@ const Roadmap = () => {
       icon: <FileText className="h-5 w-5" />
     },
     {
+      title: "Client Payment Portal",
+      description: "Secure portal for clients to view and pay invoices with Stripe integration",
+      status: "completed",
+      icon: <CreditCard className="h-5 w-5" />
+    },
+    {
       title: "Authentication System",
       description: "Secure login and registration system with user roles",
       status: "completed",
@@ -116,18 +122,18 @@ const Roadmap = () => {
       icon: <BellRing className="h-5 w-5" />
     },
     {
-      title: "Client Portal",
-      description: "Give clients access to view and pay their invoices",
-      status: "planned",
-      estimatedCompletion: "Q3 2025",
-      icon: <Globe className="h-5 w-5" />
-    },
-    {
       title: "Multi-Currency Support",
       description: "Create invoices in different currencies with automatic conversion",
-      status: "inprogress",
-      estimatedCompletion: "May 2025",
+      status: "planned",
+      estimatedCompletion: "Q2 2025",
       icon: <DollarSign className="h-5 w-5" />
+    },
+    {
+      title: "Email Automation",
+      description: "Automated email workflows for invoice delivery and reminders",
+      status: "planned",
+      estimatedCompletion: "Q2 2025",
+      icon: <MessageCircle className="h-5 w-5" />
     },
     {
       title: "Backend Optimization",
