@@ -26,6 +26,7 @@ import nodemailer from "nodemailer";
 import { InvoiceProcessor } from "../services/invoice-processor";
 import { ErrorLogger, LogLevel, logError, logInfo, logWarning } from "../utils/error-logger";
 import { performanceMonitor } from "../utils/performance-monitor";
+import clientPortalRoutes from "./client-portal-routes";
 import { log } from "../utils/vite";
 import { setupAuth, requireAuth, requireAdmin } from "../middleware/auth";
 import { validateBody, validateQuery, validateParams } from "../middleware/validation";
@@ -97,6 +98,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register progress billing routes for milestone payments
   app.use("/api/progress-billing", progressBillingRoutes);
+  
+  // Register client portal routes for secure payments
+  app.use("/api/client-portal", clientPortalRoutes);
   
   // Initialize Stripe with secret key
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {

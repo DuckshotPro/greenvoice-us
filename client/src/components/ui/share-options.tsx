@@ -330,7 +330,11 @@ export function ShareOptions({ invoice, isLoading = false, onClose }: ShareOptio
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="link" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="portal">
+              <Smartphone className="mr-2 h-4 w-4" />
+              Payment
+            </TabsTrigger>
             <TabsTrigger value="link">
               <Link className="mr-2 h-4 w-4" />
               Link
@@ -352,6 +356,81 @@ export function ShareOptions({ invoice, isLoading = false, onClose }: ShareOptio
               Export
             </TabsTrigger>
           </TabsList>
+          
+          {/* Payment Portal */}
+          <TabsContent value="portal" className="space-y-4">
+            <div className="space-y-4 mt-4">
+              <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+                <div className="flex items-center gap-2 mb-2">
+                  <Smartphone className="h-5 w-5 text-primary" />
+                  <h3 className="font-semibold text-primary">Client Payment Portal</h3>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Share a dedicated payment portal where clients can view the invoice and pay securely with Stripe.
+                </p>
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="portalLink">Payment Portal Link</Label>
+                    <div className="flex space-x-2">
+                      <Input
+                        id="portalLink"
+                        value={getClientPortalUrl("portal")}
+                        readOnly
+                        className="flex-1"
+                        onFocus={handleInputFocus}
+                      />
+                      <Button 
+                        onClick={() => copyToClipboard(getClientPortalUrl("portal"), "portal")} 
+                        variant="outline"
+                        size="sm"
+                        className="shrink-0"
+                      >
+                        {linkCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={() => copyToClipboard(getClientPortalUrl("portal"), "portal")}
+                      variant="default"
+                      className="flex-1"
+                    >
+                      <Copy className="mr-2 h-4 w-4" />
+                      Copy Payment Link
+                    </Button>
+                    <Button 
+                      onClick={() => openInNewTab(getClientPortalUrl("portal"), "portal")}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      <Smartphone className="mr-2 h-4 w-4" />
+                      Preview Portal
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Quick share to messaging apps */}
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => shareToWhatsApp(getClientPortalUrl("whatsapp"), "payment_portal")}
+                  className="flex items-center justify-center gap-2"
+                >
+                  <SiWhatsapp className="h-4 w-4" />
+                  WhatsApp
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => shareToMessenger(getClientPortalUrl("messenger"), "payment_portal")}
+                  className="flex items-center justify-center gap-2"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  Messenger
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
           
           {/* Link sharing */}
           <TabsContent value="link" className="space-y-4">
