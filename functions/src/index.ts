@@ -1,14 +1,36 @@
-import { onRequest } from "firebase-functions/v2/https";
-import * as express from "express";
+import * as functions from "firebase-functions";
+import express from "express";
+import cors from "cors";
 
 const app = express();
 
-// Import your existing server routes and middleware here
-// You'll need to adapt your server code to work with Firebase Functions
+// Configure CORS for Firebase hosting
+app.use(cors({ 
+  origin: true, 
+  credentials: true 
+}));
 
+app.use(express.json());
+
+// Basic health check endpoint
 app.get("/health", (req, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString() });
+  res.json({ 
+    status: "ok", 
+    timestamp: new Date().toISOString(),
+    service: "Firebase Functions"
+  });
+});
+
+// Your existing routes will need to be imported and adapted here
+// For now, we'll add placeholder routes that match your current API structure
+
+app.get("/auth/user", (req, res) => {
+  res.json({ user: null, authenticated: false });
+});
+
+app.get("/ads/settings", (req, res) => {
+  res.json({ enabled: false, provider: null });
 });
 
 // Export the Express app as a Firebase Function
-export const api = onRequest(app);
+export const api = functions.https.onRequest(app);
