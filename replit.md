@@ -25,12 +25,13 @@ An advanced invoice generation and payment processing platform that enables prof
 
 ### Key Features
 - **Usage Tracking**: Real-time tracking of AI interactions with daily/monthly limits
-- **Plan-Based Limits**: Free accounts (5 daily, 50 monthly) vs Premium accounts (100 daily, 1000 monthly)
+- **Plan-Based Limits**: Guest accounts (3 daily, 10 monthly) vs Premium accounts (100 daily, 1000 monthly)
 - **Smart Conversations**: Real-time chat with AI for business questions
 - **Invoice Generation**: AI-powered content suggestions and descriptions
 - **Payment Collection**: Professional advice for overdue invoices
 - **Business Insights**: Data-driven recommendations for cash flow improvement
 - **Context-Aware**: Specialized prompts for invoice management scenarios
+- **Real-time Quota Display**: Users see remaining usage limits in the chat interface
 
 ## Project Architecture
 
@@ -70,7 +71,24 @@ An advanced invoice generation and payment processing platform that enables prof
 - `VITE_HUGGINGFACE_API_KEY`: HuggingFace API key for image generation
 
 ## Current Status
-- AI Assistant fully integrated and functional
-- Navigation updated with AI Assistant access
-- Comprehensive error handling implemented
-- Ready for API key configuration by user
+- ✅ AI Assistant fully integrated and functional with OpenAI API
+- ✅ Real-time usage tracking system with PostgreSQL database
+- ✅ Tiered usage limits implemented (guest: 3/10, premium: 100/1000)
+- ✅ Usage statistics display in chat interface
+- ✅ Navigation updated with AI Assistant access
+- ✅ Comprehensive error handling for usage violations
+- ✅ API endpoints for tracking, checking, and viewing usage stats
+- ✅ Documentation updated in README.md
+- Ready for OpenAI API key configuration by user
+
+## Database Schema Updates
+- Added `ai_usage_tracking` table for individual interaction logging
+- Added `ai_usage_summary` table for aggregated daily/monthly statistics
+- Implemented usage counting and limit enforcement logic
+- Real-time tracking of tokens used, request types, and timestamps
+
+## API Endpoints Added
+- `POST /api/ai/chat` - AI conversation endpoint with usage tracking
+- `GET /api/ai/usage-stats` - Current usage statistics for user/session
+- `GET /api/ai/check-usage` - Check if usage is allowed for request type
+- `POST /api/ai/track-usage` - Manual usage tracking endpoint

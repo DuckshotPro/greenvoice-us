@@ -78,11 +78,19 @@ InvoiceFlow provides a complete invoice creation and management solution:
   - Database health monitoring
   - Cost optimization features
 
+- **AI Assistant with Usage Limits**
+  - OpenAI-powered business assistant for invoice management
+  - Specialized help with invoice content generation and payment strategies
+  - Business insights and cash flow improvement recommendations
+  - Real-time usage tracking with tiered limits (guest: 3 daily/10 monthly, premium: 100 daily/1000 monthly)
+  - Context-aware conversations tailored to invoice management scenarios
+
 - **Premium Features (Freemium Model)**
   - Ad-based temporary premium access
   - Analytics dashboard for premium users
   - AI-generated branding assets (logos and patterns)
   - Premium invoice templates
+  - Advanced AI Assistant usage limits
   - Subscription management system
 
 ## 🔧 Prerequisites
@@ -126,8 +134,9 @@ SENDGRID_API_KEY=your_sendgrid_api_key
 STRIPE_SECRET_KEY=your_stripe_secret_key
 VITE_STRIPE_PUBLIC_KEY=your_stripe_publishable_key
 
-# AI Integration (Required for branding features)
+# AI Integration (Required for branding and assistant features)
 HUGGINGFACE_API_KEY=your_huggingface_api_key
+VITE_OPENAI_API_KEY=your_openai_api_key
 ```
 
 ### Step 4: Start the Development Server
@@ -269,6 +278,21 @@ RECURRING_TEMPLATES_INTERVAL: 60 * 60 * 1000 // 1 hour
    - Filter by date range
    - Group data by different time periods
 
+### AI Assistant Features
+
+1. **Using the AI Assistant**:
+   - Navigate to "AI Assistant" in the main navigation
+   - Ask questions about invoice management, payment strategies, or business insights
+   - Generate content suggestions for invoice descriptions and terms
+   - Get professional advice for collecting overdue payments
+   - View real-time usage statistics showing remaining daily/monthly limits
+
+2. **Usage Limits by Account Type**:
+   - **Guest Accounts**: 3 interactions per day, 10 per month
+   - **Premium Accounts**: 100 interactions per day, 1,000 per month
+   - Usage resets daily and monthly automatically
+   - Comprehensive error handling when limits are reached
+
 ### Branding Customization
 
 1. **Basic Branding Settings**:
@@ -316,6 +340,7 @@ InvoiceFlow provides a comprehensive API:
 - **Authentication**: `/api/login`, `/api/register`, `/api/logout`
 - **Invoices**: `/api/invoices`, `/api/invoices/:id`
 - **Templates**: `/api/recurring-templates`
+- **AI Assistant**: `/api/ai/chat`, `/api/ai/usage-stats`, `/api/ai/check-usage`, `/api/ai/track-usage`
 - **Analytics**: `/api/analytics/share-methods`, `/api/analytics/share-views`
 - **Branding**: `/api/branding/settings`, `/api/branding/generate-logo`, `/api/branding/generate-pattern`
 - **Premium**: `/api/premium/watch-ad`, `/api/premium/verify-subscription`
@@ -351,7 +376,17 @@ InvoiceFlow provides a comprehensive API:
    npm run db:check share_analytics
    ```
 
-5. **AI Branding Feature Issues**:
+5. **AI Assistant Issues**:
+   - Verify the OpenAI API key is correctly configured:
+   ```bash
+   # Test API key configuration
+   curl -X GET "http://localhost:5000/api/ai/usage-stats"
+   ```
+   - Check usage limits if AI responses are blocked
+   - Ensure user has remaining daily/monthly quotas
+   - Review error messages for specific API issues
+
+6. **AI Branding Feature Issues**:
    - Verify the Hugging Face API key is correctly configured:
    ```bash
    # Test the Hugging Face API connection
@@ -362,6 +397,14 @@ InvoiceFlow provides a comprehensive API:
    ```
    - Check premium access status for the user
    - Inspect network requests when generating logos and patterns
+
+## 📚 Additional Documentation
+
+For detailed information about specific features:
+
+- **[AI Assistant API Documentation](docs/AI_ASSISTANT_API.md)**: Complete API reference for AI Assistant endpoints
+- **[AI Assistant User Guide](docs/AI_ASSISTANT_USER_GUIDE.md)**: Comprehensive user guide for AI Assistant features
+- **[Changelog](docs/CHANGELOG.md)**: Detailed changelog including AI Assistant integration
 
 ## 📄 License
 
