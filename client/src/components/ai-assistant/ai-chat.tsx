@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Send, Bot, User, Sparkles, Loader2, Copy, ThumbsUp, ThumbsDown } from 'lucide-react';
-import { sendMessageToAI, ChatMessage, generateInvoiceContent, getPaymentCollectionAdvice, generateBusinessInsights } from '@/lib/openai-service';
+import { sendMessageToAI, ChatMessage, generateInvoiceContent, getPaymentCollectionAdvice, generateBusinessInsights, getUserUsageStats, UsageStats } from '@/lib/openai-service';
+import { useQuery } from '@tanstack/react-query';
 
 interface AIChatProps {
   initialContext?: string;
@@ -22,6 +23,14 @@ export default function AIChat({ initialContext, onSuggestionApply }: AIChatProp
   const [isConnected, setIsConnected] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // Get usage statistics
+  const { data: usageStats, refetch: refetchUsage } = useQuery({
+    queryKey: ['/api/ai/usage-stats'],
+    queryFn: getUserUsageStats,
+    refetchInterval: 30000, // Refetch every 30 seconds
+    retry: false
+  });
 
   useEffect(() => {
     // Check if OpenAI API key is available
@@ -87,13 +96,27 @@ How can I assist you today?`,
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+      
+      // Refetch usage stats after successful AI interaction
+      refetchUsage();
     } catch (error) {
       console.error('Error sending message:', error);
-      toast({
-        title: "Error",
-        description: "Failed to get AI response. Please try again.",
-        variant: "destructive"
-      });
+      
+      // Check if error is related to usage limits
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      if (errorMessage.includes('Usage limit exceeded') || errorMessage.includes('limit')) {
+        toast({
+          title: "Usage Limit Reached",
+          description: errorMessage,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to get AI response. Please try again.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -192,6 +215,29 @@ How can I assist you today?`,
             Connected
           </Badge>
         </CardTitle>
+        
+        {/* Usage Stats Display */}
+        {usageStats && (
+          <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
+            <div className="flex items-center gap-2">
+              <Badge variant={usageStats.planType === 'premium' ? 'default' : 'secondary'}>
+                {usageStats.planType}
+              </Badge>
+            </div>
+            <div className="flex items-center gap-1">
+              <span>Daily:</span>
+              <span className={usageStats.daily.remaining < 5 ? 'text-red-500 font-medium' : ''}>
+                {usageStats.daily.remaining}/{usageStats.daily.limit}
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span>Monthly:</span>
+              <span className={usageStats.monthly.remaining < 10 ? 'text-orange-500 font-medium' : ''}>
+                {usageStats.monthly.remaining}/{usageStats.monthly.limit}
+              </span>
+            </div>
+          </div>
+        )}
       </CardHeader>
       
       <CardContent className="flex-1 flex flex-col p-0">

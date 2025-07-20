@@ -47,6 +47,7 @@ import brandingRoutes from "./branding-routes";
 import { quickInvoiceRoutes } from "./quick-invoice-routes";
 import { adRoutes } from "./ad-routes";
 import progressBillingRoutes from "./progress-billing-routes";
+import aiUsageRoutes from "./ai-usage";
 import {
   trackShareSchema,
   analyticsQuerySchema,
@@ -101,6 +102,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register client portal routes for secure payments
   app.use("/api/client-portal", clientPortalRoutes);
+  
+  // Register AI usage routes for tracking and limits
+  app.use("/api/ai", aiUsageRoutes);
   
   // Initialize Stripe with secret key
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {

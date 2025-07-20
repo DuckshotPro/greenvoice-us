@@ -3,9 +3,16 @@
 ## Project Overview
 An advanced invoice generation and payment processing platform that enables professional document creation, distribution, and secure financial transactions. The platform includes comprehensive AI integration for intelligent business assistance.
 
-## Recent Changes (January 17, 2025)
+## Recent Changes (January 20, 2025)
 
-### ✅ AI Assistant Integration
+### ✅ AI Assistant with Usage Limits Integration
+- **AI Usage Tracking System**: Created comprehensive usage tracking with PostgreSQL database
+- **Tiered Usage Limits**: Implemented hard limits for free/guest users vs higher limits for premium accounts
+- **AI Usage Service**: Built backend service for tracking and enforcing usage limits
+- **Real-time Usage Display**: Added usage statistics to AI chat interface
+- **Error Handling**: Comprehensive error handling for usage limit violations
+
+### ✅ Previous AI Assistant Integration
 - **Added OpenAI Service**: Created comprehensive OpenAI integration with specialized business context
 - **AI Chat Component**: Built interactive chat interface with real-time messaging capabilities
 - **AI Assistant Page**: Developed dedicated page with features overview and use cases
@@ -17,6 +24,8 @@ An advanced invoice generation and payment processing platform that enables prof
   - General business consultation
 
 ### Key Features
+- **Usage Tracking**: Real-time tracking of AI interactions with daily/monthly limits
+- **Plan-Based Limits**: Free accounts (5 daily, 50 monthly) vs Premium accounts (100 daily, 1000 monthly)
 - **Smart Conversations**: Real-time chat with AI for business questions
 - **Invoice Generation**: AI-powered content suggestions and descriptions
 - **Payment Collection**: Professional advice for overdue invoices

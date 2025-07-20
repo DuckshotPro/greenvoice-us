@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { apiRequest } from '@/lib/queryClient';
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -17,6 +18,72 @@ export interface AIAssistantOptions {
   temperature?: number;
   maxTokens?: number;
   systemPrompt?: string;
+}
+
+export interface UsageCheckResult {
+  allowed: boolean;
+  reason?: string;
+  remainingDaily?: number;
+  remainingMonthly?: number;
+  planType: string;
+}
+
+export interface UsageStats {
+  planType: string;
+  daily: {
+    used: number;
+    limit: number;
+    remaining: number;
+  };
+  monthly: {
+    used: number;
+    limit: number;
+    remaining: number;
+  };
+  allowedTypes: string[];
+  maxTokensPerRequest: number;
+}
+
+/**
+ * Check if user can make an AI request
+ */
+export async function checkUsageLimit(usageType: string = 'chat'): Promise<UsageCheckResult> {
+  try {
+    const response = await apiRequest(`/api/ai/check-usage?type=${usageType}`);
+    return response;
+  } catch (error) {
+    console.error('Error checking usage limit:', error);
+    throw new Error('Failed to check usage limits');
+  }
+}
+
+/**
+ * Get user's AI usage statistics
+ */
+export async function getUserUsageStats(): Promise<UsageStats> {
+  try {
+    const response = await apiRequest('/api/ai/usage-stats');
+    return response;
+  } catch (error) {
+    console.error('Error getting usage stats:', error);
+    throw new Error('Failed to get usage statistics');
+  }
+}
+
+/**
+ * Track AI usage after a successful request
+ */
+async function trackUsage(usageType: string, tokensUsed: number, metadata: any = {}): Promise<void> {
+  try {
+    await apiRequest('/api/ai/track-usage', 'POST', {
+      usageType,
+      tokensUsed,
+      metadata
+    });
+  } catch (error) {
+    console.error('Error tracking usage:', error);
+    // Don't throw error here as tracking failure shouldn't break the main functionality
+  }
 }
 
 /**
@@ -45,6 +112,12 @@ export async function sendMessageToAI(
 
   const mergedOptions = { ...defaultOptions, ...options };
 
+  // Check usage limits before making request
+  const usageCheck = await checkUsageLimit('chat');
+  if (!usageCheck.allowed) {
+    throw new Error(usageCheck.reason || 'Usage limit exceeded');
+  }
+
   try {
     const systemMessage: ChatMessage = {
       role: 'system',
@@ -64,7 +137,17 @@ export async function sendMessageToAI(
       max_tokens: mergedOptions.maxTokens,
     });
 
-    return response.choices[0]?.message?.content || 'Sorry, I couldn\'t generate a response.';
+    const content = response.choices[0]?.message?.content || 'Sorry, I couldn\'t generate a response.';
+    const tokensUsed = response.usage?.total_tokens || 0;
+
+    // Track usage after successful request
+    await trackUsage('chat', tokensUsed, {
+      model: mergedOptions.model,
+      messageCount: messages.length,
+      promptLength: apiMessages.reduce((total, msg) => total + msg.content.length, 0)
+    });
+
+    return content;
   } catch (error) {
     console.error('Error communicating with OpenAI:', error);
     throw new Error('Failed to get AI response. Please check your API key and try again.');
@@ -81,6 +164,12 @@ export async function generateInvoiceContent(
   businessType: string,
   serviceDescription: string
 ): Promise<string> {
+  // Check usage limits before making request
+  const usageCheck = await checkUsageLimit('content_generation');
+  if (!usageCheck.allowed) {
+    throw new Error(usageCheck.reason || 'Usage limit exceeded');
+  }
+
   const prompt = `Generate professional invoice line items and descriptions for a ${businessType} business providing: ${serviceDescription}. 
   
   Include:
@@ -99,10 +188,19 @@ export async function generateInvoiceContent(
     }
   ];
 
-  return sendMessageToAI(messages, {
+  const response = await sendMessageToAI(messages, {
     systemPrompt: `You are an expert business consultant specializing in invoice creation and pricing strategies. Provide detailed, professional recommendations.`,
     temperature: 0.8
   });
+
+  // Track specific usage type
+  await trackUsage('content_generation', 0, {
+    businessType,
+    serviceDescription,
+    feature: 'invoice_content_generation'
+  });
+
+  return response;
 }
 
 /**

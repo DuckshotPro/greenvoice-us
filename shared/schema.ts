@@ -523,4 +523,50 @@ export const progressContractWithMilestonesSchema = insertProgressContractSchema
 export type ProgressContractWithMilestones = z.infer<typeof progressContractWithMilestonesSchema>;
 
 export type InvoiceWithItems = z.infer<typeof invoiceWithItemsSchema>;
+
+// AI Usage tracking for limits and billing
+export const aiUsageEnum = pgEnum('ai_usage_type', ['chat', 'image_generation', 'content_generation', 'business_insights']);
+
+export const aiUsageTracking = pgTable("ai_usage_tracking", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id"), // Can be null for guest users
+  sessionId: text("session_id"), // Track guest users by session
+  usageType: aiUsageEnum("usage_type").notNull(),
+  tokensUsed: integer("tokens_used").default(0),
+  requestCount: integer("request_count").default(1),
+  cost: doublePrecision("cost").default(0), // Cost in cents
+  createdAt: timestamp("created_at").defaultNow(),
+  metadata: jsonb("metadata").default({}), // Store additional info like model used, prompt length, etc.
+});
+
+// Daily usage summary for faster lookups
+export const aiUsageSummary = pgTable("ai_usage_summary", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id"), // Can be null for guest users
+  sessionId: text("session_id"), // Track guest users by session
+  date: date("date").notNull(),
+  totalRequests: integer("total_requests").default(0),
+  totalTokens: integer("total_tokens").default(0),
+  totalCost: doublePrecision("total_cost").default(0),
+  requestsByType: jsonb("requests_by_type").default({}), // { "chat": 5, "image_generation": 2 }
+  tokensByType: jsonb("tokens_by_type").default({}),
+  costByType: jsonb("cost_by_type").default({}),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertAiUsageTrackingSchema = createInsertSchema(aiUsageTracking).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAiUsageSummarySchema = createInsertSchema(aiUsageSummary).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type AiUsageTracking = typeof aiUsageTracking.$inferSelect;
+export type InsertAiUsageTracking = z.infer<typeof insertAiUsageTrackingSchema>;
+
+export type AiUsageSummary = typeof aiUsageSummary.$inferSelect;
+export type InsertAiUsageSummary = z.infer<typeof insertAiUsageSummarySchema>;
 export type RecurringTemplateWithItems = z.infer<typeof recurringTemplateWithItemsSchema>;
