@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
-import { LogIn, Crown, HelpCircle, ShieldCheck } from 'lucide-react';
+import { LogIn, Crown, HelpCircle, ShieldCheck, Bot } from 'lucide-react';
 import { BrandLogo } from '@/components/ui/brand-logo';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import {
@@ -28,6 +28,7 @@ const Header = () => {
   // Navigation links
   const navLinks = [
     { href: '/create-invoice', label: 'Create Invoice' },
+    { href: '/ai-assistant', label: 'AI Assistant', icon: Bot },
     // Removed non-functional templates link
     { href: '/history', label: 'History' },
     { href: '/analytics', label: 'Analytics' },
@@ -65,6 +66,7 @@ const Header = () => {
                       : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground font-montserrat'
                   } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
                 >
+                  {link.icon && <link.icon className="h-4 w-4 mr-1" />}
                   {link.label}
                 </Link>
               ))}

@@ -20,6 +20,7 @@ import Roadmap from "@/pages/roadmap";
 import ProgressBilling from "@/pages/progress-billing";
 import ProgressBillingForm from "@/pages/progress-billing-form";
 import ClientPortal from "@/pages/client-portal";
+import AIAssistantPage from "@/pages/ai-assistant";
 import NotFound from "@/pages/not-found";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 
@@ -40,6 +41,7 @@ function Router() {
       <ProtectedRoute path="/progress-billing" component={ProgressBilling} />
       <ProtectedRoute path="/progress-billing/new" component={ProgressBillingForm} />
       <ProtectedRoute path="/progress-billing/:id" component={ProgressBillingForm} />
+      <ProtectedRoute path="/ai-assistant" component={AIAssistantPage} />
       <ProtectedRoute path="/admin" component={AdminConsole} requireAdmin />
       {/* Public shareable invoice route */}
       <Route path="/share/:shareableLink" component={SharedInvoiceView} />

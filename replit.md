@@ -1,0 +1,67 @@
+# GreenVoice Invoice Management Platform
+
+## Project Overview
+An advanced invoice generation and payment processing platform that enables professional document creation, distribution, and secure financial transactions. The platform includes comprehensive AI integration for intelligent business assistance.
+
+## Recent Changes (January 17, 2025)
+
+### ✅ AI Assistant Integration
+- **Added OpenAI Service**: Created comprehensive OpenAI integration with specialized business context
+- **AI Chat Component**: Built interactive chat interface with real-time messaging capabilities
+- **AI Assistant Page**: Developed dedicated page with features overview and use cases
+- **Navigation Integration**: Added AI Assistant to main navigation with Bot icon
+- **Smart Features**: Implemented specialized AI functions for:
+  - Invoice content generation
+  - Payment collection advice
+  - Business insights analysis
+  - General business consultation
+
+### Key Features
+- **Smart Conversations**: Real-time chat with AI for business questions
+- **Invoice Generation**: AI-powered content suggestions and descriptions
+- **Payment Collection**: Professional advice for overdue invoices
+- **Business Insights**: Data-driven recommendations for cash flow improvement
+- **Context-Aware**: Specialized prompts for invoice management scenarios
+
+## Project Architecture
+
+### Frontend Structure
+- React.js with TypeScript
+- Wouter for routing
+- Tailwind CSS for styling
+- Shadcn/ui components
+- TanStack Query for data management
+
+### AI Integration
+- **OpenAI API**: GPT-3.5-turbo for conversational AI
+- **HuggingFace API**: Stable Diffusion for image generation
+- **Specialized Services**: Context-aware business assistance
+- **Error Handling**: Comprehensive error states and API key validation
+
+### Key Components
+- `AIChat`: Interactive chat interface with message history
+- `AIAssistantPage`: Main AI features page with tabs
+- `OpenAI Service`: API integration with business-specific prompts
+- `HuggingFace Service`: Image generation capabilities
+
+## User Preferences
+- Professional, concise communication
+- Focus on practical business solutions
+- Comprehensive documentation
+- Error handling with clear user guidance
+
+## Technical Dependencies
+- OpenAI SDK for chat completions
+- HuggingFace Inference for image generation
+- Radix UI components for chat interface
+- Lucide React icons for UI elements
+
+## Environment Variables Required
+- `VITE_OPENAI_API_KEY`: OpenAI API key for AI chat functionality
+- `VITE_HUGGINGFACE_API_KEY`: HuggingFace API key for image generation
+
+## Current Status
+- AI Assistant fully integrated and functional
+- Navigation updated with AI Assistant access
+- Comprehensive error handling implemented
+- Ready for API key configuration by user
