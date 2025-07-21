@@ -404,6 +404,7 @@ For detailed information about specific features:
 
 - **[AI Assistant API Documentation](docs/AI_ASSISTANT_API.md)**: Complete API reference for AI Assistant endpoints
 - **[AI Assistant User Guide](docs/AI_ASSISTANT_USER_GUIDE.md)**: Comprehensive user guide for AI Assistant features
+- **[Deployment Guide](DEPLOYMENT.md)**: Step-by-step deployment instructions and troubleshooting
 - **[Changelog](docs/CHANGELOG.md)**: Detailed changelog including AI Assistant integration
 
 ## 📄 License
