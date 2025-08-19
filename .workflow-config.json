@@ -7,6 +7,18 @@
     {
       "name": "Start production mode",
       "command": "npm run build && NODE_ENV=production node dist/index.js"
+    },
+    {
+      "name": "Build for deployment",
+      "command": "./build-for-deployment.sh"
+    },
+    {
+      "name": "Run tests",
+      "command": "npm test"
+    },
+    {
+      "name": "Database push",
+      "command": "npm run db:push"
     }
   ]
 }
