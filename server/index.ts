@@ -4,6 +4,7 @@ import { setupVite, serveStatic, log } from "./utils/vite";
 import { scheduler } from "./services/scheduler";
 import { ErrorLogger, LogLevel, LogCategory, logInfo, logError } from "./utils/error-logger";
 import { performanceMonitor } from "./utils/performance-monitor";
+import { securityMonitor } from "./utils/security-monitor"; // Import securityMonitor
 // Custom frontend router no longer needed
 // import customFrontendRouter from "./custom-frontend";
 import dotenv from "dotenv";
@@ -19,6 +20,9 @@ performanceMonitor.start();
 // Apply performance monitoring middleware (before any other middleware)
 app.use(performanceMonitor.trackEndpoint());
 
+// Add security monitoring middleware
+app.use(securityMonitor.monitorRequests());
+
 // Standard middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -28,7 +32,7 @@ app.use((req, res, next) => {
   // Allow specific origins including Replit domains
   const allowedOrigins = ['http://localhost:5000', 'https://localhost:5000', 'https://*.replit.dev', 'https://*.repl.co'];
   const origin = req.headers.origin;
-  
+
   if (origin) {
     // Check if the origin matches any of our allowed patterns
     const isAllowed = allowedOrigins.some(allowedOrigin => {
@@ -38,7 +42,7 @@ app.use((req, res, next) => {
       }
       return allowedOrigin === origin;
     });
-    
+
     if (isAllowed) {
       res.header('Access-Control-Allow-Origin', origin);
     } else {
@@ -48,11 +52,11 @@ app.use((req, res, next) => {
   } else {
     res.header('Access-Control-Allow-Origin', '*');
   }
-  
+
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   res.header('Access-Control-Allow-Credentials', 'true');
-  
+
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
@@ -107,7 +111,7 @@ app.use((req, res, next) => {
           slow: duration > 500 ? true : undefined
         }
       );
-      
+
       // Log failed requests (status >= 400)
       if (res.statusCode >= 400) {
         const level = res.statusCode >= 500 ? LogLevel.ERROR : LogLevel.WARNING;
@@ -151,10 +155,10 @@ import { errorHandler, notFoundHandler } from './middleware/error-handler';
   } else {
     serveStatic(app);
   }
-  
+
   // Apply the 404 handler after Vite middleware
   app.use(notFoundHandler);
-  
+
   // Apply the global error handler last
   app.use(errorHandler);
 
@@ -167,14 +171,14 @@ import { errorHandler, notFoundHandler } from './middleware/error-handler';
       ip: req.ip,
       userAgent: req.get('User-Agent')
     };
-    
+
     // Determine response status and message
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-    
+
     // Log the error with our structured logger
     logError(
-      `Error handling ${req.method} ${req.path}: ${message}`, 
+      `Error handling ${req.method} ${req.path}: ${message}`,
       'ExpressErrorHandler',
       {
         request: requestInfo,
@@ -182,16 +186,16 @@ import { errorHandler, notFoundHandler } from './middleware/error-handler';
         status
       }
     );
-    
+
     // Don't expose error details in production
     const isDevelopment = app.get("env") === "development";
-    
-    res.status(status).json({ 
+
+    res.status(status).json({
       message,
       ...(isDevelopment ? { error: err.message, stack: err.stack } : {})
     });
   });
-  
+
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
@@ -208,7 +212,7 @@ import { errorHandler, notFoundHandler } from './middleware/error-handler';
       nodeVersion: process.version,
       adminKeySet: process.env.ADMIN_API_KEY ? true : false
     });
-    
+
     // Start the scheduler to process invoices automatically
     scheduler.start();
     logInfo('Invoice processor scheduler started', 'ServerStartup');

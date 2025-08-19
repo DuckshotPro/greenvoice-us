@@ -101,3 +101,58 @@ args = "mv server/routes.ts server/routes/routes.ts"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "mv server/storage.ts server/models/storage.ts"
+
+[[workflows.workflow]]
+name = "Security Monitoring"
+author = 41040400
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run security:scan"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run audit:check"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run logs:security"
+
+[[workflows.workflow]]
+name = "Advanced Logging Pipeline"
+author = 41040400
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run logs:collect"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run logs:analyze"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run logs:report"
+
+[[workflows.workflow]]
+name = "System Health Check"
+author = 41040400
+mode = "parallel"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run health:database"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run health:performance"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run health:security"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run health:memory"

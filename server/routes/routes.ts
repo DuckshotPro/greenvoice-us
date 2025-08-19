@@ -50,6 +50,7 @@ import progressBillingRoutes from "./progress-billing-routes";
 import aiUsageRoutes from "./ai-usage";
 import { currencyRouter } from "./currency";
 import { chatRouter } from "./chat";
+import adminRouter from "./admin-routes";
 import {
   trackShareSchema,
   analyticsQuerySchema,
@@ -86,48 +87,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Set up authentication routes
   setupAuth(app);
-  
+
   // Register analytics routes
   app.use("/api/analytics", analyticsRoutes);
-  
+
   // Register branding routes
   app.use("/api/branding", brandingRoutes);
-  
+
   // Register quick invoice routes
   app.use("/api/invoices", quickInvoiceRoutes);
-  
+
   // Register ad routes for Google Ads integration
   app.use("/api/ads", adRoutes);
-  
+
   // Register progress billing routes for milestone payments
   app.use("/api/progress-billing", progressBillingRoutes);
-  
+
   // Register client portal routes for secure payments
   app.use("/api/client-portal", clientPortalRoutes);
-  
+
   // Register AI usage routes for tracking and limits
   app.use("/api/ai", aiUsageRoutes);
-  
+
   // Register multi-currency support routes
   app.use("/api/currency", currencyRouter);
-  
+
   // Register client support chat routes
   app.use("/api/chat", chatRouter);
-  
+
+  // Register admin routes
+  app.use("/api/admin", adminRouter);
+
   // Initialize Stripe with secret key
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
     apiVersion: '2023-10-16' as any, // Cast to any to avoid TypeScript error since Stripe SDK types may lag behind API versions
   });
-  
+
   // Create a payment intent for Stripe with Google Pay support
   app.post("/api/create-payment-intent", requireAuth, async (req: Request, res: Response) => {
     try {
       const { amount, currency = 'usd' } = req.body;
-      
+
       if (!amount) {
         return res.status(400).json({ message: "Amount is required" });
       }
-      
+
       // Amount should be in cents (e.g., $12.00 = 1200)
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
@@ -139,13 +143,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           plan: 'premium'
         },
       });
-      
+
       logInfo(`Payment intent created for user`, "PaymentController", {
         userId: req.user?.id,
         amount,
         currency
       });
-      
+
       res.json({
         clientSecret: paymentIntent.client_secret,
         id: paymentIntent.id
@@ -301,13 +305,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/invoices/:id", requireAuth, validateIdParam, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
-      
+
       // Verify invoice exists
       const invoice = await storage.getInvoice(id);
       if (!invoice) {
         return res.status(404).json({ message: "Invoice not found" });
       }
-      
+
       // Verify invoice belongs to user
       if (req.user && invoice.userId !== req.user.id) {
         logWarning(`Unauthorized delete attempt for invoice ${id}`, "InvoiceController", {
@@ -317,7 +321,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         return res.status(403).json({ message: "Not authorized to delete this invoice" });
       }
-      
+
       const deleted = await storage.deleteInvoice(id);
 
       logInfo(`Invoice ${id} deleted successfully`, "InvoiceController", { 
@@ -500,7 +504,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!template) {
         return res.status(404).json({ message: "Recurring template not found" });
       }
-      
+
       // Verify template belongs to user
       if (req.user && template.userId !== req.user.id) {
         logWarning(`Unauthorized update attempt for template ${id}`, "TemplateController", {
@@ -533,13 +537,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/recurring-templates/:id", requireAuth, validateIdParam, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
-      
+
       // Verify template exists
       const template = await storage.getRecurringTemplate(id);
       if (!template) {
         return res.status(404).json({ message: "Recurring template not found" });
       }
-      
+
       // Verify template belongs to user
       if (req.user && template.userId !== req.user.id) {
         logWarning(`Unauthorized delete attempt for template ${id}`, "TemplateController", {
@@ -549,7 +553,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         return res.status(403).json({ message: "Not authorized to delete this template" });
       }
-      
+
       const deleted = await storage.deleteRecurringTemplate(id);
 
       logInfo(`Template ${id} deleted successfully`, "TemplateController", { 
@@ -752,33 +756,33 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
       res.status(500).json({ message: "Failed to retrieve error logs" });
     }
   });
-  
+
   // Get performance metrics
   app.get("/api/admin/performance", requireAdmin, async (req: Request, res: Response) => {
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
-      
+
       const metrics = await performanceMonitor.getRecentMetrics(limit);
-      
+
       logInfo(`Admin retrieved performance metrics`, 'AdminApi', {
         endpointCount: metrics.endpoints.length,
         queryCount: metrics.queries.length
       });
-      
+
       res.json(metrics);
     } catch (error) {
       logError(`Error fetching performance metrics`, 'AdminApi', { error });
       res.status(500).json({ message: "Failed to retrieve performance metrics" });
     }
   });
-  
+
   // Get performance summary
   app.get("/api/admin/performance/summary", requireAdmin, async (req: Request, res: Response) => {
     try {
       const summary = await performanceMonitor.getPerformanceSummary();
-      
+
       logInfo(`Admin retrieved performance summary`, 'AdminApi');
-      
+
       res.json(summary);
     } catch (error) {
       logError(`Error fetching performance summary`, 'AdminApi', { error });
@@ -875,7 +879,7 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
 
       // Capture ad view details from the request
       const { watchedSeconds, adId, campaign, platform, completionRate } = req.body;
-      
+
       // Default is 1 day of premium access, could be adjusted based on completion rate
       const daysAwarded = completionRate && completionRate >= 90 ? 2 : 1;
 
@@ -931,7 +935,7 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
 
       // Get share analytics data
       const analytics = await storage.getShareAnalytics(invoiceId);
-      
+
       logInfo(`Share analytics retrieved for invoice ${invoiceId}`, "AnalyticsController", { 
         invoiceId, 
         userId: req.user?.id,
@@ -958,14 +962,14 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
 
       // Pass query parameters as options object
       const { startDate, endDate, groupBy } = req.query;
-      
+
       // Create options object for analytics query
       const options = {
         ...(startDate && { startDate: new Date(startDate as string) }),
         ...(endDate && { endDate: new Date(endDate as string) }),
         ...(groupBy && { groupBy: groupBy as string })
       };
-      
+
       const analytics = await storage.getShareAnalyticsByMethod(req.user.id, options);
 
       res.json(analytics);
@@ -987,14 +991,14 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
 
       // Pass query parameters as options object
       const { startDate, endDate, groupBy } = req.query;
-      
+
       // Create options object for analytics query
       const options = {
         ...(startDate && { startDate: new Date(startDate as string) }),
         ...(endDate && { endDate: new Date(endDate as string) }),
         ...(groupBy && { groupBy: groupBy as string })
       };
-      
+
       const analytics = await storage.getShareViewAnalytics(req.user.id, options);
 
       res.json(analytics);
@@ -1006,7 +1010,7 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
 
   // Track a share event (called from the client)
   // Analytics routes moved to dedicated file (./routes/analytics-routes.ts)
-  
+
   // Analytics routes moved to dedicated file (./routes/analytics-routes.ts)
 
   // Test public endpoint for database and analytics tables
@@ -1024,7 +1028,7 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
         coupons: boolean;
         [key: string]: boolean; // Add index signature to allow dynamic access
       };
-      
+
       const dbStatus = {
         connected: true,
         tables: {
@@ -1048,48 +1052,48 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
           WHERE table_schema = 'public'
           ORDER BY table_name;
         `;
-        
+
         const result = await pool.query(tableQuery);
         const tables = result.rows.map(row => row.table_name);
         dbStatus.schemas = tables;
-        
+
         // Mark tables as found
         if (tables.includes('users')) {
           dbStatus.tables.users = true;
           const countResult = await pool.query('SELECT COUNT(*) as count FROM users');
           dbStatus.counts['users'] = parseInt(countResult.rows[0].count);
         }
-        
+
         if (tables.includes('invoices')) {
           dbStatus.tables.invoices = true;
           const countResult = await pool.query('SELECT COUNT(*) as count FROM invoices');
           dbStatus.counts['invoices'] = parseInt(countResult.rows[0].count);
         }
-        
+
         if (tables.includes('share_analytics')) {
           dbStatus.tables.share_analytics = true;
           const countResult = await pool.query('SELECT COUNT(*) as count FROM share_analytics');
           dbStatus.counts['share_analytics'] = parseInt(countResult.rows[0].count);
         }
-        
+
         if (tables.includes('subscription_plans')) {
           dbStatus.tables.subscription_plans = true;
           const countResult = await pool.query('SELECT COUNT(*) as count FROM subscription_plans');
           dbStatus.counts['subscription_plans'] = parseInt(countResult.rows[0].count);
         }
-        
+
         if (tables.includes('subscription_transactions')) {
           dbStatus.tables.subscription_transactions = true;
           const countResult = await pool.query('SELECT COUNT(*) as count FROM subscription_transactions');
           dbStatus.counts['subscription_transactions'] = parseInt(countResult.rows[0].count);
         }
-        
+
         if (tables.includes('ad_rewards')) {
           dbStatus.tables.ad_rewards = true;
           const countResult = await pool.query('SELECT COUNT(*) as count FROM ad_rewards');
           dbStatus.counts['ad_rewards'] = parseInt(countResult.rows[0].count);
         }
-        
+
         if (tables.includes('coupons')) {
           dbStatus.tables.coupons = true;
           const countResult = await pool.query('SELECT COUNT(*) as count FROM coupons');
