@@ -48,6 +48,8 @@ import { quickInvoiceRoutes } from "./quick-invoice-routes";
 import { adRoutes } from "./ad-routes";
 import progressBillingRoutes from "./progress-billing-routes";
 import aiUsageRoutes from "./ai-usage";
+import { currencyRouter } from "./currency";
+import { chatRouter } from "./chat";
 import {
   trackShareSchema,
   analyticsQuerySchema,
@@ -105,6 +107,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register AI usage routes for tracking and limits
   app.use("/api/ai", aiUsageRoutes);
+  
+  // Register multi-currency support routes
+  app.use("/api/currency", currencyRouter);
+  
+  // Register client support chat routes
+  app.use("/api/chat", chatRouter);
   
   // Initialize Stripe with secret key
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {

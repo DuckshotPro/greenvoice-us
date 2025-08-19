@@ -404,6 +404,72 @@ export const shareAnalytics = pgTable("share_analytics", {
   metadata: jsonb("metadata").default({}),
 });
 
+// Currency exchange rate tracking for multi-currency support
+export const currencyRates = pgTable("currency_rates", {
+  id: serial("id").primaryKey(),
+  baseCurrency: text("base_currency").notNull().default("USD"),
+  targetCurrency: text("target_currency").notNull(),
+  exchangeRate: doublePrecision("exchange_rate").notNull(),
+  timestamp: timestamp("timestamp").defaultNow(),
+  source: text("source").notNull().default("exchangerate-api"), // API source
+  isManualOverride: boolean("is_manual_override").default(false),
+});
+
+// Client support chat system
+export const supportChatConversations = pgTable("support_chat_conversations", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id"), // Can be null for guest users
+  clientEmail: text("client_email").notNull(), // Client identifier
+  clientName: text("client_name"),
+  subject: text("subject"),
+  status: text("status").notNull().default("open"), // open, in_progress, resolved, closed
+  priority: text("priority").notNull().default("normal"), // low, normal, high, urgent
+  assignedToUserId: integer("assigned_to_user_id"), // Support agent
+  relatedInvoiceId: integer("related_invoice_id"), // Optional invoice reference
+  language: text("language").default("en"), // For multi-language support
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  lastMessageAt: timestamp("last_message_at").defaultNow(),
+  resolvedAt: timestamp("resolved_at"),
+  clientTimezone: text("client_timezone"),
+  metadata: jsonb("metadata").default({}), // Additional conversation data
+});
+
+export const supportChatMessages = pgTable("support_chat_messages", {
+  id: serial("id").primaryKey(),
+  conversationId: integer("conversation_id").notNull(),
+  senderType: text("sender_type").notNull(), // client, agent, system, ai_assistant
+  senderUserId: integer("sender_user_id"), // For agent messages
+  senderName: text("sender_name").notNull(),
+  messageContent: text("message_content").notNull(),
+  messageType: text("message_type").notNull().default("text"), // text, file, image, invoice_share, system
+  attachments: jsonb("attachments").default([]), // File attachments
+  aiGenerated: boolean("ai_generated").default(false),
+  readByClient: boolean("read_by_client").default(false),
+  readByAgent: boolean("read_by_agent").default(false),
+  timestamp: timestamp("timestamp").defaultNow(),
+  editedAt: timestamp("edited_at"),
+  metadata: jsonb("metadata").default({}),
+});
+
+// Multi-currency revenue analytics
+export const currencyAnalytics = pgTable("currency_analytics", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  period: text("period").notNull(), // daily, weekly, monthly, yearly
+  periodDate: date("period_date").notNull(), // The date for the period
+  currency: text("currency").notNull(),
+  totalRevenue: doublePrecision("total_revenue").default(0),
+  totalInvoices: integer("total_invoices").default(0),
+  paidInvoices: integer("paid_invoices").default(0),
+  overdueInvoices: integer("overdue_invoices").default(0),
+  averageInvoiceAmount: doublePrecision("average_invoice_amount").default(0),
+  exchangeRateToUSD: doublePrecision("exchange_rate_to_usd").default(1),
+  usdEquivalentRevenue: doublePrecision("usd_equivalent_revenue").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // UTM parameter tracking for marketing campaign analysis
 export const utmTracking = pgTable("utm_tracking", {
   id: serial("id").primaryKey(),
