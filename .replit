@@ -156,3 +156,28 @@ args = "npm run health:security"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run health:memory"
+
+[[workflows.workflow]]
+name = "Comprehensive System Monitor"
+author = 41040400
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run health:database"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run health:security"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run logs:collect"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run logs:analyze"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run security:scan"
