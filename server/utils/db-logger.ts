@@ -1,6 +1,6 @@
 
 import { db } from "../models/db";
-import { logInfo } from "../utils/error-logger";
+import { logAudit } from "../utils/error-logger";
 
 /**
  * Database operation logger
@@ -18,7 +18,7 @@ export class DbLogger {
     // Sanitize data to remove sensitive fields
     const safeData = this.sanitizeData(data);
     
-    logInfo(`DB create ${entity}`, 'DbLogger', {
+    logAudit(`Created ${entity}`, {
       userId,
       action: 'create',
       entity,
@@ -42,7 +42,7 @@ export class DbLogger {
     changes: string[],
     previousValues?: Record<string, any>
   ): void {
-    logInfo(`DB update ${entity} #${entityId}`, 'DbLogger', {
+    logAudit(`Updated ${entity} #${entityId}`, {
       userId,
       action: 'update',
       entity,
@@ -59,7 +59,7 @@ export class DbLogger {
    * @param entityId The ID of the deleted entity
    */
   static logDelete(entity: string, userId: number, entityId: number): void {
-    logInfo(`DB delete ${entity} #${entityId}`, 'DbLogger', {
+    logAudit(`Deleted ${entity} #${entityId}`, {
       userId,
       action: 'delete',
       entity,
