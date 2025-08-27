@@ -51,6 +51,7 @@ import aiUsageRoutes from "./ai-usage";
 import { currencyRouter } from "./currency";
 import { chatRouter } from "./chat";
 import adminRouter from "./admin-routes";
+import auditLogsRouter from "./audit-logs";
 import {
   trackShareSchema,
   analyticsQuerySchema,
@@ -117,6 +118,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register admin routes
   app.use("/api/admin", adminRouter);
+
+  // Register audit logs routes
+  app.use("/api/audit-logs", auditLogsRouter);
 
   // Initialize Stripe with secret key
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {

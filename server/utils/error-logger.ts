@@ -151,7 +151,10 @@ export class ErrorLogger {
   // Array to store log entries
   private static logEntries: LogEntry[] = [];
   private static MAX_LOGS = 1000; // Maximum logs to store in memory
-
+  private static isShippingEnabled = !!process.env.LOG_SHIP_URL;
+  private static shipUrl = process.env.LOG_SHIP_URL || '';
+  private static shipToken = process.env.LOG_SHIP_TOKEN || '';
+  
   /**
    * Sanitize data by removing sensitive information
    */
@@ -272,6 +275,13 @@ export class ErrorLogger {
     if (this.logEntries.length > this.MAX_LOGS) {
       this.logEntries = this.logEntries.slice(-this.MAX_LOGS);
     }
+
+    // Best-effort shipping for important logs
+    try {
+      shipIfNeeded(entry);
+    } catch (_) {
+      // Do not throw from logger
+    }
   }
   
   /**
@@ -286,4 +296,51 @@ export class ErrorLogger {
     // Return most recent logs based on count
     return filteredLogs.slice(-count).reverse();
   }
+}
+
+// Ship logs offsite if configured and criteria match
+function shipIfNeeded(entry: LogEntry) {
+  const isShippingEnabled = !!process.env.LOG_SHIP_URL;
+  const shipUrl = process.env.LOG_SHIP_URL || '';
+  const shipToken = process.env.LOG_SHIP_TOKEN || '';
+  if (!isShippingEnabled) return;
+
+  const shouldShip = (
+    entry.level === LogLevel.ERROR ||
+    entry.level === LogLevel.CRITICAL ||
+    entry.level === LogLevel.WARNING ||
+    entry.source === 'Audit'
+  );
+  if (!shouldShip) return;
+
+  const payload = {
+    timestamp: entry.timestamp.toISOString(),
+    level: entry.level,
+    source: entry.source,
+    message: entry.message,
+    details: entry.details ?? null
+  };
+
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (shipToken) headers['Authorization'] = `Bearer ${shipToken}`;
+  
+  // If LOG_SHIP_URL points to our local ingest endpoint, use it
+  if (typeof fetch === 'function') {
+    setTimeout(() => {
+      void fetch(shipUrl, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => {});
+    }, 0);
+  }
+}
+
+/**
+ * Audit logging wrapper for semantically important events (DB, auth, security)
+ */
+export function logAudit(message: string, details?: any): void {
+  ErrorLogger.logActivity(
+    LogLevel.INFO,
+    LogCategory.DATABASE,
+    message,
+    'Audit',
+    details
+  );
 }

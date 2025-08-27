@@ -1,6 +1,6 @@
 
 import { Request, Response, NextFunction } from "express";
-import { logError } from "../utils/logger";
+import { logError } from "../utils/error-logger";
 
 /**
  * Global error handler middleware

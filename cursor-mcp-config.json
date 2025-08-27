@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "neon": {
+      "command": "node",
+      "args": ["/workspace/mcp-neon-server/dist/index.js"],
+      "env": {
+        "DATABASE_URL": "postgresql://neondb_owner:npg_KaxML6oWdAR9@ep-lucky-thunder-adhpho8w-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+      }
+    }
+  }
+}
