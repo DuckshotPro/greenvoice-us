@@ -17,12 +17,20 @@ export default function NotFound() {
             The page you're looking for doesn't exist or may have been moved.
           </p>
           
-          <Button variant="gradient" asChild className="w-full font-nunito">
-            <Link href="/">
-              <Home className="mr-2 h-4 w-4" />
-              Return to Home
-            </Link>
-          </Button>
+          <div className="space-y-3">
+            <Button variant="gradient" asChild className="w-full font-nunito">
+              <Link href="/">
+                <Home className="mr-2 h-4 w-4" />
+                Return to Home
+              </Link>
+            </Button>
+            
+            <Button variant="outline" asChild className="w-full font-nunito">
+              <Link href="/auth">
+                Sign In
+              </Link>
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

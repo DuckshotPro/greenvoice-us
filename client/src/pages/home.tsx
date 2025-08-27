@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/use-auth';
 import Header from '@/components/layout/header';
@@ -36,6 +36,7 @@ import {
 
 const Home = () => {
   const { user, isPremium, isAdmin } = useAuth();
+  const [, navigate] = useLocation();
   // For Pro+ features, we'll check if user is admin (enterprise tier)
   const isPremiumPlus = isPremium && isAdmin;
   const [activeTab, setActiveTab] = useState('all');
@@ -122,7 +123,7 @@ const Home = () => {
                       variant="primary"
                       className="w-full sm:w-auto"
                       onClick={() => {
-                        window.location.href = "/auth";
+                        navigate("/auth");
                       }}
                     >
                       Sign In
@@ -263,7 +264,7 @@ const Home = () => {
                     variant="primary"
                     className="px-8 py-3 rounded-lg"
                     onClick={() => {
-                      window.location.href = "/auth";
+                      navigate("/auth");
                     }}
                   >
                     Get Started <ArrowRight className="ml-2 h-4 w-4 inline" />
@@ -271,7 +272,7 @@ const Home = () => {
                   
                   <GradientCard className="sm:w-auto py-4 px-6 cursor-pointer hover:scale-105 transition-transform duration-300"
                     onClick={() => {
-                      window.location.href = "/roadmap";
+                      navigate("/roadmap");
                     }}
                   >
                     <div className="flex items-center gap-2 font-medium text-gray-800 dark:text-gray-200">
@@ -438,7 +439,7 @@ const Home = () => {
             <GradientCard 
               className="h-full overflow-visible"
               gradient="bg-gradient-to-br from-primary/20 to-blue-600/10 dark:from-primary/10 dark:to-indigo-900/20"
-              onClick={() => window.location.href = "/create-invoice"}
+              onClick={() => navigate("/create-invoice")}
             >
               <div className="p-6 h-full flex flex-col items-center justify-center text-center">
                 <FloatingElement duration={4} delay={0.3}>
@@ -456,7 +457,7 @@ const Home = () => {
                   variant="primary"
                   className="mt-auto px-5 py-2"
                   onClick={() => {
-                    window.location.href = "/create-invoice";
+                    navigate("/create-invoice");
                   }}
                 >
                   Create New Invoice
@@ -466,7 +467,7 @@ const Home = () => {
             
             <Card3D 
               className="flex flex-col items-center justify-center p-4 text-center"
-              onClick={() => window.location.href = "/create-invoice"}
+              onClick={() => navigate("/create-invoice")}
               accentColor="#009888"
               backgroundColor="bg-white dark:bg-gray-800"
             >
@@ -478,7 +479,7 @@ const Home = () => {
             
             <Card3D 
               className="flex flex-col items-center justify-center p-4 text-center"
-              onClick={() => window.location.href = "/history"}
+              onClick={() => navigate("/history")}
               accentColor="#6366f1"
               backgroundColor="bg-white dark:bg-gray-800"
             >
@@ -490,7 +491,7 @@ const Home = () => {
             
             <Card3D 
               className="flex flex-col items-center justify-center p-4 text-center"
-              onClick={() => window.location.href = "/analytics"}
+              onClick={() => navigate("/analytics")}
               accentColor="#3b82f6"
               backgroundColor="bg-white dark:bg-gray-800"
             >
@@ -502,7 +503,7 @@ const Home = () => {
             
             <Card3D 
               className="flex flex-col items-center justify-center p-4 text-center"
-              onClick={() => window.location.href = "/roadmap"}
+              onClick={() => navigate("/roadmap")}
               accentColor="#f59e0b"
               backgroundColor="bg-white dark:bg-gray-800"
             >
@@ -514,7 +515,7 @@ const Home = () => {
             
             <Card3D 
               className="flex flex-col items-center justify-center p-4 text-center"
-              onClick={() => window.location.href = "/settings"}
+              onClick={() => navigate("/settings")}
               accentColor="#6b7280"
               backgroundColor="bg-white dark:bg-gray-800"
             >
@@ -569,7 +570,7 @@ const Home = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <GlassCard 
                 className="p-4 h-full"
-                onClick={() => window.location.href = "/create-invoice"}
+                onClick={() => navigate("/create-invoice")}
               >
                 <label className="text-sm font-medium text-gray-600 dark:text-gray-300 block mb-3">Client Information</label>
                 <div className="flex items-center p-3 bg-white/50 dark:bg-gray-800/30 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary dark:hover:border-primary transition-colors cursor-pointer">
@@ -582,7 +583,7 @@ const Home = () => {
               
               <GlassCard 
                 className="p-4 h-full"
-                onClick={() => window.location.href = "/create-invoice"}
+                onClick={() => navigate("/create-invoice")}
                 glowColor="rgba(59, 130, 246, 0.3)"
               >
                 <label className="text-sm font-medium text-gray-600 dark:text-gray-300 block mb-3">Invoice Items</label>
@@ -596,7 +597,7 @@ const Home = () => {
               
               <GlassCard 
                 className="p-4 h-full"
-                onClick={() => window.location.href = "/create-invoice"}
+                onClick={() => navigate("/create-invoice")}
                 glowColor="rgba(99, 102, 241, 0.3)"
               >
                 <label className="text-sm font-medium text-gray-600 dark:text-gray-300 block mb-3">Payment Terms</label>
@@ -613,7 +614,7 @@ const Home = () => {
               <ShimmerButton
                 variant="primary"
                 onClick={() => {
-                  window.location.href = "/create-invoice";
+                  navigate("/create-invoice");
                 }}
               >
                 Start Creating <ArrowRight className="ml-2 h-4 w-4" />
@@ -662,7 +663,7 @@ const Home = () => {
                 variant="primary"
                 className="px-3 py-1 text-sm"
                 onClick={() => {
-                  window.location.href = "/history";
+                  navigate("/history");
                 }}
               >
                 View All <ArrowRight className="ml-1 h-3 w-3" />
