@@ -636,3 +636,24 @@ export type InsertAiUsageTracking = z.infer<typeof insertAiUsageTrackingSchema>;
 export type AiUsageSummary = typeof aiUsageSummary.$inferSelect;
 export type InsertAiUsageSummary = z.infer<typeof insertAiUsageSummarySchema>;
 export type RecurringTemplateWithItems = z.infer<typeof recurringTemplateWithItemsSchema>;
+
+// Audit logging table for important events
+export const auditLogs = pgTable("audit_logs", {
+  id: serial("id").primaryKey(),
+  timestamp: timestamp("timestamp").notNull().defaultNow(),
+  level: text("level").notNull(), // 'INFO', 'WARNING', 'ERROR', 'CRITICAL'
+  source: text("source").notNull(), // 'Audit', 'Performance', etc.
+  message: text("message").notNull(),
+  details: jsonb("details"), // JSON payload with additional context
+  userId: integer("user_id"), // Optional user ID if available
+  requestId: text("request_id"), // Optional request correlation ID
+  ipAddress: text("ip_address"), // Optional client IP
+  userAgent: text("user_agent"), // Optional user agent
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
+  id: true,
+  timestamp: true,
+  createdAt: true,
+});

@@ -5,6 +5,7 @@ import { scheduler } from "./services/scheduler";
 import { ErrorLogger, LogLevel, LogCategory, logInfo, logError } from "./utils/error-logger";
 import { performanceMonitor } from "./utils/performance-monitor";
 import { securityMonitor } from "./utils/security-monitor"; // Import securityMonitor
+import { AuditRetentionService } from "./services/audit-retention";
 // Custom frontend router no longer needed
 // import customFrontendRouter from "./custom-frontend";
 import dotenv from "dotenv";
@@ -216,5 +217,9 @@ import { errorHandler, notFoundHandler } from './middleware/error-handler';
     // Start the scheduler to process invoices automatically
     scheduler.start();
     logInfo('Invoice processor scheduler started', 'ServerStartup');
+
+    // Start audit log retention service
+    AuditRetentionService.getInstance().start();
+    logInfo('Audit log retention service started', 'ServerStartup');
   });
 })();

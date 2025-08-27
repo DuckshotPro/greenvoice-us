@@ -323,6 +323,8 @@ function shipIfNeeded(entry: LogEntry) {
 
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (shipToken) headers['Authorization'] = `Bearer ${shipToken}`;
+  
+  // If LOG_SHIP_URL points to our local ingest endpoint, use it
   if (typeof fetch === 'function') {
     setTimeout(() => {
       void fetch(shipUrl, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => {});
