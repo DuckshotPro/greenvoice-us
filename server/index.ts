@@ -67,11 +67,11 @@ app.use((req, res, next) => {
         method: req.method,
         query: req.query,
         // Sanitize request headers to remove sensitive data
-        headers: ErrorLogger['sanitizeData']({
+        headers: {
           userAgent: req.headers['user-agent'],
           referer: req.headers.referer,
           origin: req.headers.origin
-        }),
+        },
         // Add request body keys (not values) for better debugging
         bodyKeys: req.body ? Object.keys(req.body) : []
       }
