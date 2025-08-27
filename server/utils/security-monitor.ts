@@ -36,7 +36,7 @@ class SecurityMonitor {
 
   private readonly threatPatterns: ThreatPattern[] = [
     {
-      pattern: /(\b(union|select|insert|update|delete|drop|create|alter)\b)/i,
+      pattern: /(\b(union|select|insert|update|delete|drop|create|alter)\s+(from|into|table|database|where|set)\b)/i,
       type: 'sql_injection',
       severity: 'high',
       description: 'Potential SQL injection attempt detected'

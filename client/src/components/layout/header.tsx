@@ -56,7 +56,7 @@ const Header = () => {
                 <BrandLogo size="md" showText={true} />
               </Link>
             </div>
-            
+
             <nav className="hidden md:ml-6 md:flex md:space-x-8">
               {navLinks.map((link) => (
                 <Link 
@@ -74,13 +74,13 @@ const Header = () => {
               ))}
             </nav>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             {/* Theme toggle */}
             <div className="hidden sm:block">
               <ThemeToggle />
             </div>
-            
+
             {/* Premium badge/button */}
             {user && (
               <Link href="/premium">
@@ -94,7 +94,7 @@ const Header = () => {
                 </Button>
               </Link>
             )}
-            
+
             {user ? (
               <>
                 <DropdownMenu>
@@ -154,7 +154,7 @@ const Header = () => {
               </Button>
             )}
           </div>
-          
+
           <div className="-mr-2 flex items-center md:hidden">
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
               <SheetTrigger asChild>
@@ -183,7 +183,7 @@ const Header = () => {
                       {link.label}
                     </Link>
                   ))}
-                  
+
                   {/* Mobile premium link */}
                   {user && (
                     <Link
@@ -195,7 +195,7 @@ const Header = () => {
                       {isPremium ? 'Premium Status' : 'Upgrade to Premium'}
                     </Link>
                   )}
-                  
+
                   {/* FAQ Link */}
                   <Link
                     href="/faq"
@@ -205,7 +205,7 @@ const Header = () => {
                     <HelpCircle className="mr-2 h-5 w-5 text-blue-500" />
                     Help & FAQ
                   </Link>
-                  
+
                   {/* Admin Console Link */}
                   {isAdmin && (
                     <Link
@@ -217,7 +217,7 @@ const Header = () => {
                       Admin Console
                     </Link>
                   )}
-                  
+
                   {/* Theme toggle for mobile */}
                   <div className="px-3 py-2 rounded-md">
                     <div className="flex items-center">
@@ -225,7 +225,7 @@ const Header = () => {
                       <ThemeToggle />
                     </div>
                   </div>
-                  
+
                   {/* Mobile logout */}
                   {user && (
                     <Button

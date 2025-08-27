@@ -75,5 +75,29 @@ export const logger = {
   info: logInfo,
   warning: logWarning,
   error: logError,
-  critical: logCritical
+  critical: logCritical,
+  
+  /**
+   * Batch log multiple messages to reduce console spam
+   */
+  batch: (messages: Array<{ level: string; message: string; source?: string; details?: any }>) => {
+    messages.forEach(({ level, message, source = 'SYSTEM', details }) => {
+      switch (level.toLowerCase()) {
+        case 'info':
+          logInfo(message, source, details);
+          break;
+        case 'warning':
+          logWarning(message, source, details);
+          break;
+        case 'error':
+          logError(message, source, details);
+          break;
+        case 'critical':
+          logCritical(message, source, details);
+          break;
+        default:
+          logInfo(message, source, details);
+      }
+    });
+  }
 };
