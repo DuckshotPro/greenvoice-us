@@ -1,6 +1,6 @@
 
 import { db } from "../models/db";
-import { logAudit } from "../utils/logger";
+import { logInfo } from "../utils/error-logger";
 
 /**
  * Database operation logger
@@ -18,16 +18,13 @@ export class DbLogger {
     // Sanitize data to remove sensitive fields
     const safeData = this.sanitizeData(data);
     
-    logAudit(
-      `Created ${entity}`,
+    logInfo(`DB create ${entity}`, 'DbLogger', {
       userId,
-      {
-        action: 'create',
-        entity,
-        entityId,
-        data: safeData
-      }
-    );
+      action: 'create',
+      entity,
+      entityId,
+      data: safeData
+    });
   }
   
   /**
@@ -45,17 +42,14 @@ export class DbLogger {
     changes: string[],
     previousValues?: Record<string, any>
   ): void {
-    logAudit(
-      `Updated ${entity} #${entityId}`,
+    logInfo(`DB update ${entity} #${entityId}`, 'DbLogger', {
       userId,
-      {
-        action: 'update',
-        entity,
-        entityId,
-        changedFields: changes,
-        previousValues: previousValues ? this.sanitizeData(previousValues) : undefined
-      }
-    );
+      action: 'update',
+      entity,
+      entityId,
+      changedFields: changes,
+      previousValues: previousValues ? this.sanitizeData(previousValues) : undefined
+    });
   }
   
   /**
@@ -65,15 +59,12 @@ export class DbLogger {
    * @param entityId The ID of the deleted entity
    */
   static logDelete(entity: string, userId: number, entityId: number): void {
-    logAudit(
-      `Deleted ${entity} #${entityId}`,
+    logInfo(`DB delete ${entity} #${entityId}`, 'DbLogger', {
       userId,
-      {
-        action: 'delete',
-        entity,
-        entityId
-      }
-    );
+      action: 'delete',
+      entity,
+      entityId
+    });
   }
   
   /**
