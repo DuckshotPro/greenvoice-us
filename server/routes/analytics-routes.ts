@@ -177,7 +177,7 @@ router.get(
             startDate ? gte(shareAnalytics.share_timestamp, new Date(startDate)) : undefined,
             endDate ? sql`${shareAnalytics.share_timestamp} <= ${new Date(endDate)}` : undefined
           )
-        ) as any;
+        );
 
       // Handle different grouping options
       if (groupBy === "method") {
