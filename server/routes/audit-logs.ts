@@ -65,17 +65,22 @@ router.get('/recent', async (req: Request, res: Response) => {
     const { limit = 100, level, source, userId } = req.query;
     
     let query = db.select().from(auditLogs).orderBy(auditLogs.timestamp.desc());
-    
+
+    // Collect filter conditions
+    const conditions = [];
     if (level) {
-      query = query.where(auditLogs.level.eq(level as string));
+      conditions.push(auditLogs.level.eq(level as string));
     }
     if (source) {
-      query = query.where(auditLogs.source.eq(source as string));
+      conditions.push(auditLogs.source.eq(source as string));
     }
     if (userId) {
-      query = query.where(auditLogs.userId.eq(parseInt(userId as string)));
+      conditions.push(auditLogs.userId.eq(parseInt(userId as string)));
     }
-    
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
     const logs = await query.limit(parseInt(limit as string));
     
     res.json({ 
