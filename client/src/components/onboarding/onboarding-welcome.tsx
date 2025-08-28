@@ -79,9 +79,12 @@ export default function OnboardingWelcome() {
     setCurrentStep(Math.min(currentStep + 1, onboardingSteps.length - 1));
   };
 
-  const handleSkipOnboarding = () => {
-    // Store in localStorage that user has seen onboarding
-    localStorage.setItem('onboarding-completed', 'true');
+    try {
+      localStorage.setItem('onboarding-completed', 'true');
+    } catch (e) {
+      // Could not save onboarding completion; log error for debugging
+      console.error('Failed to set onboarding-completed in localStorage:', e);
+    }
     navigate('/');
   };
 
