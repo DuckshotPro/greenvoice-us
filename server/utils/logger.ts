@@ -69,11 +69,22 @@ export function logCritical(message: string, source: string, details?: any): voi
 }
 
 /**
+ * Log an audit event
+ * @param message The message to log
+ * @param userId The user who performed the action
+ * @param details Additional details to include in the log
+ */
+export function logAudit(message: string, userId: number, details?: any): void {
+  ErrorLogger.logAudit(message, userId, details);
+}
+
+/**
  * Logger object with methods for various log levels
  */
 export const logger = {
   info: logInfo,
   warning: logWarning,
   error: logError,
-  critical: logCritical
+  critical: logCritical,
+  audit: logAudit
 };

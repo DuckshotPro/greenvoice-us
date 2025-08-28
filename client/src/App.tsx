@@ -19,6 +19,7 @@ import AdminConsole from "@/pages/admin-console";
 import Roadmap from "@/pages/roadmap";
 import NotFound from "@/pages/not-found";
 import { ProtectedRoute } from "@/components/auth/protected-route";
+import OnboardingWelcome from "@/components/onboarding/onboarding-welcome";
 
 function Router() {
   return (
@@ -29,6 +30,7 @@ function Router() {
       <Route path="/premium" component={PremiumPage} />
       <Route path="/faq" component={FaqPage} />
       <Route path="/roadmap" component={Roadmap} />
+      <ProtectedRoute path="/onboarding" component={OnboardingWelcome} />
       <ProtectedRoute path="/create-invoice" component={CreateInvoice} />
       <ProtectedRoute path="/analytics" component={AnalyticsDashboard} requirePremium />
       <ProtectedRoute path="/branding" component={BrandingSettings} />

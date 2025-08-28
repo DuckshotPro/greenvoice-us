@@ -90,11 +90,18 @@ export default function AuthPage() {
       username: data.username,
       password: data.password,
       rememberMe: data.rememberMe || false
+    }, {
+        navigate(DEFAULT_REDIRECT_PATH); // Explicit redirect after successful login
+      }
     });
   };
 
   const onRegisterSubmit = (data: RegisterFormValues) => {
-    registerMutation.mutate(data);
+    registerMutation.mutate(data, {
+      onSuccess: () => {
+        navigate('/onboarding'); // Redirect new users to onboarding
+      }
+    });
   };
 
   // Handle social login/signup

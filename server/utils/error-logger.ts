@@ -49,7 +49,7 @@ export class ErrorLogger {
       message,
       source,
       details: details ? this.sanitizeData(details) : undefined,
-      userId: userId ? this.hashIdentifier(userId) : undefined
+      userId: userId
     };
     
     this.addToBuffer(entry);
