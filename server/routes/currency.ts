@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { currencyService } from "../services/currency-service";
-import { isAuthenticated } from "../replitAuth";
+import { isAuthenticated } from "../auth";
 import { logError, logInfo } from "../utils/error-logger";
 import { z } from "zod";
 import { CURRENCY_OPTIONS } from "../../client/src/types/invoice";
