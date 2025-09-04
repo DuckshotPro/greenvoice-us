@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { logError, logInfo } from "../utils/error-logger";
-import { isAuthenticated } from "../replitAuth";
+import { isAuthenticated } from "../middleware/auth";
 import { z } from "zod";
 import { db } from "../db";
 import { supportChatConversations, supportChatMessages } from "@shared/schema";

@@ -3,7 +3,76 @@
 ## Project Overview
 An advanced invoice generation and payment processing platform that enables professional document creation, distribution, and secure financial transactions. The platform includes comprehensive AI integration for intelligent business assistance.
 
+## Deployment Environments
+
+### Replit Deployment
+When running on Replit, the application automatically uses OIDC authentication through Replit's identity system.
+
+**Required Environment Variables for Replit:**
+```bash
+REPLIT_DOMAINS=your-repl-domain.replit.dev
+REPL_ID=your-repl-id
+ISSUER_URL=https://replit.com/oidc
+DATABASE_URL=your-database-url
+SESSION_SECRET=your-session-secret
+```
+
+### GitHub/Firebase Deployment
+When deployed via GitHub Actions to Firebase (or other platforms), the application uses standard OAuth authentication.
+
+**Required Environment Variables for GitHub/Firebase:**
+```bash
+DATABASE_URL=your-database-url
+SESSION_SECRET=your-session-secret
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+# Optional: FACEBOOK_APP_ID, FACEBOOK_APP_SECRET, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
+```
+
+## Authentication System
+
+The application automatically detects the deployment environment:
+
+- **Replit Environment**: Uses OIDC authentication when `REPLIT_DOMAINS` and `REPL_ID` are present
+- **Standard Environment**: Uses OAuth authentication (Google, Facebook, GitHub) for all other deployments
+
+## Sync Between Environments
+
+### From Replit to GitHub:
+1. Make changes in your Replit environment
+2. Use the built-in Git integration or run: `git add . && git commit -m "Your message" && git push`
+3. GitHub Actions will automatically deploy to Firebase
+
+### From GitHub to Replit:
+1. Make changes via GitHub (PRs, direct commits)
+2. In Replit console, run: `git pull origin main`
+3. Replit will automatically restart with the new changes
+
+## Environment-Specific Features
+
+### Replit-Specific:
+- Automatic OIDC user authentication
+- Session management via Replit's identity system
+- Direct integration with Replit's user profiles
+
+### GitHub/Firebase-Specific:
+- OAuth login with Google, Facebook, GitHub
+- Standard session management
+- Suitable for public deployments
+
+## Development Workflow
+
+1. **Local Development**: Copy `.env.example` to `.env` and configure for your preferred auth method
+2. **Replit Development**: Use Replit secrets or `.env` with Replit-specific variables
+3. **Production**: Use GitHub secrets for Firebase deployment or Replit secrets for Replit deployment
+
 ## Recent Changes (January 20, 2025)
+
+### ✅ Fixed GitHub and Replit Sync Issues
+- **Unified Authentication**: Created conditional authentication system that works on both platforms
+- **Fixed Import Paths**: Resolved broken import paths from auth system reorganization  
+- **Cross-Platform Compatibility**: App now automatically detects deployment environment
+- **Consistent API**: All routes use the same authentication middleware interface
 
 ### ✅ AI Assistant with Usage Limits Integration
 - **AI Usage Tracking System**: Created comprehensive usage tracking with PostgreSQL database
@@ -24,6 +93,7 @@ An advanced invoice generation and payment processing platform that enables prof
   - General business consultation
 
 ### Key Features
+- **Cross-Platform Authentication**: Automatic environment detection and appropriate auth setup
 - **Usage Tracking**: Real-time tracking of AI interactions with daily/monthly limits
 - **Plan-Based Limits**: Guest accounts (3 daily, 10 monthly) vs Premium accounts (100 daily, 1000 monthly)
 - **Smart Conversations**: Real-time chat with AI for business questions
@@ -67,10 +137,23 @@ An advanced invoice generation and payment processing platform that enables prof
 - Lucide React icons for UI elements
 
 ## Environment Variables Required
+- `DATABASE_URL`: PostgreSQL database connection string
+- `SESSION_SECRET`: Secret key for session management
 - `VITE_OPENAI_API_KEY`: OpenAI API key for AI chat functionality
 - `VITE_HUGGINGFACE_API_KEY`: HuggingFace API key for image generation
 
+### Replit-Specific (when deploying on Replit):
+- `REPLIT_DOMAINS`: Your Replit domain
+- `REPL_ID`: Your Replit application ID
+
+### OAuth-Specific (when deploying elsewhere):
+- `GOOGLE_CLIENT_ID` & `GOOGLE_CLIENT_SECRET`: Google OAuth credentials
+- `FACEBOOK_APP_ID` & `FACEBOOK_APP_SECRET`: Facebook OAuth credentials (optional)
+- `GITHUB_CLIENT_ID` & `GITHUB_CLIENT_SECRET`: GitHub OAuth credentials (optional)
+
 ## Current Status
+- ✅ GitHub and Replit sync issues resolved with conditional authentication
+- ✅ Build process working on both platforms
 - ✅ AI Assistant fully integrated and functional with OpenAI API
 - ✅ Real-time usage tracking system with PostgreSQL database
 - ✅ Tiered usage limits implemented (guest: 3/10, premium: 100/1000)
@@ -78,8 +161,8 @@ An advanced invoice generation and payment processing platform that enables prof
 - ✅ Navigation updated with AI Assistant access
 - ✅ Comprehensive error handling for usage violations
 - ✅ API endpoints for tracking, checking, and viewing usage stats
-- ✅ Documentation updated in README.md
-- Ready for OpenAI API key configuration by user
+- ✅ Cross-platform deployment compatibility
+- Ready for deployment on both Replit and GitHub/Firebase
 
 ## Database Schema Updates
 - Added `ai_usage_tracking` table for individual interaction logging
