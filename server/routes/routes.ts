@@ -86,8 +86,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Apply the rate limiting middleware to all /api/ routes
   app.use("/api/", apiLimiter);
 
-  // Set up authentication routes
-  setupAuth(app);
+  // Set up authentication routes - conditional based on environment
+  if (process.env.REPLIT_DOMAINS && process.env.REPL_ID) {
+    // Use Replit OIDC authentication when running on Replit
+    const { setupAuth: setupReplitAuth } = await import("../replitAuth");
+    await setupReplitAuth(app);
+    logInfo('Using Replit OIDC authentication', 'AuthSetup');
+  } else {
+    // Use standard OAuth authentication for GitHub/other deployments
+    setupAuth(app);
+    logInfo('Using standard OAuth authentication', 'AuthSetup');
+  }
 
   // Register analytics routes
   app.use("/api/analytics", analyticsRoutes);

@@ -461,6 +461,11 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
 };
 
 /**
+ * Alias for requireAuth to maintain compatibility with Replit auth system
+ */
+export const isAuthenticated = requireAuth;
+
+/**
  * Middleware to require admin role for admin-only routes
  */
 export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
