@@ -826,7 +826,7 @@ function calculateNextInvoiceDate(frequency: string, currentDate: Date): Date {
       const daysAwarded = completionRate && completionRate >= 90 ? 2 : 1;
 
       // Record the ad view and update user's premium days
-      const updatedUser = await storage.recordAdView(userId, daysAwarded);
+      const updatedUser = await storage.updateUserPremiumDays(userId, daysAwarded);
 
       if (!updatedUser) {
         return res.status(500).json({ message: "Failed to record ad view" });

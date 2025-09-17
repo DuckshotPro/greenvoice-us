@@ -174,22 +174,24 @@ const CreateInvoice = () => {
               
               {/* Sharing Options */}
               <ShareOptions 
-                invoice={invoice}
-                invoicePreviewRef={invoicePreviewRef}
-                shareUrl={shareableLink}
-                onSaveInvoice={async (invoiceToSave) => {
-                  try {
-                    const result = await createInvoiceMutation.mutateAsync(invoiceToSave);
-                    return {
-                      ...invoiceToSave,
-                      id: result.id,
-                      shareableLink: result.shareableLink
-                    };
-                  } catch (error) {
-                    console.error('Failed to save invoice:', error);
-                    return undefined;
-                  }
+                invoice={{
+                  ...invoice,
+                  id: invoice.id || 0,
+                  notes: invoice.notes || null,
+                  discountType: invoice.discountType || null,
+                  discountValue: invoice.discountValue || null,
+                  discountTotal: invoice.discountTotal || null,
+                  couponCode: invoice.couponCode || null,
+                  shareableLink: shareableLink || null,
+                  status: invoice.status || 'draft',
+                  scheduledSendDate: null,
+                  sentAt: null,
+                  recurringTemplateId: null,
+                  paidAt: null,
+                  paymentMethod: null,
+                  createdAt: null
                 }}
+                isLoading={createInvoiceMutation.isPending}
               />
             </div>
           </div>

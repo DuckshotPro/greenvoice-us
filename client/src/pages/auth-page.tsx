@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
+
+const DEFAULT_REDIRECT_PATH = '/';
 import {
   Card,
   CardContent,
