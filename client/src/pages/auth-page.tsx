@@ -91,6 +91,7 @@ export default function AuthPage() {
       password: data.password,
       rememberMe: data.rememberMe || false
     }, {
+      onSuccess: () => {
         navigate(DEFAULT_REDIRECT_PATH); // Explicit redirect after successful login
       }
     });
