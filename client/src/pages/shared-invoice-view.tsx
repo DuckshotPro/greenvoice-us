@@ -17,7 +17,6 @@ interface ExtendedLineItem extends LineItem {
 interface InvoiceWithItems extends Invoice {
   items: ExtendedLineItem[];
   discount?: number;
-  status: string; // Ensure status is required, not optional
 }
 
 /**
@@ -137,7 +136,7 @@ const SharedInvoiceView = () => {
                 ) : invoice.status === "overdue" ? (
                   <span className="text-red-600 font-semibold">Overdue</span>
                 ) : (
-                  <span>{invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}</span>
+                  <span>{invoice.status ? invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1) : 'Draft'}</span>
                 )}
               </CardDescription>
             </div>
@@ -211,7 +210,7 @@ const SharedInvoiceView = () => {
                 <span>Tax ({invoice.taxRate}%):</span>
                 <span>{formatCurrency(invoice.taxAmount, invoice.currency)}</span>
               </div>
-              {invoice.discount > 0 && (
+              {invoice.discount && invoice.discount > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Discount:</span>
                   <span>-{formatCurrency(invoice.discount, invoice.currency)}</span>

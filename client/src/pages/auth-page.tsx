@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
+
+const DEFAULT_REDIRECT_PATH = '/';
 import {
   Card,
   CardContent,
@@ -91,6 +93,7 @@ export default function AuthPage() {
       password: data.password,
       rememberMe: data.rememberMe || false
     }, {
+      onSuccess: () => {
         navigate(DEFAULT_REDIRECT_PATH); // Explicit redirect after successful login
       }
     });
