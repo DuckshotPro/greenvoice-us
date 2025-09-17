@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ThemeProvider } from "@/hooks/use-theme";
+import { Helmet } from "react-helmet";
 import Layout from "@/components/layout/layout";
 import Home from "@/pages/home";
 import CreateInvoice from "@/pages/create-invoice";
@@ -49,6 +50,17 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="greenvoice-theme">
         <AuthProvider>
+          <Helmet>
+            <title>GreenVoice - Professional Invoice Management Platform</title>
+            <meta name="description" content="Create, share, and manage professional invoices with GreenVoice. Features include PDF generation, email sending, analytics tracking, and customizable branding." />
+            <meta name="keywords" content="invoice, billing, professional, PDF, email, business, accounting, finance" />
+            <meta property="og:title" content="GreenVoice - Professional Invoice Management" />
+            <meta property="og:description" content="Streamline your billing process with our comprehensive invoice management platform." />
+            <meta property="og:type" content="website" />
+            <meta name="twitter:card" content="summary_large_image" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+          </Helmet>
           <Layout>
             <Router />
           </Layout>
