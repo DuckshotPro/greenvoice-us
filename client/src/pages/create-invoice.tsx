@@ -250,7 +250,7 @@ const CreateInvoice = () => {
                     discountValue: invoice.discountValue || null,
                     discountTotal: invoice.discountTotal || null,
                   couponCode: invoice.couponCode || null,
-                  shareableLink: shareableLink || null,
+                  shareableLink: shareableLink,
                   status: invoice.status || 'draft',
                   scheduledSendDate: null,
                   sentAt: null,
