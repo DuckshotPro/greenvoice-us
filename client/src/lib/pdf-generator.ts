@@ -242,7 +242,7 @@ export function generatePdf(invoice: InvoiceWithItems): jsPDF {
  * @param invoice - The invoice data with line items
  */
 export function downloadPDF(invoice: InvoiceWithItems): void {
-  generatePdf(invoice);
+  generatePdf(invoice).save(`invoice-${invoice.invoiceNumber || 'draft'}.pdf`);
 }
 
 /**
