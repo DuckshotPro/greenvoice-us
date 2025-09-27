@@ -50,8 +50,8 @@ quickInvoiceRoutes.post(
           clientName: "Quick Invoice Client", // Placeholder
           clientEmail: invoiceData.clientEmail,
           invoiceNumber,
-          issueDate: new Date(invoiceData.issueDate),
-          dueDate: new Date(invoiceData.dueDate),
+          issueDate: invoiceData.issueDate,
+          dueDate: invoiceData.dueDate,
           status: invoiceData.status,
           currency: invoiceData.currency,
           total: invoiceData.total,

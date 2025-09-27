@@ -79,6 +79,7 @@ export default function OnboardingWelcome() {
     setCurrentStep(Math.min(currentStep + 1, onboardingSteps.length - 1));
   };
 
+  const handleSkipOnboarding = () => {
     try {
       localStorage.setItem('onboarding-completed', 'true');
     } catch (e) {

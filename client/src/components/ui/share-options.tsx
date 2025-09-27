@@ -52,11 +52,17 @@ export function ShareOptions({ invoice, isLoading = false, onClose }: ShareOptio
         setBrandingSettings(settings);
       } catch (error) {
         console.error("Failed to fetch branding settings:", error);
+        // Show user-friendly error message
+        toast({
+          title: "Warning",
+          description: "Could not load branding settings. Using default branding.",
+          variant: "destructive",
+        });
       }
     };
     
     fetchBranding();
-  }, []);
+  }, [toast]);
 
   // Generate the shareable URL
   const getShareableUrl = (source?: string) => {

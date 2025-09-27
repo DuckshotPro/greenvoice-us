@@ -691,7 +691,7 @@ export class DatabaseStorage implements IStorage {
     return db.select()
       .from(shareAnalytics)
       .where(eq(shareAnalytics.invoiceId, invoiceId))
-      .orderBy(desc(shareAnalytics.timestamp));
+      .orderBy(desc(shareAnalytics.share_timestamp));
   }
   
   async getShareAnalyticsByMethod(userId: number, options?: { startDate?: Date, endDate?: Date, groupBy?: string }): Promise<{ method: string, count: number }[]> {
