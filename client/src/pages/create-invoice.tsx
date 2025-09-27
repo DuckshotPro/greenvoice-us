@@ -102,7 +102,7 @@ const CreateInvoice = () => {
   useEffect(() => {
     const saveDraft = () => {
       try {
-        const draftKey = `invoice-draft-${Date.now()}`;
+        const draftKey = `invoice-draft-${new Date().toISOString()}`;
         localStorage.setItem(draftKey, JSON.stringify(invoice));
         
         // Keep only the latest 5 drafts
